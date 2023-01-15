@@ -1,0 +1,19 @@
+{
+    "version": "2.0.0",
+    "tasks": [{
+        "label": "build and run",
+        "command": "stack exec jamgamename-exe",
+        "type": "shell",
+        "dependsOn": [
+            "build"
+        ]
+    },{
+        "label": "build",
+        "command": "stack build",
+        "type": "shell"
+    },{
+        "label": "run",
+        "command": "stack exec jamgamename-exe",
+        "type": "shell"
+    }]
+}
