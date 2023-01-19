@@ -54,7 +54,7 @@ initialize grid coords = do
     _playerEty <- newEntity (Player, Position playerPos, Velocity 0, Sprite playerSprite)
     return ()
 
-initialiseGrid :: (HasMany w [Tile, Position, Velocity, EntityCounter, Sprite]) => Grid -> [(Int,Int)] -> System w ()
+initialiseGrid :: (HasMany w [Position, Velocity, EntityCounter, Sprite]) => Grid -> [(Int,Int)] -> System w ()
 initialiseGrid grid coords  = do
     mapM_ void [newEntity (Position (V2 (fromIntegral x) (fromIntegral y)), Sprite $ getPic (M.findWithDefault erTile (x,y) grid))| (x,y) <-coords]
 
