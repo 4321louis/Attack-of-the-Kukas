@@ -20,6 +20,7 @@ import Apecs.Gloss
 import Control.Monad
 
 import Linear (V2(..))
+import System.Random (randomRIO)
 
 translatePos :: Position -> Picture -> Picture
 translatePos (Position (V2 x y)) = translate x y
@@ -33,3 +34,9 @@ triggerEvery dT period phase sys = do
     let t' = t + phase
         trigger = floor (t' / period) /= floor ((t' + dT) / period)
     when trigger $ void sys
+
+
+atRandIndex :: [a] -> IO a
+atRandIndex l = do
+    i <- randomRIO (0, length l - 1)
+    return $ l !! i

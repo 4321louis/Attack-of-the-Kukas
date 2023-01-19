@@ -42,7 +42,7 @@ testPicture3 = scale 0.4 0.4 . png $ "./src/test_picture3.png"
 testPicture4 = scale 0.5 0.5 . png $ "./src/test_picture4.png"
 
 playerSprite = rotate 90 . color white . scale 10 20 $ triangle
-targetSprite1 = testPicture1 <> (translate 0 (negate 20) . scale 10 10 . color white $ stickFigure)
+targetSprite1 = rotate 90 $ testPicture1 <> (translate 0 (negate 20) . scale 10 10 . color white $ stickFigure)
 targetSprite2 = testPicture2 <> (translate 0 (negate 20) . scale 10 10 . color white $ stickFigure)
 targetSprite3 = testPicture3 <> (translate 0 (negate 20) . scale 10 10 . color white $ stickFigure)
 targetSprite4 = testPicture4 <> (translate 0 (negate 20) . scale 10 10 . color white $ stickFigure)

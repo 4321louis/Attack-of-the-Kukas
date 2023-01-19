@@ -56,7 +56,7 @@ preHandleEvent e@(EventMotion (x, y)) = do
     handleEvent e
 preHandleEvent e = handleEvent e
 
-handleEvent :: (HasMany w [Player, Position, Velocity, Inputs, Bullet, Particle, EntityCounter, Sprite]) => Event -> System w ()
+handleEvent :: (HasMany w [Player, Position, Velocity, Inputs, Bullet, Particle, Sprite, EntityCounter]) => Event -> System w ()
 handleEvent (EventKey (SpecialKey KeyLeft) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyRight) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyDown) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _) -> Velocity (playerVelocityfromInputs s)

@@ -23,6 +23,9 @@ import Drawing.Camera
 import Misc
 import Player
 import Worlds
+import Apecs.Extension
+import Tile
+import qualified Data.Map as M
 
 data Target = Target deriving (Show)
 instance Component Target where type Storage Target = Map Target
@@ -45,10 +48,15 @@ playerPos, scorePos :: V2 Float
 playerPos = V2 0 (-40)
 scorePos = V2 xmin (-170)
 
-initialize :: SystemW ()
-initialize = do
+initialize :: Grid -> [(Int, Int)] -> SystemW ()
+initialize grid coords = do
+    initialiseGrid grid coords
     _playerEty <- newEntity (Player, Position playerPos, Velocity 0, Sprite playerSprite)
     return ()
+
+initialiseGrid :: (HasMany w [Tile, Position, Velocity, EntityCounter, Sprite]) => Grid -> [(Int,Int)] -> System w ()
+initialiseGrid grid coords  = do
+    mapM_ void [newEntity (Position (V2 (fromIntegral x) (fromIntegral y)), Sprite $ getPic (M.findWithDefault erTile (x,y) grid))| (x,y) <-coords]
 
 clampPlayer :: SystemW ()
 clampPlayer = cmap $ \(Player, Position (V2 x y)) ->
@@ -109,7 +117,11 @@ draw = do
 
 main :: IO ()
 main = do
+    content <- readFile "./src/meta.txt"
+    let tileOptions = readTilesMeta content
+        coords = createGrid 10 10
+    grid <- (`doWaveCollapse` coords) $ createPreTileGrid tileOptions coords
     w <- initWorld
     runWith w $ do
-        initialize
-        play (InWindow "This game is POg" (220, 360) (10, 10)) black 60 draw preHandleEvent step
+        initialize grid coords
+        play (InWindow "Haskill Issue" (220, 360) (10, 10)) black 60 draw preHandleEvent step

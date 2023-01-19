@@ -1,0 +1,5 @@
+Corner.png True Water Water RWater LWater
+Side.png True Water RWater Land LWater
+InnerCorner.png True RWater Land Land LWater
+Water.png False Water Water Water Water
+Land.png False Land Land Land Land
