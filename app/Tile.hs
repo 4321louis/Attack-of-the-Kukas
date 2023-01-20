@@ -34,6 +34,30 @@ data Tile = Tile
     , west :: Side} deriving (Show,Eq)
 -- TODO:HitBoxes grid
 -- instance Component Tile where type Storage Tile = Map Tile
+{-# NOINLINE corner  #-}
+{-# NOINLINE side  #-}
+{-# NOINLINE innerCorner  #-}
+{-# NOINLINE water  #-}
+{-# NOINLINE land  #-}
+corner, side, innerCorner, water, land :: Picture
+corner = png "./src/Corner.png"
+side = png "./src/Side.png"
+innerCorner = png "./src/InnerCorner.png"
+water = png "./src/Water.png"
+land = png "./src/Land.png"
+
+getImg :: String -> Picture
+getImg "Corner.png" = corner
+getImg "Side.png" = side
+getImg "InnerCorner.png" = innerCorner
+getImg "Water.png" = water
+getImg "Land.png" = land
+getImg _ = targetSprite1
+
+erTile, erTile2, erTile3 :: Tile
+erTile = Tile targetSprite1 Water Water Water Water
+erTile2 = Tile targetSprite2 Water Water Water Water
+erTile3 = Tile targetSprite3 Water Water Water Water
 
 readTilesMeta :: String -> [Tile]
 readTilesMeta content =
@@ -42,7 +66,7 @@ readTilesMeta content =
         readTile l =
             let [name,count,doRotate,sn,se,ss,sw] = words l
                 [n,e,s,w] :: [Side] = read <$> [sn,se,ss,sw]
-                img = png $ "./src/" ++ name
+                img = getImg name
             in
                 concatRep (read count) $ (if read doRotate then id else take 1)
                     [   Tile img n e s w,
@@ -50,11 +74,6 @@ readTilesMeta content =
                         Tile (rotate 180 img) s w n e,
                         Tile (rotate 270 img) e s w n]
     in concatMap readTile tileLines
-
-erTile, erTile2, erTile3 :: Tile
-erTile = Tile targetSprite1 Water Water Water Water
-erTile2 = Tile targetSprite2 Water Water Water Water
-erTile3 = Tile targetSprite3 Water Water Water Water
 
 createGrid:: Int -> Int -> [(Int,Int)]
 createGrid x y = [(xs,ys)| xs<-[0..x-1], ys<-[0..y-1]]

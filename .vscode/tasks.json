@@ -1,5 +1,6 @@
 {
     "version": "2.0.0",
+    
     "tasks": [{
         "label": "build and run",
         "command": "stack exec jamgamename-exe",
@@ -14,6 +15,10 @@
     },{
         "label": "run",
         "command": "stack exec jamgamename-exe",
+        "type": "shell"
+    },{
+        "label": "profile",
+        "command": "stack --profile run jamgamename-exe --rts-options -p",
         "type": "shell"
     }]
 }

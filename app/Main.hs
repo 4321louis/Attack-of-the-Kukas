@@ -17,6 +17,7 @@ import Apecs.Gloss
 import Control.Monad
 import Linear (V2(..))
 import qualified Linear as L
+import Graphics.Gloss.Game hiding (play)
 
 import Drawing.Sprites
 import Drawing.Camera
@@ -50,13 +51,19 @@ scorePos = V2 xmin (-170)
 
 initialize :: Grid -> [(Int, Int)] -> SystemW ()
 initialize grid coords = do
-    initialiseGrid grid coords
+    -- initialiseGrid grid coords
     _playerEty <- newEntity (Player, Position playerPos, Velocity 0, Sprite playerSprite)
     return ()
 
+getGridSprite grid coords = foldr (<>) Blank [translate (64*fromIntegral x) (64*fromIntegral y) $ pic (M.findWithDefault erTile (x,y) grid)| (x,y) <-coords]
+
 initialiseGrid :: (HasMany w [Position, Velocity, EntityCounter, Sprite]) => Grid -> [(Int,Int)] -> System w ()
 initialiseGrid grid coords  = do
-    mapM_ void [newEntity (Position (V2 (64*fromIntegral x) (64*fromIntegral y)), Sprite $ pic (M.findWithDefault erTile (x,y) grid))| (x,y) <-coords]
+    let 
+        sprite = getGridSprite grid coords
+        -- sprite =
+    void $ newEntity (Position (V2 0 0), Sprite sprite)
+    -- mapM_ void [newEntity (Position (V2 (64*fromIntegral x) (64*fromIntegral y)), Sprite $ pic (M.findWithDefault erTile (x,y) grid))| (x,y) <-coords]
 
 clampPlayer :: SystemW ()
 clampPlayer = cmap $ \(Player, Position (V2 x y)) ->
@@ -102,9 +109,9 @@ step dT = do
     -- triggerEvery dT 0.6 0 $ newEntity (Target, Position (V2 xmin 80), MovementPattern (orbitalPattern (V2 0 0) 130 5 toffset) , animTargetSprite1)
     -- triggerEvery dT 0.6 0.3 $ newEntity (Target, Position (V2 xmax 120), MovementPattern (starPattern (V2 0 0) 130 5 toffset) , animTargetSprite2)
 
-draw :: SystemW Picture
-draw = do
-    sprites <- foldDraw $ \(Position pos, Sprite p) -> translateV2 pos $ p
+draw :: Picture -> SystemW Picture
+draw bg = do
+    sprites <- foldDraw $ \(Position pos, Sprite p) -> translateV2 pos p
     particles <- foldDraw $
         \(Particle _, Velocity (V2 vx vy), Position pos) ->
             translateV2 pos . color orange $ Line [(0, 0), (vx / 10, vy / 10)]
@@ -113,15 +120,17 @@ draw = do
     Score s <- get global
     let score = color white . pictureOnHud cam . translateV2 scorePos . scale 0.1 0.1 . Text $ "Score: " ++ show s
 
-    return $ sprites <> score <> particles
+    return $ bg <> sprites <> score <> particles
 
 main :: IO ()
 main = do
     content <- readFile "./src/meta.txt"
     let tileOptions = readTilesMeta content
-        coords = createGrid 15 15
+        coords = createGrid 60 60
     grid <- (`doWaveCollapse` coords) $ createPreTileGrid tileOptions coords
+
+    let background = getGridSprite grid coords
     w <- initWorld
     runWith w $ do
         initialize grid coords
-        play (InWindow "Haskill Issue" (220, 360) (10, 10)) black 60 draw preHandleEvent step
+        play (InWindow "Haskill Issue" (220, 360) (10, 10)) black 60 (draw background) preHandleEvent step

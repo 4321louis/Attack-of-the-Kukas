@@ -32,6 +32,10 @@ instance Component AnimatedSprite where type Storage AnimatedSprite = Map Animat
 newtype Particle = Particle Float deriving (Show)
 instance Component Particle where type Storage Particle = Map Particle
 
+{-# NOINLINE testPicture1  #-}
+{-# NOINLINE testPicture2  #-}
+{-# NOINLINE testPicture3  #-}
+{-# NOINLINE testPicture4  #-}
 triangle, diamond, testPicture1, testPicture2, testPicture3, testPicture4, playerSprite, targetSprite1, stickFigure, targetSprite2, targetSprite3, targetSprite4, bulletSprite :: Picture
 triangle = Line [(0, 0.5), (-0.5, -0.5), (0.5, -0.5), (0, 0.5)]
 diamond = Line [(-1, 0), (0, -1), (1, 0), (0, 1), (-1, 0)]
