@@ -40,3 +40,6 @@ atRandIndex :: [a] -> IO a
 atRandIndex l = do
     i <- randomRIO (0, length l - 1)
     return $ l !! i
+
+concatRep :: Int -> [a] -> [a]
+concatRep n = concat . replicate n

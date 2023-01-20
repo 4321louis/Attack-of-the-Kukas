@@ -22,10 +22,16 @@ import qualified Data.Map as M
 import Data.Maybe
 import Data.List ( sortBy )
 import Data.Either
-import Misc (atRandIndex)
+import Misc (atRandIndex, concatRep)
+import Debug.Trace
 
-data Side = Water | LWater | RWater | Land deriving (Show,Read)
-data Tile = Tile Picture Side Side Side Side deriving (Show)
+data Side = Water | LWater | RWater | Land deriving (Show,Read,Eq)
+data Tile = Tile 
+    { pic :: Picture
+    , north :: Side 
+    , east :: Side
+    , south :: Side
+    , west :: Side} deriving (Show,Eq)
 -- TODO:HitBoxes grid
 -- instance Component Tile where type Storage Tile = Map Tile
 
@@ -33,29 +39,25 @@ readTilesMeta :: String -> [Tile]
 readTilesMeta content =
     let
         tileLines = lines content
-        readTile l =  
-            let [name,doRotate,sn,se,ss,sw] = words l
+        readTile l =
+            let [name,count,doRotate,sn,se,ss,sw] = words l
                 [n,e,s,w] :: [Side] = read <$> [sn,se,ss,sw]
                 img = png $ "./src/" ++ name
             in
-                (if read doRotate then id else take 1) 
-                    [   Tile img n e s w, 
-                        Tile (rotate 90 img) w n e s, 
-                        Tile (rotate 180 img) s w n e, 
+                concatRep (read count) $ (if read doRotate then id else take 1)
+                    [   Tile img n e s w,
+                        Tile (rotate 90 img) w n e s,
+                        Tile (rotate 180 img) s w n e,
                         Tile (rotate 270 img) e s w n]
     in concatMap readTile tileLines
 
-connects :: Side -> Side
-connects Water = Water
-connects Land = Land
-connects LWater = RWater
-connects RWater = LWater
-
-erTile :: Tile
-erTile = Tile targetSprite2 Water Water Water Water
+erTile, erTile2, erTile3 :: Tile
+erTile = Tile targetSprite1 Water Water Water Water
+erTile2 = Tile targetSprite2 Water Water Water Water
+erTile3 = Tile targetSprite3 Water Water Water Water
 
 createGrid:: Int -> Int -> [(Int,Int)]
-createGrid x y = [(xs,ys)| xs<-map (*64) [0..x-1], ys<-map (*64) [0..y-1]]
+createGrid x y = [(xs,ys)| xs<-[0..x-1], ys<-[0..y-1]]
 
 createPreTileGrid :: [Tile] -> [(Int,Int)] -> PreGrid
 createPreTileGrid tileOptions = foldr (`M.insert` Left tileOptions) M.empty
@@ -63,26 +65,47 @@ createPreTileGrid tileOptions = foldr (`M.insert` Left tileOptions) M.empty
 type PreGrid = M.Map (Int,Int) (Either [Tile] Tile)
 type Grid = M.Map (Int,Int) Tile
 
-getPic :: Tile -> Picture
-getPic (Tile img _ _ _ _) = img
-
 doWaveCollapse :: PreGrid -> [(Int,Int)] -> IO Grid
 doWaveCollapse grid coords = do
-    let 
+    let
         byEntropy = sortBy (\c1 c2 -> compareEntropy (fromJust $ M.lookup c1 grid) (fromJust $ M.lookup c2 grid)) coords
     nextGrid <- collapseCell (head byEntropy) grid
-    if isLeft . fromJust $ M.lookup (head byEntropy) grid 
+    if isLeft . fromJust $ M.lookup (head byEntropy) grid
     then doWaveCollapse nextGrid coords
-    else return $ foldr (\k -> M.insert k (fromRight erTile . fromJust $ M.lookup k grid)) M.empty coords 
+    else return $ foldr (\k -> M.insert k (fromRight erTile . fromJust $ M.lookup k grid)) M.empty coords
 
 compareEntropy :: Foldable t => Either (t a) b -> Either (t a) b -> Ordering
-compareEntropy o1 o2 = 
+compareEntropy o1 o2 =
     let
-        [l1,l2] = either length (const 1) <$> [o1,o2] 
-    in if l1 == l2 then EQ else if l1 > l2 then LT else GT
+        [l1,l2] = either length (const 1000) <$> [o1,o2]
+    in if l1 == l2 then EQ else if l1 < l2 then LT else GT
 
 collapseCell :: (Int,Int) -> PreGrid -> IO PreGrid
 collapseCell cell grid = do
-    tile <- atRandIndex . fromLeft [erTile] . fromJust $ M.lookup cell grid
-    return $ M.insert cell (Right tile) grid
--- TODO:propegate the collapse to adjacent tiles
+    tile <- atRandIndex . fromLeft [erTile2] . fromJust $ M.lookup cell grid
+    let chosenGrid = M.insert cell (Right tile) grid
+    return $ propegateCell cell chosenGrid
+
+propegateCell :: (Int,Int) -> PreGrid -> PreGrid
+propegateCell coord@(x,y) grid =
+    let
+        focus = either id (:[]) . fromJust $ M.lookup coord grid
+        doCell c constraint cgrid = let (changed, ngrid) = constrainCell constraint c cgrid in if changed then propegateCell c ngrid else cgrid
+        correctTouch d1 d2 other = any (\option ->connects (d1 option) (d2 other)) focus
+    in foldr ($) grid (zipWith ($) (doCell <$> [(x-1,y),(x+1,y),(x,y+1),(x,y-1)]) [correctTouch west east, correctTouch east west,  correctTouch north south, correctTouch south north] ) 
+
+
+constrainCell :: (Tile->Bool)->(Int,Int) -> PreGrid -> (Bool,PreGrid)
+constrainCell constaint coord grid =
+    let oldCell = M.lookup coord grid 
+        newCell = either (Left . filter constaint) Right . fromJust $ oldCell
+    in if isNothing oldCell || Just newCell == oldCell then (False, grid) else
+    (True, M.insert coord newCell grid)
+
+    
+connects :: Side -> Side -> Bool
+connects Water Water = True
+connects Land Land = True
+connects LWater RWater = True
+connects RWater LWater = True
+connects _ _ = False

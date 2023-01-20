@@ -56,7 +56,7 @@ initialize grid coords = do
 
 initialiseGrid :: (HasMany w [Position, Velocity, EntityCounter, Sprite]) => Grid -> [(Int,Int)] -> System w ()
 initialiseGrid grid coords  = do
-    mapM_ void [newEntity (Position (V2 (fromIntegral x) (fromIntegral y)), Sprite $ getPic (M.findWithDefault erTile (x,y) grid))| (x,y) <-coords]
+    mapM_ void [newEntity (Position (V2 (64*fromIntegral x) (64*fromIntegral y)), Sprite $ pic (M.findWithDefault erTile (x,y) grid))| (x,y) <-coords]
 
 clampPlayer :: SystemW ()
 clampPlayer = cmap $ \(Player, Position (V2 x y)) ->
@@ -93,14 +93,14 @@ step dT = do
     animatedSprites dT
     rotatePlayer
     -- clearTargets
-    clearBullets
+    -- clearBullets
     stepParticles dT
     handleCollisions
     camOnPlayer
     rescaleCam dT
-    Time toffset <- get global
-    triggerEvery dT 0.6 0 $ newEntity (Target, Position (V2 xmin 80), MovementPattern (orbitalPattern (V2 0 0) 130 5 toffset) , animTargetSprite1)
-    triggerEvery dT 0.6 0.3 $ newEntity (Target, Position (V2 xmax 120), MovementPattern (starPattern (V2 0 0) 130 5 toffset) , animTargetSprite2)
+    -- Time toffset <- get global
+    -- triggerEvery dT 0.6 0 $ newEntity (Target, Position (V2 xmin 80), MovementPattern (orbitalPattern (V2 0 0) 130 5 toffset) , animTargetSprite1)
+    -- triggerEvery dT 0.6 0.3 $ newEntity (Target, Position (V2 xmax 120), MovementPattern (starPattern (V2 0 0) 130 5 toffset) , animTargetSprite2)
 
 draw :: SystemW Picture
 draw = do
@@ -119,7 +119,7 @@ main :: IO ()
 main = do
     content <- readFile "./src/meta.txt"
     let tileOptions = readTilesMeta content
-        coords = createGrid 10 10
+        coords = createGrid 15 15
     grid <- (`doWaveCollapse` coords) $ createPreTileGrid tileOptions coords
     w <- initWorld
     runWith w $ do
