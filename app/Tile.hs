@@ -20,7 +20,7 @@ import Apecs.Gloss
 import Graphics.Gloss.Game hiding (line)
 import qualified Data.Map as M
 import Data.Maybe
-import Data.List ( sortBy )
+import Data.List ( sortBy, minimumBy )
 import Data.Either
 import Misc (atRandIndex, concatRep)
 import Debug.Trace
@@ -55,7 +55,7 @@ getImg "Land.png" = land
 getImg _ = targetSprite1
 
 erTile, erTile2, erTile3 :: Tile
-erTile = Tile targetSprite1 Water Water Water Water
+erTile = Tile side Water Water Water Water
 erTile2 = Tile targetSprite2 Water Water Water Water
 erTile3 = Tile targetSprite3 Water Water Water Water
 
@@ -87,9 +87,9 @@ type Grid = M.Map (Int,Int) Tile
 doWaveCollapse :: PreGrid -> [(Int,Int)] -> IO Grid
 doWaveCollapse grid coords = do
     let
-        byEntropy = sortBy (\c1 c2 -> compareEntropy (fromJust $ M.lookup c1 grid) (fromJust $ M.lookup c2 grid)) coords
-    nextGrid <- collapseCell (head byEntropy) grid
-    if isLeft . fromJust $ M.lookup (head byEntropy) grid
+        lowestEntropy = minimumBy (\c1 c2 -> compareEntropy (fromJust $ M.lookup c1 grid) (fromJust $ M.lookup c2 grid)) coords
+    nextGrid <- collapseCell lowestEntropy grid
+    if isLeft . fromJust $ M.lookup lowestEntropy grid
     then doWaveCollapse nextGrid coords
     else return $ foldr (\k -> M.insert k (fromRight erTile . fromJust $ M.lookup k grid)) M.empty coords
 

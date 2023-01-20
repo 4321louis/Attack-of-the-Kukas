@@ -18,6 +18,8 @@ import Control.Monad
 import Linear (V2(..))
 import qualified Linear as L
 import Graphics.Gloss.Game hiding (play)
+import Graphics.Gloss.Export.Image
+import Codec.Picture
 
 import Drawing.Sprites
 import Drawing.Camera
@@ -49,9 +51,8 @@ playerPos, scorePos :: V2 Float
 playerPos = V2 0 (-40)
 scorePos = V2 xmin (-170)
 
-initialize :: Grid -> [(Int, Int)] -> SystemW ()
-initialize grid coords = do
-    -- initialiseGrid grid coords
+initialize :: SystemW ()
+initialize = do
     _playerEty <- newEntity (Player, Position playerPos, Velocity 0, Sprite playerSprite)
     return ()
 
@@ -125,12 +126,14 @@ draw bg = do
 main :: IO ()
 main = do
     content <- readFile "./src/meta.txt"
-    let tileOptions = readTilesMeta content
-        coords = createGrid 60 60
+    
+    let size = 16
+        tileOptions = readTilesMeta content
+        coords = createGrid size size
     grid <- (`doWaveCollapse` coords) $ createPreTileGrid tileOptions coords
-
-    let background = getGridSprite grid coords
+    exportPictureToFormat (\fp img->savePngImage fp (ImageRGBA8 img)) (64*size,64*size) black "./src/bg.png" . translate (32-32*fromIntegral size) (32-32*fromIntegral size) $  getGridSprite grid coords
+    let background = png "./src/bg.png" 
     w <- initWorld
     runWith w $ do
-        initialize grid coords
+        initialize
         play (InWindow "Haskill Issue" (220, 360) (10, 10)) black 60 (draw background) preHandleEvent step

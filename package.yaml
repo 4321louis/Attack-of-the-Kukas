@@ -23,6 +23,8 @@ dependencies:
 - base >= 4.11 && < 5
 - gloss ^>=1.13.0.1
 - gloss-game >=0.3.3.0
+- gloss-export >=0.1.0.0
+- JuicyPixels >=3.3.8
 - apecs ^>=0.9.4
 - apecs-physics <=0.4.4
 - apecs-gloss ^>=0.2.4
