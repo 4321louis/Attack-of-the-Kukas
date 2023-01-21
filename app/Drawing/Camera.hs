@@ -28,5 +28,6 @@ camOnPlayer = cmap $ \(Player, Position pos , Camera _ cscale) ->
 rescaleCam :: (Has w IO Camera) => Float -> System w ()
 rescaleCam dt = modify global $ \(Camera pos cScale) -> Camera pos (min 1 (cScale + dt*0.9))
 
+-- TODO: scale this with window size
 pictureOnHud :: Camera -> Picture -> Picture
 pictureOnHud (Camera cameraOffset cameraScale) = translateV2 cameraOffset . scale (1/cameraScale) (1/cameraScale)

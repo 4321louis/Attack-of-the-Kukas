@@ -29,6 +29,8 @@ import Worlds
 import Apecs.Extension
 import Tile
 import qualified Data.Map as M
+import Misc (optimisePicture)
+import Debug.Trace (trace)
 
 data Target = Target deriving (Show)
 instance Component Target where type Storage Target = Map Target
@@ -126,14 +128,13 @@ draw bg = do
 main :: IO ()
 main = do
     content <- readFile "./src/meta.txt"
-    
-    let size = 16
+    let size = 25
         tileOptions = readTilesMeta content
         coords = createGrid size size
-    grid <- (`doWaveCollapse` coords) $ createPreTileGrid tileOptions coords
-    exportPictureToFormat (\fp img->savePngImage fp (ImageRGBA8 img)) (64*size,64*size) black "./src/bg.png" . translate (32-32*fromIntegral size) (32-32*fromIntegral size) $  getGridSprite grid coords
-    let background = png "./src/bg.png" 
+    grid <- trace "Doing wave collapse" $ (`doWaveCollapse` coords) $ createPreTileGrid tileOptions coords
+    background <- optimisePicture (64*size,64*size) . translate 32 32 $ getGridSprite grid coords 
+    
     w <- initWorld
     runWith w $ do
         initialize
-        play (InWindow "Haskill Issue" (220, 360) (10, 10)) black 60 (draw background) preHandleEvent step
+        trace "Finished wave collapse" $ play (InWindow "Haskill Issue" (220, 360) (10, 10)) black 60 (draw background) preHandleEvent step
