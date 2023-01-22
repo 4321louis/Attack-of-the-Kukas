@@ -54,19 +54,19 @@ concatRep n = concat . replicate n
 
 optimisePicturewithRes :: (Int,Int) -> (Int,Int) -> Picture -> IO Picture
 optimisePicturewithRes (screenX,screenY) (picX,picY) picture =
-    let intervals n d = zip (takeWhile (<n-d) (iterate (+d) 0)) (repeat d) ++ [(d*div n d,mod n d)]
-        corneredPic = translate (-fromIntegral screenX/2) (-fromIntegral screenY/2) picture
+    let corneredPic = translate (-fromIntegral screenX/2) (-fromIntegral screenY/2) picture
         export snapSize = exportPictureToFormat (\fp img->savePngImage fp (ImageRGBA8 img)) snapSize red
-        allPics = [
-            let fName = "./src/tmp/"++show xOff ++ " " ++ show yOff ++ ".png"
-                xTrans = fromIntegral (snapLen-screenX)/2 + fromIntegral xOff
-                yTrans = fromIntegral (snapHei-screenY)/2 + fromIntegral yOff
-            in do
+        intervals n d = zip (takeWhile (<n-d) (iterate (+d) 0)) (repeat d) ++ [(d*div n d,mod n d)]
+        allSnapsDimensions = [(xOff,yOff,snapLen,snapHei) | (xOff,snapLen) <- intervals picX screenX, (yOff,snapHei) <- intervals picY screenY]
+        loadSnap (xOff,yOff,snapLen,snapHei) = 
+            do
+                let fName = "./src/tmp/"++show xOff++" "++show yOff ++".png"
+                    xTrans = fromIntegral (snapLen-screenX)/2 + fromIntegral xOff
+                    yTrans = fromIntegral (snapHei-screenY)/2 + fromIntegral yOff
                 export (snapLen,snapHei) fName (translate (-xTrans) (-yTrans) corneredPic)
-                return $ translate xTrans yTrans $ png fName | (xOff,snapLen) <- intervals picX screenX, (yOff,snapHei) <- intervals picY screenY 
-            ]
+                return $ translate xTrans yTrans $ png fName
     in
-    foldr (liftM2 (<>)) (return Blank) allPics
+        foldMap loadSnap allSnapsDimensions
 
 optimisePicture :: (Int,Int) -> Picture -> IO Picture
 optimisePicture = optimisePicturewithRes (1500,1000)

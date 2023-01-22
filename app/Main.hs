@@ -128,7 +128,7 @@ draw bg = do
 main :: IO ()
 main = do
     content <- readFile "./src/meta.txt"
-    let size = 25
+    let size = 50
         tileOptions = readTilesMeta content
         coords = createGrid size size
     grid <- trace "Doing wave collapse" $ (`doWaveCollapse` coords) $ createPreTileGrid tileOptions coords
