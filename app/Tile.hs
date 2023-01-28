@@ -120,7 +120,7 @@ constrainCell :: (Tile -> Bool) -> (Int,Int) -> PreGrid -> (Bool,PreGrid)
 constrainCell constaint coord grid =
     let oldCell = M.lookup coord grid 
         newCell = either (Left . V.filter constaint) Right . fromJust $ oldCell
-    in if isNothing oldCell || Just newCell == oldCell then (False, grid) else
+    in if isNothing oldCell || V.length (fromLeft V.empty newCell) == (length . fromLeft V.empty $ fromJust oldCell) then (False, grid) else
     (True, M.insert coord newCell grid)
 
 entropySortBy :: Eq a => (a -> a -> Ordering) -> [a] -> [a] -> [a]
