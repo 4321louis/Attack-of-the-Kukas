@@ -92,12 +92,7 @@ draw bg = do
     particles <- foldDraw $
         \(Particle _, Velocity (V2 vx vy), Position pos) ->
             translateV2 pos . color orange $ Line [(0, 0), (vx / 10, vy / 10)]
-
-    cam <- get global
-    Score s <- get global
-    let score = color white . pictureOnHud cam . translateV2 scorePos . scale 0.1 0.1 . Text $ "Score: " ++ show s
-
-    return $ bg <> sprites <> score <> particles
+    return $ bg <> sprites <> particles
 
 main :: IO ()
 main = do
