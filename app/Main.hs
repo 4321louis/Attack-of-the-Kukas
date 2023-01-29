@@ -130,4 +130,4 @@ main = do
     w <- initWorld
     runWith w $ do
         initialize
-        trace "Finished wave collapse" $ play (InWindow "Haskill Issue" (220, 360) (10, 10)) black 60 (draw background) preHandleEvent step
+        trace "Finished wave collapse" $ play (InWindow "Haskill Issue" (1280, 720) (10, 10)) black 60 (draw background) preHandleEvent step
