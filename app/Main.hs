@@ -35,7 +35,7 @@ data Target = Target deriving (Show)
 instance Component Target where type Storage Target = Map Target
 
 
-makeWorld "World" [''Position, ''Velocity, ''MovementPattern, ''Sprite, ''AnimatedSprite, ''Player, ''Target, ''Bullet, ''Particle, ''Score, ''Time, ''Inputs, ''Camera]
+makeWorld "World" [''Position, ''Velocity, ''MovementPattern, ''Sprite, ''AnimatedSprite, ''Player, ''Target, ''Particle, ''Score, ''Time, ''Inputs, ''Camera]
 
 
 type SystemW a = System World a
@@ -77,30 +77,12 @@ clearTargets = cmap $ \entity@(Target, Position (V2 x _), MovementPattern _) ->
         then Nothing
         else Just entity
 
-clearBullets :: SystemW ()
-clearBullets = cmap $ \(Bullet, Position (V2 _ y), Score s) ->
-    if y > 170
-        then Right (Not @(Bullet, Kinetic), Score (s - missPenalty))
-        else Left ()
-
-handleCollisions :: SystemW ()
-handleCollisions =
-    cmapM_ $ \(Target, Position posT, etyT) ->
-        cmapM_ $ \(Bullet, Position posB, etyB) ->
-            when (L.norm (posT - posB) < 10) $ do
-                destroy etyT (Proxy @(Target, Kinetic))
-                destroy etyB (Proxy @(Bullet, Kinetic))
-                spawnParticles 15 (Position posB) (-500, 500) (200, -50)
-                modify global $ \(Score x) -> Score (x + hitBonus)
-                modify global $ \(Camera pos cScale) -> Camera pos (0.85*cScale)
-
 step :: Float -> SystemW ()
 step dT = do
     incrTime dT
     stepPosition dT
     animatedSprites dT
     stepParticles dT
-    handleCollisions
     camOnPlayer
     rescaleCam dT
 

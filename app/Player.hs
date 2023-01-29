@@ -29,14 +29,10 @@ instance Semigroup Inputs where (Inputs a v1) <> (Inputs b v2) = Inputs (S.union
 instance Monoid Inputs where mempty = Inputs S.empty (V2 0.00000001 0)
 instance Component Inputs where type Storage Inputs = Global Inputs
 
-data Bullet = Bullet deriving (Show)
-instance Component Bullet where type Storage Bullet = Map Bullet
-
-playerSpeed, bulletSpeed :: Float 
+playerSpeed :: Float 
 playerSpeed = 170
-bulletSpeed = 500
 
-preHandleEvent :: (HasMany w [Player, Position, Velocity, Inputs, Bullet, Particle, EntityCounter, Sprite]) => Event -> System w ()
+preHandleEvent :: (HasMany w [Player, Position, Velocity, Inputs, Particle, EntityCounter, Sprite]) => Event -> System w ()
 preHandleEvent e@(EventKey k Down _ _) = do
     modify global $ \(Inputs s m) -> Inputs (S.insert k s) m
     handleEvent e
@@ -48,7 +44,7 @@ preHandleEvent e@(EventMotion (x, y)) = do
     handleEvent e
 preHandleEvent e = handleEvent e
 
-handleEvent :: (HasMany w [Player, Position, Velocity, Inputs, Bullet, Particle, Sprite, EntityCounter]) => Event -> System w ()
+handleEvent :: (HasMany w [Player, Position, Velocity, Inputs, Particle, Sprite, EntityCounter]) => Event -> System w ()
 handleEvent (EventKey (SpecialKey KeyLeft) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyRight) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyDown) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _) -> Velocity (playerVelocityfromInputs s)
