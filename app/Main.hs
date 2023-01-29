@@ -56,6 +56,7 @@ scorePos = V2 xmin (-170)
 initialize :: SystemW ()
 initialize = do
     _playerEty <- newEntity (Player, Position playerPos, Velocity 0, Sprite playerSprite)
+    modify global $ \(Camera pos _) -> Camera pos 1.6
     return ()
 
 getGridSprite grid coords = foldr (<>) Blank [translate (64*fromIntegral x) (64*fromIntegral y) $ pic (M.findWithDefault erTile (x,y) grid)| (x,y) <-coords]
@@ -103,7 +104,6 @@ step dT = do
     stepParticles dT
     handleCollisions
     camOnPlayer
-    rescaleCam dT
 
 draw :: Picture -> SystemW Picture
 draw bg = do
