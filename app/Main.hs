@@ -44,13 +44,9 @@ xmin, xmax :: Float
 xmin = -110
 xmax = 110
 
-hitBonus, missPenalty :: Int
-hitBonus = 100
-missPenalty = 40
 
-playerPos, scorePos :: V2 Float
+playerPos :: V2 Float
 playerPos = V2 0 (-40)
-scorePos = V2 xmin (-170)
 
 initialize :: SystemW ()
 initialize = do
