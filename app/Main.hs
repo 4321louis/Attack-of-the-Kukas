@@ -99,18 +99,11 @@ step :: Float -> SystemW ()
 step dT = do
     incrTime dT
     stepPosition dT
-    -- clampPlayer
     animatedSprites dT
-    rotatePlayer
-    -- clearTargets
-    -- clearBullets
     stepParticles dT
     handleCollisions
     camOnPlayer
     rescaleCam dT
-    -- Time toffset <- get global
-    -- triggerEvery dT 0.6 0 $ newEntity (Target, Position (V2 xmin 80), MovementPattern (orbitalPattern (V2 0 0) 130 5 toffset) , animTargetSprite1)
-    -- triggerEvery dT 0.6 0.3 $ newEntity (Target, Position (V2 xmax 120), MovementPattern (starPattern (V2 0 0) 130 5 toffset) , animTargetSprite2)
 
 draw :: Picture -> SystemW Picture
 draw bg = do

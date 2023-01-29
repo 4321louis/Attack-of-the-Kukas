@@ -39,11 +39,6 @@ playerSpeed, bulletSpeed :: Float
 playerSpeed = 170
 bulletSpeed = 500
 
-rotatePlayer :: (HasMany w [Player,Sprite,Inputs]) => System w ()
-rotatePlayer = do
-    Inputs _ (V2 xPos yPos) <- get global
-    cmap $ \(Player, Sprite _) -> Sprite $ rotate (-180 / pi * (atan (yPos / xPos) + if xPos >= 0 then 0 else pi)) playerSprite
-
 preHandleEvent :: (HasMany w [Player, Position, Velocity, Inputs, Bullet, Particle, EntityCounter, Sprite]) => Event -> System w ()
 preHandleEvent e@(EventKey k Down _ _) = do
     modify global $ \(Inputs s m) -> Inputs (S.insert k s) m
@@ -61,11 +56,6 @@ handleEvent (EventKey (SpecialKey KeyLeft) _ _ _) = cmap $ \(Player, Velocity _,
 handleEvent (EventKey (SpecialKey KeyRight) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyDown) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyUp) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _) -> Velocity (playerVelocityfromInputs s)
-handleEvent (EventKey (MouseButton LeftButton) Down _ (xPos, yPos)) =
-    cmapM_ $ \(Player, pos@(Position _)) -> do
-        let mouseAngle = atan (yPos / xPos) + if xPos >= 0 then 0 else pi
-        _bullet <- newEntity (Bullet, pos, Velocity (bulletSpeed L.*^ V2 (cos mouseAngle) (sin mouseAngle)), Sprite bulletSprite)
-        spawnParticles 7 pos (-80, 80) (10, 100)
 handleEvent (EventKey (SpecialKey KeyEsc) Down _ _) = liftIO exitSuccess
 handleEvent _ = return ()
 
