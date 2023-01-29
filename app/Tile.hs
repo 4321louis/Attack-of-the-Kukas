@@ -26,7 +26,7 @@ import Misc (atRandIndex, concatRep)
 import Debug.Trace
 import qualified Data.Vector as V
 
-data Side = Water | LWater | RWater | Land deriving (Show,Read,Eq)
+data Side = Water | LWater | RWater | MWater | Land deriving (Show,Read,Eq)
 data Tile = Tile 
     { pic :: Picture
     , north :: Side 
@@ -41,6 +41,7 @@ connects Water Water = True
 connects Land Land = True
 connects LWater RWater = True
 connects RWater LWater = True
+connects MWater MWater = True
 connects _ _ = False
 -- instance Component Tile where type Storage Tile = Map Tile
 
