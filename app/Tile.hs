@@ -25,6 +25,10 @@ import Data.Either
 import Misc (atRandIndex, concatRep)
 import Debug.Trace
 import qualified Data.Vector as V
+import qualified Data.Massiv.Array as Msv hiding (take)
+import Data.Massiv.Array hiding (take, zipWith, read)
+import GHC.IO (unsafePerformIO)
+import Control.Monad (foldM)
 
 data Side = Water | LWater | RWater | Land deriving (Show,Read,Eq)
 data Tile = Tile 
@@ -65,69 +69,82 @@ readTilesMeta content =
                         Tile (rotate 270 img) e s w n]
     in V.fromList $ concatMap readTile tileLines
 
-createGrid:: Int -> Int -> [(Int,Int)]
-createGrid x y = [(xs,ys)| xs<-[0..x-1], ys<-[0..y-1]]
+createGrid:: Int -> Int -> [Ix2]
+createGrid x y = [Ix2 xs ys| xs<-[0..x-1], ys<-[0..y-1]]
 
-createPreTileGrid :: V.Vector Tile -> [(Int,Int)] -> PreGrid
-createPreTileGrid tileOptions = foldr (`M.insert` Left tileOptions) M.empty
+createPreTileGrid :: Int -> Int -> V.Vector Tile -> IO (PreGrid) 
+createPreTileGrid x y = newMArray (Sz (x :. y))
 
-type PreGrid = M.Map (Int,Int) (Either (V.Vector Tile) Tile)
-type Grid = M.Map (Int,Int) Tile
+-- class (Load B Ix2 (V.Vector Tile), Manifest B (V.Vector Tile), Manifest B Tile) => GridConstraint
+
+type PreGrid = MArray (PrimState IO) B Ix2 (V.Vector Tile)
+type Grid = Array B Ix2 Tile
 
 highEntropy :: Int
 highEntropy = 100000
 
-doWaveCollapse :: PreGrid -> [(Int,Int)] -> IO Grid
+doWaveCollapse :: PreGrid -> [Ix2] -> IO (Grid)
 doWaveCollapse grid coords = 
-    doWaveCollapseLoop grid $ sortBy (compareEntropy grid) coords 
+    doWaveCollapseLoop grid $ sortBy (\c1 c2 ->unsafePerformIO $ compareEntropy grid c1 c2) coords 
 
 
-doWaveCollapseLoop :: PreGrid -> [(Int,Int)] -> IO Grid
+doWaveCollapseLoop :: PreGrid -> [Ix2] -> IO (Grid)
 doWaveCollapseLoop grid (h:t) = do
-        (changed, nextGrid) <- collapseCell h grid
-        doWaveCollapseLoop nextGrid $ entropySortBy (compareEntropy nextGrid) (nub changed) t
+        changed <- collapseCell h grid
+        doWaveCollapseLoop grid $ entropySortBy (compareEntropy grid) (nub changed) t
+doWaveCollapseLoop grid [] = do
+    frozen <- freezeS grid
+    Data.Massiv.Array.mapM (return . V.head) frozen
 
-doWaveCollapseLoop grid [] = return $ foldr (\k -> M.insert k (fromRight erTile . fromJust $ M.lookup k grid)) M.empty (M.keys grid)
-
-compareEntropy :: PreGrid -> (Int,Int) -> (Int,Int) -> Ordering
-compareEntropy grid o1 o2 =
+compareEntropy :: PreGrid -> Ix2 -> Ix2 -> IO Ordering
+compareEntropy grid o1 o2 = do 
+    c1 <- readM grid o1
+    c2 <- readM grid o2
     let
-        [l1,l2] = preTileEntropy . fromJust . (`M.lookup` grid) <$> [o1,o2]
-    in if l1 < l2 then LT else if l1 == l2 then EQ else  GT
+        l1 = preTileEntropy c1
+        l2 = preTileEntropy c2
+    return $ if l1 < l2 then LT else if l1 == l2 then EQ else  GT
 
-preTileEntropy :: Either (V.Vector a) b -> Int
-preTileEntropy = either V.length (const highEntropy)
+preTileEntropy :: V.Vector a -> Int
+preTileEntropy v = let l = V.length v in if l == 1 then highEntropy else l
 
-collapseCell :: (Int,Int) -> PreGrid -> IO ([(Int,Int)],PreGrid)
+collapseCell :: Ix2 -> PreGrid -> IO [Ix2]
 collapseCell cell grid = do
-    tile <- atRandIndex . fromLeft (V.singleton erTile2) . fromJust $ M.lookup cell grid
-    let chosenGrid = M.insert cell (Right tile) grid
-    return $ propegateCell cell chosenGrid
+    cells <- readM grid cell
+    tile <- atRandIndex cells 
+    _ <- write grid cell (V.singleton tile)
+    propegateCell cell grid
 
-propegateCell :: (Int,Int) -> PreGrid -> ([(Int,Int)],PreGrid)
-propegateCell coord@(x,y) grid =
-    let
-        focus = either id V.singleton . fromJust $ M.lookup coord grid
-        doCell c constraint cgrid = let 
-            (changed, ngrid) = constrainCell constraint c cgrid 
-            (rest, fgrid) = propegateCell c ngrid
-            in if changed then (c:rest,fgrid) else ([],cgrid)
-        correctTouch d1 d2 other = V.any (\option -> connects (d1 option) (d2 other)) focus
-    in foldr (\func (changed0, grid0)-> let (changed1,grid1) = func grid0 in (changed1++changed0,grid1) ) ([],grid) (zipWith ($) (doCell <$> [(x-1,y),(x+1,y),(x,y+1),(x,y-1)]) [correctTouch west east, correctTouch east west,  correctTouch north south, correctTouch south north] ) 
+propegateCell :: Ix2 -> PreGrid -> IO [Ix2]
+propegateCell coord@(Ix2 x y) grid = do 
+    focus <- Msv.read grid coord
+    let correctTouch d1 d2 other = V.any (\option -> connects (d1 option) (d2 other)) (fromJust focus)
+        doCell c constraint grid  = do 
+            changed <- constrainCell constraint c grid
+            
+            if changed then do 
+                rest <- propegateCell c grid
+                return $ c:rest 
+            else return []
+    foldM (\changed0 func -> do 
+        changed1 <- func grid
+        return (changed1++changed0)) [] (zipWith ($) (doCell <$> [Ix2 (x-1) y,Ix2 (x+1) y,Ix2 x (y+1),Ix2 x (y-1)]) [correctTouch west east, correctTouch east west,  correctTouch north south, correctTouch south north] ) 
 
 
-constrainCell :: (Tile -> Bool) -> (Int,Int) -> PreGrid -> (Bool,PreGrid)
-constrainCell constaint coord grid =
-    let oldCell = M.lookup coord grid 
-        newCell = either (Left . V.filter constaint) Right . fromJust $ oldCell
-    in if isNothing oldCell || V.length (fromLeft V.empty newCell) == (length . fromLeft V.empty $ fromJust oldCell) then (False, grid) else
-    (True, M.insert coord newCell grid)
+constrainCell :: (Tile -> Bool) -> Ix2 -> PreGrid -> IO Bool
+constrainCell constaint coord grid = do 
+    oldCell <- Msv.read grid coord
+    let newCell = V.filter constaint . fromJust $ oldCell
+    if isNothing oldCell || V.length newCell == (V.length . fromJust $ oldCell) then return False else
+        do  
+            writeM grid coord newCell 
+            return True
 
-entropySortBy :: Eq a => (a -> a -> Ordering) -> [a] -> [a] -> [a]
+entropySortBy :: Eq a => (a -> a -> IO Ordering) -> [a] -> [a] -> [a]
 entropySortBy _ [] list = list
 entropySortBy comp (c:cs) list = 
     let (left,right) = seperate c list
-    in entropySortBy comp cs $ insert comp c left ++ right
+    in entropySortBy comp cs $ insert (\c1 c2 -> unsafePerformIO $ comp c1 c2) c left ++ right
 
 seperate :: Eq a => a -> [a] -> ([a], [a]) 
 seperate e (x:xs) 

@@ -17,6 +17,7 @@ import Apecs.Gloss
 import Control.Monad
 import Linear (V2(..))
 import qualified Linear as L
+import Debug.Time
 import Graphics.Gloss.Game hiding (play)
 import Graphics.Gloss.Export.Image
 import Codec.Picture
@@ -31,6 +32,7 @@ import Tile
 import qualified Data.Map as M
 import Misc (optimisePicture)
 import Debug.Trace (trace)
+import qualified Data.Massiv.Array as Msv
 
 data Target = Target deriving (Show)
 instance Component Target where type Storage Target = Map Target
@@ -58,15 +60,15 @@ initialize = do
     _playerEty <- newEntity (Player, Position playerPos, Velocity 0, Sprite playerSprite)
     return ()
 
-getGridSprite grid coords = foldr (<>) Blank [translate (64*fromIntegral x) (64*fromIntegral y) $ pic (M.findWithDefault erTile (x,y) grid)| (x,y) <-coords]
+getGridSprite grid coords = foldr (<>) Blank [translate (64*fromIntegral x) (64*fromIntegral y) $ pic (grid Msv.! Msv.Ix2 x y)| (Msv.Ix2 x y) <- coords]
 
-initialiseGrid :: (HasMany w [Position, Velocity, EntityCounter, Sprite]) => Grid -> [(Int,Int)] -> System w ()
-initialiseGrid grid coords  = do
-    let 
-        sprite = getGridSprite grid coords
-        -- sprite =
-    void $ newEntity (Position (V2 0 0), Sprite sprite)
-    -- mapM_ void [newEntity (Position (V2 (64*fromIntegral x) (64*fromIntegral y)), Sprite $ pic (M.findWithDefault erTile (x,y) grid))| (x,y) <-coords]
+-- initialiseGrid :: (HasMany w [Position, Velocity, EntityCounter, Sprite]) => Grid -> [(Int,Int)] -> System w ()
+-- initialiseGrid grid coords  = do
+--     let 
+--         sprite = getGridSprite grid coords
+--         -- sprite =
+--     void $ newEntity (Position (V2 0 0), Sprite sprite)
+--     -- mapM_ void [newEntity (Position (V2 (64*fromIntegral x) (64*fromIntegral y)), Sprite $ pic (M.findWithDefault erTile (x,y) grid))| (x,y) <-coords]
 
 clampPlayer :: SystemW ()
 clampPlayer = cmap $ \(Player, Position (V2 x y)) ->
@@ -131,10 +133,11 @@ main = do
     let size = 120
         tileOptions = readTilesMeta content
         coords = createGrid size size
-    grid <- trace "Doing wave collapse" $ (`doWaveCollapse` coords) $ createPreTileGrid tileOptions coords
-    background <- optimisePicture (64*size,64*size) . translate 32 32 $ getGridSprite grid coords 
+    pregrid <- createPreTileGrid size size tileOptions
+    grid <- startTimer "Collapse" $ (`doWaveCollapse` coords) pregrid
+    background <- optimisePicture (64*size,64*size) . translate 32 32 $ getGridSprite (traceTimer "Collapse" $ grid) coords 
     
     w <- initWorld
     runWith w $ do
         initialize
-        trace "Finished wave collapse" $ play (InWindow "Haskill Issue" (220, 360) (10, 10)) black 60 (draw background) preHandleEvent step
+        traceTimer "Collapse" $ trace "Finished wave collapse" $ play (InWindow "Haskill Issue" (220, 360) (10, 10)) black 60 (draw (traceTimer "Collapse" $ background)) preHandleEvent step

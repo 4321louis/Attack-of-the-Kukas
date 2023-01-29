@@ -33,7 +33,8 @@ dependencies:
 - containers >= 0.6.4.1
 - unordered-containers >=0.2.17.0
 - vector >=0.12.3.1
-# - cflp >= 2009.2.1
+- massiv >=1.0.3.0
+- debug-time>=0.1.0.1
 
 ghc-options:
 - -Wall
