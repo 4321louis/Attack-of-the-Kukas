@@ -29,7 +29,6 @@ import Worlds
 import Apecs.Extension
 import Tile
 import qualified Data.Map as M
-import Misc (optimisePicture)
 import Debug.Trace (trace)
 
 data Target = Target deriving (Show)
