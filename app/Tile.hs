@@ -54,7 +54,7 @@ readTilesMeta :: String -> V.Vector Tile
 readTilesMeta content =
     let
         tileLines = lines content
-        readTile l =
+        readTile l = if l == "" then [] else
             let [name,count,doRotate,sn,se,ss,sw] = words l
                 [n,e,s,w] :: [Side] = read <$> [sn,se,ss,sw]
                 img = png $ "./src/" ++ name
