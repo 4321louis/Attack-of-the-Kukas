@@ -66,7 +66,9 @@ optimisePicturewithRes (screenX,screenY) (picX,picY) picture =
                 export (snapLen,snapHei) fName (translate (-xTrans) (-yTrans) corneredPic)
                 return $ translate xTrans yTrans $ png fName
     in
-        foldMap loadSnap allSnapsDimensions
+        do 
+            pic <- foldMap loadSnap allSnapsDimensions
+            return $ translate (fromIntegral screenX/2) (fromIntegral screenY/2) pic
 
 optimisePicture :: (Int,Int) -> Picture -> IO Picture
 optimisePicture = optimisePicturewithRes (1500,1000)

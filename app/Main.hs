@@ -27,7 +27,8 @@ import Misc
 import Player
 import Worlds
 import Apecs.Extension
-import Tile
+import Grid.Implementation
+import Grid.Tile
 import qualified Data.Map as M
 import Misc (optimisePicture)
 import Debug.Trace (trace)
@@ -50,7 +51,7 @@ hitBonus = 100
 missPenalty = 40
 
 playerPos, scorePos :: V2 Float
-playerPos = V2 0 (-40)
+playerPos = V2 0 0
 scorePos = V2 xmin (-170)
 
 initialize :: SystemW ()
@@ -58,8 +59,6 @@ initialize = do
     _playerEty <- newEntity (Player, Position playerPos, Velocity 0, Sprite playerSprite)
     modify global $ \(Camera pos _) -> Camera pos 1.6
     return ()
-
-getGridSprite grid coords = foldr (<>) Blank [translate (64*fromIntegral x) (64*fromIntegral y) $ pic (M.findWithDefault erTile (x,y) grid)| (x,y) <-coords]
 
 initialiseGrid :: (HasMany w [Position, Velocity, EntityCounter, Sprite]) => Grid -> [(Int,Int)] -> System w ()
 initialiseGrid grid coords  = do
@@ -121,13 +120,14 @@ draw bg = do
 main :: IO ()
 main = do
     content <- readFile "./src/meta.txt"
-    let size = 30 
+    let size = 20 
         tileOptions = readTilesMeta content
         coords = createGrid size size
-    grid <- trace "Doing wave collapse" $ (`doWaveCollapse` coords) $ createPreTileGrid tileOptions coords
-    background <- optimisePicture (64*size,64*size) . translate 32 32 $ getGridSprite grid coords 
+    grid <- trace "Doing wave collapse" $ (`doWaveCollapse` coords) $ collapseBaseGrid $ createPreTileGrid tileOptions coords
+    background <- optimisePicture (64*size,64*size) . translate 32 32 $ getGridSprite grid coords
+    
     
     w <- initWorld
     runWith w $ do
         initialize
-        trace "Finished wave collapse" $ play (InWindow "Haskill Issue" (1280, 720) (10, 10)) black 60 (draw background) preHandleEvent step
+        trace "Finished wave collapse" $ play (InWindow "Haskill Issue" (1280, 720) (10, 10)) black 60 (draw (translate (fromIntegral $ -32*size) (fromIntegral $ -32*size) background)) preHandleEvent step

@@ -13,7 +13,7 @@
 {-# OPTIONS_GHC -Wno-missing-export-lists #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 
-module Tile where
+module Grid.Tile where
 
 import Drawing.Sprites
 import Apecs.Gloss
@@ -43,7 +43,6 @@ connects LWater RWater = True
 connects RWater LWater = True
 connects MWater MWater = True
 connects _ _ = False
--- instance Component Tile where type Storage Tile = Map Tile
 
 erTile, erTile2, erTile3 :: Tile
 erTile = Tile targetSprite4 Water Water Water Water
