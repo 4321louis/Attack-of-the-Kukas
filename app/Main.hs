@@ -30,7 +30,6 @@ import Apecs.Extension
 import Grid.Implementation
 import Grid.Tile
 import qualified Data.Map as M
-import Misc (optimisePicture)
 import Debug.Trace (trace)
 
 data Target = Target deriving (Show)
@@ -120,7 +119,7 @@ draw bg = do
 main :: IO ()
 main = do
     content <- readFile "./src/meta.txt"
-    let size = 20 
+    let size = 25
         tileOptions = readTilesMeta content
         coords = createGrid size size
     grid <- trace "Doing wave collapse" $ (`doWaveCollapse` coords) $ collapseBaseGrid $ createPreTileGrid tileOptions coords

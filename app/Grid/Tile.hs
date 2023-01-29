@@ -23,7 +23,6 @@ import Data.Maybe
 import Data.List ( sortBy, minimumBy )
 import Data.Either
 import Misc (atRandIndex, concatRep)
-import Debug.Trace
 import qualified Data.Vector as V
 
 data Side = Water | LWater | RWater | MWater | Land deriving (Show,Read,Eq)
@@ -32,7 +31,9 @@ data Tile = Tile
     , north :: Side 
     , east :: Side
     , south :: Side
-    , west :: Side} deriving (Show,Eq)
+    , west :: Side
+    , walkable :: Bool
+    , placeable :: Bool} deriving (Show,Eq)
 -- TODO:HitBoxes grid
 
 
@@ -45,24 +46,24 @@ connects MWater MWater = True
 connects _ _ = False
 
 erTile, erTile2, erTile3 :: Tile
-erTile = Tile targetSprite4 Water Water Water Water
-erTile2 = Tile targetSprite2 Water Water Water Water
-erTile3 = Tile targetSprite3 Water Water Water Water
+erTile = Tile targetSprite4 Water Water Water Water False False
+erTile2 = Tile targetSprite2 Water Water Water Water False False
+erTile3 = Tile targetSprite3 Water Water Water Water False False
 
 readTilesMeta :: String -> V.Vector Tile
 readTilesMeta content =
     let
         tileLines = lines content
         readTile l = if l == "" then [] else
-            let [name,count,doRotate,sn,se,ss,sw] = words l
+            let [name,count,doRotate,sn,se,ss,sw,walk,place] = words l
                 [n,e,s,w] :: [Side] = read <$> [sn,se,ss,sw]
                 img = png $ "./src/" ++ name
             in
                 concatRep (read count) $ (if read doRotate then id else take 1)
-                    [   Tile img n e s w,
-                        Tile (rotate 90 img) w n e s,
-                        Tile (rotate 180 img) s w n e,
-                        Tile (rotate 270 img) e s w n]
+                    [   Tile img n e s w (read walk) (read place),
+                        Tile (rotate 90 img) w n e s (read walk) (read place),
+                        Tile (rotate 180 img) s w n e (read walk) (read place),
+                        Tile (rotate 270 img) e s w n (read walk) (read place)]
     in V.fromList $ concatMap readTile tileLines
 
 createGrid:: Int -> Int -> [(Int,Int)]

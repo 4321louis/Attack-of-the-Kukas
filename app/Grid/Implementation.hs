@@ -23,10 +23,12 @@ import Data.Either
 import qualified Data.Map as M
 
 
+getGridSprite :: Grid -> [(Int, Int)] -> Picture
 getGridSprite grid coords = foldr (<>) Blank [translate (64*fromIntegral x) (64*fromIntegral y) $ pic (M.findWithDefault erTile (x,y) grid)| (x,y) <-coords]
 
+collapseBaseGrid :: PreGrid -> PreGrid
 collapseBaseGrid = let
-        doInit = (\c t g -> propegateCell c $ M.insert c (Right t) g)
-        landTile spr = Tile spr Land Land Land Land
+        doInit c t g = propegateCell c $ M.insert c (Right t) g
+        landTile spr = Tile spr Land Land Land Land False False
         in doInit (9,10) (landTile $ png "./src/Base1.png") . doInit (10,10) (landTile $ png "./src/Base2.png") .
-            doInit (9,9) (landTile $ png "./src/Base3.png") . doInit (10,9) (landTile $ png "./src/Base4.png") 
+            doInit (9,9) (landTile $ png "./src/Base3.png") . doInit (10,9) (landTile $ png "./src/Base4.png")
