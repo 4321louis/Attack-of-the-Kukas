@@ -51,12 +51,12 @@ acquireNewPaths = cmapM $ \(p@(PathFinder mGoals cpath), Position (V2 x y)) -> i
 
 
 checkGoal :: (HasMany w [PathFinder, Position]) => System w ()
-checkGoal = cmap $ \(p@(PathFinder goals pathNodes), Position pos@(V2 px py)) -> 
+checkGoal = cmap $ \(p@(PathFinder goals pathNodes), Position (V2 px py)) -> 
     if null pathNodes then p 
     else let node = head pathNodes in if sqDistance node (px,py) < 16 then PathFinder goals (tail pathNodes)  else p
 
 moveOnPath :: (HasMany w [PathFinder, Position, Velocity]) => System w ()
-moveOnPath = cmap $ \(p@(PathFinder goals pathNodes), Position pos@(V2 px py), v@(Velocity _)) ->
+moveOnPath = cmap $ \(PathFinder _ pathNodes, Position pos, Velocity _) ->
     if null pathNodes
     then Velocity (V2 0 0)
     else let (nx,ny) = head pathNodes in Velocity ((L.^* 10) . L.normalize $ V2 nx ny - pos)
