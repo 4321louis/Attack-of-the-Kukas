@@ -64,8 +64,8 @@ moveOnPath = cmap $ \(PathFinder _ pathNodes, Position pos, Velocity _) ->
 
 findPathToClosest graph goals = aStar
     (\(x,y)-> fromMaybe HS.empty . (`M.lookup` graph) $ (32 + fromIntegral (floorMultiple x 64),32 + fromIntegral (floorMultiple y 64)))
-    sqDistance
-    (\p -> minimum $ map (sqDistance p) goals)
+    (\a b -> sqrt (sqDistance a b))
+    (\p -> sqrt (minimum $ map (sqDistance p) goals))
     (\loc -> any ((<=2048) . sqDistance loc) goals)
 
 sqDistance :: Num a => (a, a) -> (a, a) -> a
