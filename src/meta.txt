@@ -1,20 +1,20 @@
-Water.png 120 False Water Water Water Water
+Water.png 120 False Water Water Water Water False False
 
-Land.png 80 False Land Land Land Land
+Land.png 80 False Land Land Land Land True True
 
-WaterSideBot.png 2 False Water RWater Land LWater
-WaterSideLeft.png 2 False LWater Water RWater Land
-WaterSideTop.png 2 False Land LWater Water RWater
-WaterSideRight.png 2 False RWater Land LWater Water
+WaterSideBot.png 2 False Water RWater Land LWater False False
+WaterSideLeft.png 2 False LWater Water RWater Land False False
+WaterSideTop.png 2 False Land LWater Water RWater False False
+WaterSideRight.png 2 False RWater Land LWater Water False False
 
-WaterOCBotLeft.png 2 False Water Water RWater LWater
-WaterOCBotRight.png 2 False Water RWater LWater Water
-WaterOCTopLeft.png 2 False LWater Water Water RWater
-WaterOCTopRight.png 2 False RWater LWater Water Water
+WaterOCBotLeft.png 2 False Water Water RWater LWater False False
+WaterOCBotRight.png 2 False Water RWater LWater Water False False
+WaterOCTopLeft.png 2 False LWater Water Water RWater False False
+WaterOCTopRight.png 2 False RWater LWater Water Water False False
 
 
-WaterICBotLeft.png 3 False LWater RWater Land Land
-WaterICBotRight.png 3 False RWater Land Land LWater
-WaterICTopLeft.png 3 False Land LWater RWater Land
-WaterICTopRight.png 3 False Land Land LWater RWater
-Rock.png 5 False Land Land Land Land
+WaterICBotLeft.png 3 False LWater RWater Land Land False False
+WaterICBotRight.png 3 False RWater Land Land LWater False False
+WaterICTopLeft.png 3 False Land LWater RWater Land False False
+WaterICTopRight.png 3 False Land Land LWater RWater False False
+Rock.png 5 False Land Land Land Land False False
