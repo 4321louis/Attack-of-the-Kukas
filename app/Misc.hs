@@ -26,6 +26,7 @@ import Graphics.Gloss.Export (exportPictureToFormat)
 import Graphics.Gloss.Game (png)
 import Debug.Trace (trace)
 import qualified Data.Vector as V
+import Data.Fixed (mod')
 
 translatePos :: Position -> Picture -> Picture
 translatePos (Position (V2 x y)) = translate x y
@@ -40,7 +41,7 @@ triggerEvery dT period phase sys = do
         trigger = floor (t' / period) /= floor ((t' + dT) / period)
     when trigger $ void sys
 
-
+floorMultiple mult val =  floor $ val - mod' val mult 
 
 atRandIndex :: V.Vector b -> IO b
 atRandIndex l = do
@@ -66,7 +67,10 @@ optimisePicturewithRes (screenX,screenY) (picX,picY) picture =
                 export (snapLen,snapHei) fName (translate (-xTrans) (-yTrans) corneredPic)
                 return $ translate xTrans yTrans $ png fName
     in
-        foldMap loadSnap allSnapsDimensions
+        do 
+            pic <- foldMap loadSnap allSnapsDimensions
+            return $ translate (fromIntegral screenX/2) (fromIntegral screenY/2) pic
 
 optimisePicture :: (Int,Int) -> Picture -> IO Picture
 optimisePicture = optimisePicturewithRes (1500,1000)
+

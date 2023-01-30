@@ -9,8 +9,19 @@
             "build"
         ]
     },{
+        "label": "fast fast build and run",
+        "command": "stack exec jamgamename-exe",
+        "type": "shell",
+        "dependsOn": [
+            "build"
+        ]
+    },{
         "label": "build",
         "command": "stack build",
+        "type": "shell"
+    },{
+        "label": "fast build",
+        "command": "stack build --fast",
         "type": "shell"
     },{
         "label": "run",
