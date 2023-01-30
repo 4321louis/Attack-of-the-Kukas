@@ -96,7 +96,7 @@ step dT = do
     stepParticles dT
     camOnPlayer
     doPathFinding
-    triggerEvery dT 5 3 $  newEntity (Position (V2 600 600), Sprite targetSprite2, Velocity (V2 0 0), PathFinder (Just [(0,0)]) [])
+    triggerEvery dT 5 3 $  newEntity (Position (V2 1400 1400), Sprite targetSprite2, Velocity (V2 0 0), PathFinder (Just [(0,0)]) [])
 
 draw :: Picture -> SystemW Picture
 draw bg = do
@@ -114,13 +114,13 @@ draw bg = do
 main :: IO ()
 main = do
     content <- readFile "./src/meta.txt"
-    let size = traceTimer "WFCollapse" 20
+    let size = traceTimer "WFCollapse" 50
         tileOptions = readTilesMeta content
         graphicTileCoords = traceTimer "WFCollapse" createGrid size size
         pathFindCoords = map (toRealCoord size) graphicTileCoords
         
         
-    grid <- startTimer "WFCollapse" $ (`doWaveCollapse` graphicTileCoords) $ traceTimer "WFCollapse" $ collapseBaseGrid $ traceTimer "WFCollapse" $ createPreTileGrid tileOptions graphicTileCoords
+    grid <- startTimer "WFCollapse" $ (`doWaveCollapse` graphicTileCoords) $ traceTimer "WFCollapse" $ collapseBaseGrid size $ traceTimer "WFCollapse" $ createPreTileGrid tileOptions graphicTileCoords
     background <- startTimer "GridImage" optimisePicture (64*size,64*size) . translate 32 32 $ getGridSprite (traceTimer "GridImage" $ traceTimer "WFCollapse" grid) graphicTileCoords
     
     let getTile = tileOfCoord grid size

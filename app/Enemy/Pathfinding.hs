@@ -59,14 +59,14 @@ moveOnPath :: (HasMany w [PathFinder, Position, Velocity]) => System w ()
 moveOnPath = cmap $ \(PathFinder _ pathNodes, Position pos, Velocity _) ->
     if null pathNodes
     then Velocity (V2 0 0)
-    else let (nx,ny) = head pathNodes in Velocity ((L.^* 10) . L.normalize $ V2 nx ny - pos)
+    else let (nx,ny) = head pathNodes in Velocity ((L.^* 20) . L.normalize $ V2 nx ny - pos)
 
 
 findPathToClosest graph goals = aStar
-    (\(x,y)-> fromMaybe HS.empty . (`M.lookup` graph) $ (fromIntegral $ floorMultiple x 64,fromIntegral $ floorMultiple y 64))
+    (\(x,y)-> fromMaybe HS.empty . (`M.lookup` graph) $ (32 + fromIntegral (floorMultiple x 64),32 + fromIntegral (floorMultiple y 64)))
     sqDistance
     (\p -> minimum $ map (sqDistance p) goals)
-    (\loc -> any ((<64) . sqDistance loc) goals)
+    (\loc -> any ((<=2048) . sqDistance loc) goals)
 
 sqDistance :: Num a => (a, a) -> (a, a) -> a
 sqDistance (x1,y1) (x2,y2) = (x1-x2)^2 + (y1-y2)^2
