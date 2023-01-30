@@ -25,7 +25,7 @@ import Data.Either
 import Misc (atRandIndex, concatRep)
 import qualified Data.Vector as V
 
-data Side = Water | LWater | RWater | Land | ThinLand deriving (Show,Read,Eq)
+data Side = Water | LWater | RWater | Land | ThinLand | Moss | LLand | RLand deriving (Show,Read,Eq)
 data Tile = Tile 
     { pic :: Picture
     , north :: Side 
@@ -39,11 +39,17 @@ data Tile = Tile
 
 connects :: Side -> Side -> Bool
 connects Water Water = True
+
 connects Land Land = True
 connects LWater RWater = True
 connects RWater LWater = True
+
 connects ThinLand Land = True
 connects Land ThinLand = True
+
+connects Moss Moss = True
+connects LLand RLand = True
+connects RLand LLand = True
 connects _ _ = False
 
 erTile, erTile2, erTile3 :: Tile
