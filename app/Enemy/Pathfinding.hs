@@ -21,34 +21,49 @@ import Linear (V2(..))
 import Apecs
 import Misc
 import Apecs.Extension
-import Apecs.Physics
+import Worlds
+import Debug.Trace
 import qualified Linear as L
 
-type PathfindGraph = M.Map (Int,Int) (HS.HashSet (Int,Int))
+type PathfindGraph = M.Map (Float,Float) (HS.HashSet (Float,Float))
 
 newtype Paths = Paths PathfindGraph deriving (Show)
 instance Semigroup Paths where (Paths a) <> (Paths b) = Paths (M.union a b)
 instance Monoid Paths where mempty = Paths M.empty
 instance Component Paths where type Storage Paths = Global Paths
 
-data PathFinder = PathFinder (Maybe [(Int,Int)]) [(Int,Int)] deriving (Show)
+data PathFinder = PathFinder (Maybe [(Float,Float)]) [(Float,Float)] deriving (Show)
 instance Component PathFinder where type Storage PathFinder = Map PathFinder
 
-acquireNewPaths :: (HasMany w [PathFinder, Position, Paths]) => System w ()
-acquireNewPaths = cmapM $ \(p@(PathFinder (Just goals) []), Position (V2 x y)) -> do
+doPathFinding :: (HasMany w [PathFinder, Paths, Position, Velocity]) => System w ()
+doPathFinding = do
+    acquireNewPaths
+    checkGoal
+    moveOnPath
+
+
+acquireNewPaths :: (HasMany w [PathFinder, Paths, Position]) => System w ()
+acquireNewPaths = cmapM $ \(p@(PathFinder mGoals cpath), Position (V2 x y)) -> if null cpath && isJust mGoals then do
     Paths pathscape <- get global
-    let path  = findPathToClosest pathscape goals (floorMultiple 64 x,floorMultiple 64 y)
-    return $ maybe p (PathFinder (Just goals)) path
-
-moveOnPath :: (HasMany w [PathFinder, Velocity, Position]) => System w ()
-moveOnPath = cmap $ \(p@(PathFinder goals (node@(nx,ny):rest)), Position pos@(V2 px py), v@(Velocity _)) ->
-    if sqDistance (fromIntegral nx,fromIntegral ny) (px,py) < 16 
-        then (PathFinder goals rest, if null rest then Velocity (V2 0 0) else Velocity ((L.^* 2) . L.normalize $ V2 (fromIntegral nx) (fromIntegral ny) - pos)) 
-        else (p,v)
+    let path  = findPathToClosest pathscape (fromJust mGoals) (x,y)
+    return $ maybe p (PathFinder mGoals) path
+    else return p
 
 
-findPathToClosest grid goals = aStar
-    (fromJust . (`M.lookup` grid))
+checkGoal :: (HasMany w [PathFinder, Position]) => System w ()
+checkGoal = cmap $ \(p@(PathFinder goals pathNodes), Position (V2 px py)) -> 
+    if null pathNodes then p 
+    else let node = head pathNodes in if sqDistance node (px,py) < 16 then PathFinder goals (tail pathNodes)  else p
+
+moveOnPath :: (HasMany w [PathFinder, Position, Velocity]) => System w ()
+moveOnPath = cmap $ \(PathFinder _ pathNodes, Position pos, Velocity _) ->
+    if null pathNodes
+    then Velocity (V2 0 0)
+    else let (nx,ny) = head pathNodes in Velocity ((L.^* 10) . L.normalize $ V2 nx ny - pos)
+
+
+findPathToClosest graph goals = aStar
+    (\(x,y)-> fromMaybe HS.empty . (`M.lookup` graph) $ (fromIntegral $ floorMultiple x 64,fromIntegral $ floorMultiple y 64))
     sqDistance
     (\p -> minimum $ map (sqDistance p) goals)
     (\loc -> any ((<64) . sqDistance loc) goals)
@@ -58,13 +73,14 @@ sqDistance (x1,y1) (x2,y2) = (x1-x2)^2 + (y1-y2)^2
 
 
 
-generateGraph :: Grid -> [(Int,Int)] -> PathfindGraph
-generateGraph grid coords = M.fromList $ map (\n -> (n,HS.fromList (findAdjacent grid n))) coords
+generateGraph :: ((Float,Float) -> Maybe Tile) -> [(Float,Float)] -> PathfindGraph
+generateGraph toTile = foldr (\n -> M.insert n (HS.fromList (findAdjacent toTile n))) M.empty
 
 
-findAdjacent :: Grid -> (Int,Int) -> [(Int,Int)]
-findAdjacent grid target@(x,y) = filter (moveable grid target) [(x - 32, y),(x + 32, y),(x, y + 32),(x, y - 32),(x - 32, y - 32),(x + 32, y + 32),(x + 32, y + 32),(x - 32, y - 32)]
+findAdjacent :: ((Float,Float) -> Maybe Tile) -> (Float,Float) -> [(Float,Float)]
+findAdjacent toTile target@(x,y) = filter (moveable toTile target) [(x - 64, y),(x + 64, y),(x, y + 64),(x, y - 64),(x - 64, y - 64),(x + 64, y + 64),(x + 64, y - 64),(x + 64, y - 64)]
 
-moveable :: Grid -> (Int, Int) -> (Int, Int) -> Bool
-moveable grid p1 p2 =  isWalkable p1 && isWalkable p2
-    where isWalkable (x,y) = walkable . fromJust $ M.lookup (floorMultiple 64 (fromIntegral x),floorMultiple 64 (fromIntegral y)) grid
+moveable :: ((Float,Float) -> Maybe Tile) -> (Float, Float) -> (Float, Float) -> Bool
+moveable toTile p1 p2 =  let
+    isWalkable (x,y) = maybe False walkable $ toTile (x,y)
+    in isWalkable p1 && isWalkable p2

@@ -43,6 +43,13 @@ packages:
       size: 213
   original:
     hackage: astar-0.3.0.0@sha256:8bf6350542e9db9451490e8993560ee843dc48a61d46a206985430f9b62461c8,967
+- completed:
+    hackage: debug-time-0.1.0.1@sha256:6b6007f054b5c2f54758f774c49bddfb1b70f35203fe49b1878c4ecbfc203330,1011
+    pantry-tree:
+      sha256: 9ef7f0c17a90ab33b3242655a4ef98cc30339d846229ab058ac9c870dbb006fd
+      size: 264
+  original:
+    hackage: debug-time-0.1.0.1@sha256:6b6007f054b5c2f54758f774c49bddfb1b70f35203fe49b1878c4ecbfc203330,1011
 snapshots:
 - completed:
     sha256: e5f56f619132209b826084cacd6374d7f0344cc88a9d1d305878190e4204ae1f
