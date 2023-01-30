@@ -24,7 +24,6 @@ import System.Random (randomRIO)
 import Codec.Picture (DynamicImage(ImageRGBA8), savePngImage)
 import Graphics.Gloss.Export (exportPictureToFormat)
 import Graphics.Gloss.Game (png)
-import Debug.Trace (trace)
 import qualified Data.Vector as V
 import Data.Fixed (mod')
 
@@ -41,7 +40,8 @@ triggerEvery dT period phase sys = do
         trigger = floor (t' / period) /= floor ((t' + dT) / period)
     when trigger $ void sys
 
-floorMultiple mult val =  floor $ val - mod' val mult 
+floorMultiple :: RealFrac a => a -> Int -> Int  
+floorMultiple val mult =  mult*(div (floor val) (mult)) 
 
 atRandIndex :: V.Vector b -> IO b
 atRandIndex l = do
