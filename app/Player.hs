@@ -22,6 +22,7 @@ import Grid.Implementation
 import Worlds
 import Drawing.Sprites
 import Apecs.Extension
+import Data.Maybe
 
 import Debug.Trace  (trace)
 import Control.Monad
@@ -81,4 +82,4 @@ plantPlants playerPos cursorPos grid scale = do
     where   V2 a b = cursorPos
             pos@(V2 x y) = playerPos + V2 (a/scale) (b/scale)
             (cenX, cenY) = tileCentre size (x, y)
-            Just tile = tileOfCoord grid size (x, y) -- just don't click outside the grid 5head
+            tile = fromMaybe erTile3 $ tileOfCoord grid size (x, y) -- just don't click outside the grid 5head
