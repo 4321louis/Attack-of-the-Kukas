@@ -54,13 +54,13 @@ updateGlobalInputs (EventMotion (x, y)) = do
     modify global $ \(Inputs s prev _) -> Inputs s (V2 x y) (V2 x y - prev)
 updateGlobalInputs _ = return ()
 
-handleEvent :: (HasMany w [Player, Velocity, Inputs, EntityCounter, MapGrid, Position, Sprite]) => Event -> System w ()
+handleEvent :: (HasMany w [Player, Velocity, Inputs, EntityCounter, MapGrid, Position, Sprite, Camera]) => Event -> System w ()
 handleEvent (EventKey (SpecialKey KeyLeft) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyRight) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyDown) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyUp) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyEsc) Down _ _) = liftIO exitSuccess
-handleEvent (EventKey (MouseButton LeftButton) Down _ _) = cmapM_ $ \(Player, Position pos, Inputs _ cursorPos _, MapGrid grid) -> plantPlants pos cursorPos grid
+handleEvent (EventKey (MouseButton LeftButton) Down _ _) = cmapM_ $ \(Player, Inputs _ cursorPos _, MapGrid grid, Camera pos scale ) -> plantPlants pos cursorPos grid scale
 handleEvent _ = return ()
 
 playerVelocityfromInputs :: S.Set Key -> V2 Float
@@ -75,10 +75,10 @@ doMousePanning = cmap $ \(Player, Position p, Inputs keys _ d,Camera _ cscale) -
 
 size = 50
 
-plantPlants ::  (HasMany w [Position, Sprite, EntityCounter]) => V2 Float -> V2 Float -> Grid -> System w ()
-plantPlants pos cursorPos grid = do
-        -- if placeable tile then newEntity (Position pos, Sprite playerSprite) else return ()
-    void $ newEntity (Position pos, Sprite playerSprite)
-    where   V2 x y = pos
-                    -- V2 x y = cursorPos + pos -- should be related to the delta between the two
+plantPlants ::  (HasMany w [Position, Sprite, EntityCounter, Camera]) => V2 Float -> V2 Float -> Grid -> Float -> System w ()
+plantPlants playerPos cursorPos grid scale = do
+    when (placeable tile) $ trace (show x ++ " " ++ show y) $ void $ newEntity (Position pos, Sprite playerSprite)
+    where   V2 a b = cursorPos
+            pos@(V2 x y) = playerPos + V2 (a/scale) (b/scale)
+            
             Just tile = tileOfCoord grid size (x, y)
