@@ -42,7 +42,7 @@ import Control.Concurrent
 import Sound.ProteaAudio
 
 
-makeWorld "World" [''Position, ''Velocity, ''MovementPattern, ''Paths, ''PathFinder, ''Sprite, ''Grid, ''AnimatedSprite, ''Player, ''Particle, ''Score, ''Time, ''Inputs, ''Camera]
+makeWorld "World" [''Position, ''Velocity, ''MovementPattern, ''Paths, ''PathFinder, ''Sprite, ''MapGrid, ''AnimatedSprite, ''Player, ''Particle, ''Score, ''Time, ''Inputs, ''Camera]
 
 
 type SystemW a = System World a
@@ -60,7 +60,7 @@ initialize pathGraph grid = do
     _playerEty <- newEntity (Player, Position playerPos, Velocity 0, Sprite playerSprite)
     modify global $ \(Camera pos _) -> Camera pos 1.6
     modify global $ \(Paths _) -> Paths pathGraph
-    modify global $ \(Grid _) -> grid
+    modify global $ \(MapGrid _) -> MapGrid grid
     return ()
 
 initialiseGrid :: (HasMany w [Position, Velocity, EntityCounter, Sprite]) => Grid -> [(Int,Int)] -> System w ()

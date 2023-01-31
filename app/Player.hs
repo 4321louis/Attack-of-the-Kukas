@@ -24,6 +24,7 @@ import Drawing.Sprites
 import Apecs.Extension
 
 import Debug.Trace  (trace)
+import Control.Monad
 
 data Player = Player deriving (Show)
 instance Component Player where type Storage Player = Unique Player
@@ -37,7 +38,7 @@ instance Component Inputs where type Storage Inputs = Global Inputs
 playerSpeed :: Float 
 playerSpeed = 170
 
-handleInputs :: (HasMany w [Player, Position, Velocity, Inputs, Camera, EntityCounter, Grid]) => Event -> System w ()
+handleInputs :: (HasMany w [Player, Position, Velocity, Inputs, Camera, EntityCounter, MapGrid, Sprite]) => Event -> System w ()
 handleInputs e = do
     modify global $ \(Inputs s m _) -> Inputs s m (V2 0 0)
     updateGlobalInputs e
@@ -53,13 +54,13 @@ updateGlobalInputs (EventMotion (x, y)) = do
     modify global $ \(Inputs s prev _) -> Inputs s (V2 x y) (V2 x y - prev)
 updateGlobalInputs _ = return ()
 
-handleEvent :: (HasMany w [Player, Velocity, Inputs, EntityCounter, Grid, Position]) => Event -> System w ()
+handleEvent :: (HasMany w [Player, Velocity, Inputs, EntityCounter, MapGrid, Position, Sprite]) => Event -> System w ()
 handleEvent (EventKey (SpecialKey KeyLeft) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyRight) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyDown) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyUp) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyEsc) Down _ _) = liftIO exitSuccess
-handleEvent (EventKey (MouseButton LeftButton) Down _ _) = cmap $ \(Player, Position pos, Inputs _ cursorPos _, Grid grid) -> plantPlants pos cursorPos grid
+handleEvent (EventKey (MouseButton LeftButton) Down _ _) = cmapM_ $ \(Player, Position pos, Inputs _ cursorPos _, MapGrid grid) -> plantPlants pos cursorPos grid
 handleEvent _ = return ()
 
 playerVelocityfromInputs :: S.Set Key -> V2 Float
@@ -74,9 +75,10 @@ doMousePanning = cmap $ \(Player, Position p, Inputs keys _ d,Camera _ cscale) -
 
 size = 50
 
+plantPlants ::  (HasMany w [Position, Sprite, EntityCounter]) => V2 Float -> V2 Float -> Grid -> System w ()
 plantPlants pos cursorPos grid = do
         -- if placeable tile then newEntity (Position pos, Sprite playerSprite) else return ()
-    newEntity (Position pos, Sprite playerSprite)
+    void $ newEntity (Position pos, Sprite playerSprite)
     where   V2 x y = pos
                     -- V2 x y = cursorPos + pos -- should be related to the delta between the two
-            Just tile = tileOfCoord (Grid grid) size (x, y)
+            Just tile = tileOfCoord grid size (x, y)

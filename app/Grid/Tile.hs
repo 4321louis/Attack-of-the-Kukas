@@ -39,10 +39,11 @@ data Tile = Tile
 
 type PreGrid = M.Map (Int,Int) (Either (V.Vector Tile) Tile)
 
-newtype Grid = Grid (M.Map (Int,Int) Tile)
-instance Semigroup Grid where Grid a <>Grid  b = Grid (M.union a b)
-instance Monoid Grid where mempty = Grid M.empty
-instance Component Grid where type Storage Grid = Global Grid
+type Grid = M.Map (Int,Int) Tile
+newtype MapGrid = MapGrid (M.Map (Int,Int) Tile)
+instance Semigroup MapGrid where MapGrid a <>MapGrid  b = MapGrid (M.union a b)
+instance Monoid MapGrid where mempty = MapGrid M.empty
+instance Component MapGrid where type Storage MapGrid = Global MapGrid
 
 connects :: Side -> Side -> Bool
 connects Water Water = True
@@ -93,7 +94,7 @@ doWaveCollapse grid coords = do
     nextGrid <- collapseCell lowestEntropy grid
     if isLeft . fromJust $ M.lookup lowestEntropy grid
     then doWaveCollapse nextGrid coords
-    else return $ Grid $ foldr (\k -> M.insert k (fromRight erTile . fromJust $ M.lookup k grid)) M.empty coords
+    else return $ foldr (\k -> M.insert k (fromRight erTile . fromJust $ M.lookup k grid)) M.empty coords
 
 compareEntropy :: Either (V.Vector a) b -> Either (V.Vector a) b -> Ordering
 compareEntropy o1 o2 =
