@@ -165,7 +165,7 @@ tempAudioMain = do
 
 main :: IO ()
 main = do
-    tempAudioMain
+    -- tempAudioMain
     content <- readFile "./src/meta.txt"
     let size = traceTimer "WFCollapse" 50
         tileOptions = readTilesMeta content
@@ -182,4 +182,4 @@ main = do
     runWith w $ do
         
         startTimer "GraphCreation" $ initialize (traceTimer "GraphCreation" $ generateGraph (traceTimer "GraphCreation" getTile) pathFindCoords)
-        play (InWindow "Haskill Issue" (1280, 720) (10, 10)) black 60 (draw (traceTimer "GridImage"  $ translate (fromIntegral $ -32*size) (fromIntegral $ -32*size) background)) preHandleEvent step
+        play (InWindow "Haskill Issue" (1280, 720) (10, 10)) black 60 (draw (traceTimer "GridImage"  $ translate (fromIntegral $ -32*size) (fromIntegral $ -32*size) background)) handleInputs step
