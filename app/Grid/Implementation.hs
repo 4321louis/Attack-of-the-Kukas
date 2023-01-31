@@ -24,10 +24,10 @@ import qualified Data.Map as M
 
 
 toRealCoord :: Int -> (Int,Int) -> (Float,Float)
-toRealCoord size (x,y) = (32 + fromIntegral (64*x-32*size),32 + fromIntegral ( 64*y-32*size)) 
+toRealCoord size (x,y) = (fromIntegral (64*x-32*size),fromIntegral ( 64*y-32*size)) 
 
 fromRealCoord :: Int -> (Float,Float) -> (Int,Int)
-fromRealCoord size (x,y) = (floor  $ (x-32+32*fromIntegral size)/64 , floor $ (y-32+32*fromIntegral size)/64 )
+fromRealCoord size (x,y) = (floor  $ (x+32*fromIntegral size)/64 , floor $ (y+32*fromIntegral size)/64 )
 
 tileOfCoord :: Grid -> Int -> (Float,Float) -> Maybe Tile
 tileOfCoord grid size (x,y) = M.lookup (fromRealCoord size (x,y)) grid
