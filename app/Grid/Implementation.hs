@@ -32,6 +32,10 @@ fromRealCoord size (x,y) = (floor  $ (x+32*fromIntegral size)/64 , floor $ (y+32
 tileOfCoord :: Grid -> Int -> (Float,Float) -> Maybe Tile
 tileOfCoord grid size (x,y) = M.lookup (fromRealCoord size (x,y)) grid
 
+tileCentre :: Int -> (Float, Float) -> (Float, Float)
+tileCentre size realCoord = (x+32, y+32)
+    where   tile = fromRealCoord size realCoord
+            (x, y) = toRealCoord size tile
 
 getGridSprite :: Grid -> [(Int, Int)] -> Picture
 getGridSprite grid coords = foldr (<>) Blank [translate (64*fromIntegral x) (64*fromIntegral y) $ pic (M.findWithDefault erTile (x,y) grid)| (x,y) <-coords]

@@ -77,8 +77,8 @@ size = 50
 
 plantPlants ::  (HasMany w [Position, Sprite, EntityCounter, Camera]) => V2 Float -> V2 Float -> Grid -> Float -> System w ()
 plantPlants playerPos cursorPos grid scale = do
-    when (placeable tile) $ trace (show x ++ " " ++ show y) $ void $ newEntity (Position pos, Sprite playerSprite)
+    when (placeable tile) $ void $ newEntity (Position (V2 cenX cenY), Sprite playerSprite)
     where   V2 a b = cursorPos
             pos@(V2 x y) = playerPos + V2 (a/scale) (b/scale)
-            
-            Just tile = tileOfCoord grid size (x, y)
+            (cenX, cenY) = tileCentre size (x, y)
+            Just tile = tileOfCoord grid size (x, y) -- just don't click outside the grid 5head
