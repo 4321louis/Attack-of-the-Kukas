@@ -16,6 +16,7 @@
 module Grid.Tile where
 
 import Drawing.Sprites
+import Apecs
 import Apecs.Gloss
 import Graphics.Gloss.Game hiding (line)
 import qualified Data.Map as M
@@ -36,6 +37,12 @@ data Tile = Tile
     , placeable :: Bool} deriving (Show,Eq)
 -- TODO:HitBoxes grid
 
+type PreGrid = M.Map (Int,Int) (Either (V.Vector Tile) Tile)
+
+newtype Grid = Grid (M.Map (Int,Int) Tile)
+instance Semigroup Grid where Grid a <>Grid  b = Grid (M.union a b)
+instance Monoid Grid where mempty = Grid M.empty
+instance Component Grid where type Storage Grid = Global Grid
 
 connects :: Side -> Side -> Bool
 connects Water Water = True
@@ -79,9 +86,6 @@ createGrid x y = [(xs,ys)| xs<-[0..x-1], ys<-[0..y-1]]
 createPreTileGrid :: V.Vector Tile -> [(Int,Int)] -> PreGrid
 createPreTileGrid tileOptions = foldr (`M.insert` Left tileOptions) M.empty
 
-type PreGrid = M.Map (Int,Int) (Either (V.Vector Tile) Tile)
-type Grid = M.Map (Int,Int) Tile
-
 doWaveCollapse :: PreGrid -> [(Int,Int)] -> IO Grid
 doWaveCollapse grid coords = do
     let
@@ -89,7 +93,7 @@ doWaveCollapse grid coords = do
     nextGrid <- collapseCell lowestEntropy grid
     if isLeft . fromJust $ M.lookup lowestEntropy grid
     then doWaveCollapse nextGrid coords
-    else return $ foldr (\k -> M.insert k (fromRight erTile . fromJust $ M.lookup k grid)) M.empty coords
+    else return $ Grid $ foldr (\k -> M.insert k (fromRight erTile . fromJust $ M.lookup k grid)) M.empty coords
 
 compareEntropy :: Either (V.Vector a) b -> Either (V.Vector a) b -> Ordering
 compareEntropy o1 o2 =

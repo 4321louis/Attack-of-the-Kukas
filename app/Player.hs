@@ -55,6 +55,8 @@ handleEvent (EventKey (SpecialKey KeyRight) _ _ _) = cmap $ \(Player, Velocity _
 handleEvent (EventKey (SpecialKey KeyDown) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyUp) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyEsc) Down _ _) = liftIO exitSuccess
+handleEvent (EventKey (MouseButton LeftButton) Down _ _) = return ()
+    -- \(Inputs _ cursorPos _) -> plantPlants cursorPos
 handleEvent _ = return ()
 
 playerVelocityfromInputs :: S.Set Key -> V2 Float
@@ -66,3 +68,12 @@ playerVelocityfromInputs inputs =
 
 doMousePanning :: (HasMany w [Player, Position, Camera, Inputs]) => System w ()
 doMousePanning = cmap $ \(Player, Position p, Inputs keys _ d,Camera _ cscale) -> if S.member (MouseButton MiddleButton) keys then Position (p - (d L.^/ cscale)) else Position p
+
+plant = 0
+
+-- plantPlants cursorPos = 0
+--     -- case placeable of
+--     --     True -> tile
+--     --     False -> tile
+--     --         where   tile = cursorPos
+--     --                 placeable = True

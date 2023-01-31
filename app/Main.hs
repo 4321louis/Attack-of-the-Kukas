@@ -42,7 +42,7 @@ import Control.Concurrent
 import Sound.ProteaAudio
 
 
-makeWorld "World" [''Position, ''Velocity, ''MovementPattern, ''Paths, ''PathFinder, ''Sprite, ''AnimatedSprite, ''Player, ''Bullet, ''Particle, ''Score, ''Time, ''Inputs, ''Camera]
+makeWorld "World" [''Position, ''Velocity, ''MovementPattern, ''Paths, ''PathFinder, ''Sprite, ''Grid, ''AnimatedSprite, ''Player, ''Particle, ''Score, ''Time, ''Inputs, ''Camera]
 
 
 type SystemW a = System World a
@@ -55,11 +55,12 @@ xmax = 110
 playerPos :: V2 Float
 playerPos = V2 0 0
 
-initialize :: PathfindGraph -> SystemW ()
-initialize pathGraph= do
+initialize :: PathfindGraph -> Grid -> SystemW ()
+initialize pathGraph grid = do
     _playerEty <- newEntity (Player, Position playerPos, Velocity 0, Sprite playerSprite)
     modify global $ \(Camera pos _) -> Camera pos 1.6
     modify global $ \(Paths _) -> Paths pathGraph
+    modify global $ \(Grid _) -> grid
     return ()
 
 initialiseGrid :: (HasMany w [Position, Velocity, EntityCounter, Sprite]) => Grid -> [(Int,Int)] -> System w ()
@@ -73,12 +74,6 @@ initialiseGrid grid coords  = do
 clampPlayer :: SystemW ()
 clampPlayer = cmap $ \(Player, Position (V2 x y)) ->
     Position (V2 (min xmax . max xmin $ x) y)
-
-clearBullets :: SystemW ()
-clearBullets = cmap $ \(Bullet, Position (V2 _ y), Score s) ->
-    if y > 170
-        then Right (Not @(Bullet, Kinetic), Score (s - missPenalty))
-        else Left ()
 
 -- handleCollisions :: SystemW ()
 -- handleCollisions =
@@ -172,5 +167,5 @@ main = do
     w <- initWorld
     runWith w $ do
         
-        startTimer "GraphCreation" $ initialize (traceTimer "GraphCreation" $ generateGraph (traceTimer "GraphCreation" getTile) pathFindCoords)
+        startTimer "GraphCreation" $ initialize (traceTimer "GraphCreation" $ generateGraph (traceTimer "GraphCreation" getTile) pathFindCoords) grid
         play (InWindow "Haskill Issue" (1280, 720) (10, 10)) black 60 (draw (traceTimer "GridImage"  $ translate (fromIntegral $ -32*size) (fromIntegral $ -32*size) background)) handleInputs step
