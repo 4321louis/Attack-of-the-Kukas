@@ -1,4 +1,4 @@
--- Tiles and Procedural Generation 
+-- Tiles and Procedural Generation, General
 
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -35,7 +35,9 @@ data Tile = Tile
     , west :: Side
     , walkable :: Bool
     , placeable :: Bool} deriving (Show,Eq)
--- TODO:HitBoxes grid
+
+type PreGrid = M.Map (Int,Int) (Either (V.Vector Tile) Tile)
+type Grid = M.Map (Int,Int) Tile
 
 type PreGrid = M.Map (Int,Int) (Either (V.Vector Tile) Tile)
 

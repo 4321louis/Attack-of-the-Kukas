@@ -1,4 +1,4 @@
-
+-- More specific details for how the grid is handled with the rest of the game
 
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -46,4 +46,6 @@ collapseBaseGrid size = let
         landTile spr = Tile spr Land Land Land Land True True
         center = div size 2
         in doInit (center-1,center) (landTile $ png "./src/Base1.png") . doInit (center,center) (landTile $ png "./src/Base2.png") .
-            doInit (center-1,center-1) (landTile $ png "./src/Base3.png") . doInit (center,center-1) (landTile $ png "./src/Base4.png") . if size == 50 then doInit (46,46) (landTile $ png "./src/Water.png") else id
+            doInit (center-1,center-1) (landTile $ png "./src/Base3.png") . doInit (center,center-1) (landTile $ png "./src/Base4.png") . 
+            if size == 50 then doInit (46,46) (landTile $ png "./src/Water.png") . doInit (3,46) (landTile $ png "./src/Water.png") . 
+                doInit (46,3) (landTile $ png "./src/Water.png") . doInit (3,3) (landTile $ png "./src/Water.png") else id

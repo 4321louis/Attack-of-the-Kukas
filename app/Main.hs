@@ -27,6 +27,7 @@ import Misc
 import Player
 import Worlds
 import Apecs.Extension
+import Structure.Structure
 import Grid.Implementation
 import Grid.Tile
 import qualified Data.Map as M
@@ -42,7 +43,7 @@ import Control.Concurrent
 import Sound.ProteaAudio
 
 
-makeWorld "World" [''Position, ''Velocity, ''MovementPattern, ''Paths, ''PathFinder, ''Sprite, ''MapGrid, ''AnimatedSprite, ''Player, ''Particle, ''Score, ''Time, ''Inputs, ''Camera]
+makeWorld "World" [''Position, ''Velocity, ''MovementPattern, ''Paths, ''PathFinder, ''Sprite, ''MapGrid, ''AnimatedSprite, ''Player, ''Structure, ''Score, ''Time, ''Inputs, ''Camera]
 
 
 type SystemW a = System World a
@@ -55,12 +56,18 @@ xmax = 110
 playerPos :: V2 Float
 playerPos = V2 0 0
 
-initialize :: PathfindGraph -> Grid -> SystemW ()
-initialize pathGraph grid = do
-    _playerEty <- newEntity (Player, Position playerPos, Velocity 0, Sprite playerSprite)
+initialize :: PathfindGraph -> SystemW ()
+initialize pathGraph = do
+    _playerEty <- newEntity (Player, Position playerPos, Velocity 0)
     modify global $ \(Camera pos _) -> Camera pos 1.6
-    modify global $ \(Paths _) -> Paths pathGraph
+    modify global $ \(Paths _ g) -> Paths pathGraph g
     modify global $ \(MapGrid _) -> MapGrid grid
+    _baseEty <- newEntity(Structure 200 [   
+        (96, 32), (96, -32),
+        (-96, 32), (-96, -32),
+        (32, 96), (32, -96),
+        (-32, 96), (-32, -96)])
+    updateGoals
     return ()
 
 initialiseGrid :: (HasMany w [Position, Velocity, EntityCounter, Sprite]) => Grid -> [(Int,Int)] -> System w ()
@@ -94,7 +101,15 @@ step dT = do
     stepParticles dT
     camOnPlayer
     doPathFinding
-    triggerEvery dT 5 3 $  newEntity (Position (V2 1400 1400), Sprite targetSprite2, Velocity (V2 0 0), PathFinder (Just [(0,0)]) [])
+    triggerEvery dT 8 3 $  newEntity (Position (V2 1400 1400), Sprite targetSprite2, Velocity (V2 0 0), PathFinder (Just [(0,0)]) [])
+    triggerEvery dT 8 1 $  newEntity (Position (V2 1400 (-1400)), Sprite targetSprite2, Velocity (V2 0 0), PathFinder (Just [(0,0)]) [])
+    triggerEvery dT 8 5 $  newEntity (Position (V2 (-1400) 1400), Sprite targetSprite2, Velocity (V2 0 0), PathFinder (Just [(0,0)]) [])
+    triggerEvery dT 8 7 $  newEntity (Position (V2 (-1400) (-1400)), Sprite targetSprite2, Velocity (V2 0 0), PathFinder (Just [(0,0)]) [])
+
+updateGoals :: SystemW ()
+updateGoals = do
+    modify global $ \(Paths graph _) -> Paths graph []
+    cmapM_ $ \(Structure _ points) -> do modify global $ \(Paths graph goals) -> Paths graph (points ++ goals)
 
 draw :: Picture -> SystemW Picture
 draw bg = do
@@ -105,10 +120,10 @@ draw bg = do
     return $ bg <> sprites <> particles
 
 waitPlayback = do
-  n <- soundActiveAll
-  when  (n > 0) $ do
-    threadDelay oneSec
-    waitPlayback
+    n <- soundActiveAll
+    when  (n > 0) $ do
+        threadDelay oneSec
+        waitPlayback
 
 oneSec :: Int
 oneSec = 1000000 -- micro seconds
@@ -158,7 +173,7 @@ main = do
         graphicTileCoords = traceTimer "WFCollapse" createGrid size size
         pathFindCoords = map (toRealCoord size) graphicTileCoords
         
-        
+    
     grid <- startTimer "WFCollapse" $ (`doWaveCollapse` graphicTileCoords) $ traceTimer "WFCollapse" $ collapseBaseGrid size $ traceTimer "WFCollapse" $ createPreTileGrid tileOptions graphicTileCoords
     background <- startTimer "GridImage" optimisePicture (64*size,64*size) . translate 32 32 $ getGridSprite (traceTimer "GridImage" $ traceTimer "WFCollapse" grid) graphicTileCoords
     
