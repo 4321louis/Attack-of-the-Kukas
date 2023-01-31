@@ -26,6 +26,9 @@ import Data.Maybe
 
 import Debug.Trace  (trace)
 import Control.Monad
+import Structure.Structure
+import Enemy.Pathfinding
+import Enemy.Pathfinding (PathFinder)
 
 data Player = Player deriving (Show)
 instance Component Player where type Storage Player = Unique Player
@@ -39,7 +42,7 @@ instance Component Inputs where type Storage Inputs = Global Inputs
 playerSpeed :: Float 
 playerSpeed = 170
 
-handleInputs :: (HasMany w [Player, Position, Velocity, Inputs, Camera, EntityCounter, MapGrid, Sprite]) => Event -> System w ()
+handleInputs :: (HasMany w [Player, Position, Velocity, Inputs, Camera, EntityCounter, MapGrid, Sprite, Structure, Paths, PathFinder]) => Event -> System w ()
 handleInputs e = do
     modify global $ \(Inputs s m _) -> Inputs s m (V2 0 0)
     updateGlobalInputs e
@@ -55,7 +58,7 @@ updateGlobalInputs (EventMotion (x, y)) = do
     modify global $ \(Inputs s prev _) -> Inputs s (V2 x y) (V2 x y - prev)
 updateGlobalInputs _ = return ()
 
-handleEvent :: (HasMany w [Player, Velocity, Inputs, EntityCounter, MapGrid, Position, Sprite, Camera]) => Event -> System w ()
+handleEvent :: (HasMany w [Player, Velocity, Inputs, EntityCounter, MapGrid, Position, Sprite, Camera, Structure, Paths, PathFinder]) => Event -> System w ()
 handleEvent (EventKey (SpecialKey KeyLeft) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyRight) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyDown) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
@@ -75,9 +78,12 @@ doMousePanning :: (HasMany w [Player, Position, Camera, Inputs]) => System w ()
 doMousePanning = cmap $ \(Player, Position p, Inputs keys _ d,Camera _ cscale) -> if S.member (MouseButton MiddleButton) keys then Position (p - (d L.^/ cscale)) else Position p
 
 
-plantPlants ::  (HasMany w [Position, Sprite, EntityCounter, Camera]) => V2 Float -> V2 Float -> Grid -> Int -> Float -> System w ()
-plantPlants playerPos cursorPos grid size scale = do
-    when (placeable tile) $ void $ newEntity (Position (V2 cenX cenY), Sprite playerSprite)
+plantPlants ::  (HasMany w [Position, Sprite, Structure, EntityCounter, Camera, Paths, PathFinder]) => V2 Float -> V2 Float -> Grid -> Int -> Float -> System w ()
+plantPlants playerPos cursorPos grid size scale =
+    when (placeable tile) $ do
+        newEntity (Position (V2 cenX cenY), Sprite playerSprite, Structure 30 [(cenX+64,cenY),(cenX-64,cenY),(cenX,cenY+64),(cenX,cenY-64)] )
+        updateGoals
+        clearPaths
     where   V2 a b = cursorPos
             (V2 x y) = playerPos + V2 (a/scale) (b/scale)
             (cenX, cenY) = tileCentre size (x, y)

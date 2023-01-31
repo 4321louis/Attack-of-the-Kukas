@@ -42,6 +42,8 @@ doPathFinding = do
     checkGoal
     moveOnPath
 
+clearPaths :: (Has w IO PathFinder) => System w ()
+clearPaths =  cmap $ \(PathFinder mGoals _) -> PathFinder mGoals []
 
 acquireNewPaths :: (HasMany w [PathFinder, Paths, Position]) => System w ()
 acquireNewPaths = cmapM $ \(p@(PathFinder mGoals cpath), Position (V2 x y)) -> if null cpath && isJust mGoals then do
@@ -67,7 +69,7 @@ findPathToClosest graph goals = aStar
     (fromMaybe HS.empty . (`M.lookup` graph) . tileCentre 6 )
     (\a b -> sqrt (sqDistance a b))
     (\p -> sqrt (minimum $ map (sqDistance p) goals))
-    (\loc -> any ((<=2248) . sqDistance loc) goals)
+    (\loc -> any ((<=2048) . sqDistance loc) goals)
 
 sqDistance :: Num a => (a, a) -> (a, a) -> a
 sqDistance (x1,y1) (x2,y2) = (x1-x2)^2 + (y1-y2)^2

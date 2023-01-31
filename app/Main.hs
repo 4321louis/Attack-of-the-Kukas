@@ -106,11 +106,6 @@ step dT = do
     triggerEvery dT 8 5 $  newEntity (Position (V2 (-1400) 1400), Sprite targetSprite2, Velocity (V2 0 0), PathFinder (Just [(0,0)]) [])
     triggerEvery dT 8 7 $  newEntity (Position (V2 (-1400) (-1400)), Sprite targetSprite2, Velocity (V2 0 0), PathFinder (Just [(0,0)]) [])
 
-updateGoals :: SystemW ()
-updateGoals = do
-    modify global $ \(Paths graph _) -> Paths graph []
-    cmapM_ $ \(Structure _ points) -> do modify global $ \(Paths graph goals) -> Paths graph (points ++ goals)
-
 draw :: Picture -> SystemW Picture
 draw bg = do
     sprites <- foldDraw $ \(Position pos, Sprite p) -> translateV2 pos p
