@@ -61,7 +61,7 @@ handleEvent (EventKey (SpecialKey KeyRight) _ _ _) = cmap $ \(Player, Velocity _
 handleEvent (EventKey (SpecialKey KeyDown) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyUp) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyEsc) Down _ _) = liftIO exitSuccess
-handleEvent (EventKey (MouseButton LeftButton) Down _ _) = cmapM_ $ \(Player, Inputs _ cursorPos _, MapGrid grid, Camera pos scale ) -> plantPlants pos cursorPos grid scale
+handleEvent (EventKey (MouseButton LeftButton) Down _ _) = cmapM_ $ \(Player, Inputs _ cursorPos _, MapGrid grid size, Camera pos scale ) -> plantPlants pos cursorPos grid size scale
 handleEvent _ = return ()
 
 playerVelocityfromInputs :: S.Set Key -> V2 Float
@@ -74,12 +74,11 @@ playerVelocityfromInputs inputs =
 doMousePanning :: (HasMany w [Player, Position, Camera, Inputs]) => System w ()
 doMousePanning = cmap $ \(Player, Position p, Inputs keys _ d,Camera _ cscale) -> if S.member (MouseButton MiddleButton) keys then Position (p - (d L.^/ cscale)) else Position p
 
-size = 50
 
-plantPlants ::  (HasMany w [Position, Sprite, EntityCounter, Camera]) => V2 Float -> V2 Float -> Grid -> Float -> System w ()
-plantPlants playerPos cursorPos grid scale = do
+plantPlants ::  (HasMany w [Position, Sprite, EntityCounter, Camera]) => V2 Float -> V2 Float -> Grid -> Int -> Float -> System w ()
+plantPlants playerPos cursorPos grid size scale = do
     when (placeable tile) $ void $ newEntity (Position (V2 cenX cenY), Sprite playerSprite)
     where   V2 a b = cursorPos
-            pos@(V2 x y) = playerPos + V2 (a/scale) (b/scale)
+            (V2 x y) = playerPos + V2 (a/scale) (b/scale)
             (cenX, cenY) = tileCentre size (x, y)
             tile = fromMaybe erTile3 $ tileOfCoord grid size (x, y) -- just don't click outside the grid 5head

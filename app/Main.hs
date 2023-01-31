@@ -43,7 +43,7 @@ import Control.Concurrent
 import Sound.ProteaAudio
 
 
-makeWorld "World" [''Position, ''Velocity, ''MovementPattern, ''Paths, ''PathFinder, ''Sprite, ''MapGrid, ''AnimatedSprite, ''Player, ''Structure, ''Score, ''Time, ''Inputs, ''Camera]
+makeWorld "World" [''Position, ''Velocity, ''MovementPattern, ''Paths, ''Particle, ''PathFinder, ''Sprite, ''MapGrid, ''AnimatedSprite, ''Player, ''Structure, ''Score, ''Time, ''Inputs, ''Camera]
 
 
 type SystemW a = System World a
@@ -56,12 +56,12 @@ xmax = 110
 playerPos :: V2 Float
 playerPos = V2 0 0
 
-initialize :: PathfindGraph -> SystemW ()
-initialize pathGraph = do
+initialize :: PathfindGraph -> Grid -> Int -> SystemW ()
+initialize pathGraph grid size = do
     _playerEty <- newEntity (Player, Position playerPos, Velocity 0)
     modify global $ \(Camera pos _) -> Camera pos 1.6
     modify global $ \(Paths _ g) -> Paths pathGraph g
-    modify global $ \(MapGrid _) -> MapGrid grid
+    modify global $ \(MapGrid _ _) -> MapGrid grid size
     _baseEty <- newEntity(Structure 200 [   
         (96, 32), (96, -32),
         (-96, 32), (-96, -32),
@@ -171,7 +171,7 @@ main = do
     let size = traceTimer "WFCollapse" 50
         tileOptions = readTilesMeta content
         graphicTileCoords = traceTimer "WFCollapse" createGrid size size
-        pathFindCoords = map (toRealCoord size) graphicTileCoords
+        pathFindCoords = map (tileCentre 2 . toRealCoord size) graphicTileCoords
         
     
     grid <- startTimer "WFCollapse" $ (`doWaveCollapse` graphicTileCoords) $ traceTimer "WFCollapse" $ collapseBaseGrid size $ traceTimer "WFCollapse" $ createPreTileGrid tileOptions graphicTileCoords
@@ -182,5 +182,5 @@ main = do
     w <- initWorld
     runWith w $ do
         
-        startTimer "GraphCreation" $ initialize (traceTimer "GraphCreation" $ generateGraph (traceTimer "GraphCreation" getTile) pathFindCoords) grid
+        startTimer "GraphCreation" $ initialize (traceTimer "GraphCreation" $ generateGraph (traceTimer "GraphCreation" getTile) pathFindCoords) grid size
         play (InWindow "Haskill Issue" (1280, 720) (10, 10)) black 60 (draw (traceTimer "GridImage"  $ translate (fromIntegral $ -32*size) (fromIntegral $ -32*size) background)) handleInputs step

@@ -39,12 +39,9 @@ data Tile = Tile
 type PreGrid = M.Map (Int,Int) (Either (V.Vector Tile) Tile)
 type Grid = M.Map (Int,Int) Tile
 
-type PreGrid = M.Map (Int,Int) (Either (V.Vector Tile) Tile)
-
-type Grid = M.Map (Int,Int) Tile
-newtype MapGrid = MapGrid (M.Map (Int,Int) Tile)
-instance Semigroup MapGrid where MapGrid a <>MapGrid  b = MapGrid (M.union a b)
-instance Monoid MapGrid where mempty = MapGrid M.empty
+data MapGrid = MapGrid Grid Int
+instance Semigroup MapGrid where MapGrid a s1 <> MapGrid b s2= MapGrid (M.union a b) (s1+s2)
+instance Monoid MapGrid where mempty = MapGrid M.empty 0
 instance Component MapGrid where type Storage MapGrid = Global MapGrid
 
 connects :: Side -> Side -> Bool

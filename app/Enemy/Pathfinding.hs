@@ -24,6 +24,7 @@ import Apecs.Extension
 import Worlds
 import Debug.Trace
 import qualified Linear as L
+import Grid.Implementation
 
 type PathfindGraph = M.Map (Float,Float) (HS.HashSet (Float,Float))
 
@@ -51,8 +52,8 @@ acquireNewPaths = cmapM $ \(p@(PathFinder mGoals cpath), Position (V2 x y)) -> i
 
 
 checkGoal :: (HasMany w [PathFinder, Position]) => System w ()
-checkGoal = cmap $ \(p@(PathFinder goals pathNodes), Position (V2 px py)) -> 
-    if null pathNodes then p 
+checkGoal = cmap $ \(p@(PathFinder goals pathNodes), Position (V2 px py)) ->
+    if null pathNodes then p
     else let node = head pathNodes in if sqDistance node (px,py) < 16 then PathFinder goals (tail pathNodes)  else p
 
 moveOnPath :: (HasMany w [PathFinder, Position, Velocity]) => System w ()
@@ -63,10 +64,10 @@ moveOnPath = cmap $ \(PathFinder _ pathNodes, Position pos, Velocity _) ->
 
 
 findPathToClosest graph goals = aStar
-    (\(x,y)-> fromMaybe HS.empty . (`M.lookup` graph) $ (32 + fromIntegral (floorMultiple x 64),32 + fromIntegral (floorMultiple y 64)))
+    (fromMaybe HS.empty . (`M.lookup` graph) . tileCentre 6 )
     (\a b -> sqrt (sqDistance a b))
     (\p -> sqrt (minimum $ map (sqDistance p) goals))
-    (\loc -> any ((<=2048) . sqDistance loc) goals)
+    (\loc -> any ((<=2248) . sqDistance loc) goals)
 
 sqDistance :: Num a => (a, a) -> (a, a) -> a
 sqDistance (x1,y1) (x2,y2) = (x1-x2)^2 + (y1-y2)^2
