@@ -1,4 +1,4 @@
--- Tiles and Procedural Generation 
+-- Tiles and Procedural Generation, General
 
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -34,7 +34,9 @@ data Tile = Tile
     , west :: Side
     , walkable :: Bool
     , placeable :: Bool} deriving (Show,Eq)
--- TODO:HitBoxes grid
+
+type PreGrid = M.Map (Int,Int) (Either (V.Vector Tile) Tile)
+type Grid = M.Map (Int,Int) Tile
 
 
 connects :: Side -> Side -> Bool
@@ -78,9 +80,6 @@ createGrid x y = [(xs,ys)| xs<-[0..x-1], ys<-[0..y-1]]
 
 createPreTileGrid :: V.Vector Tile -> [(Int,Int)] -> PreGrid
 createPreTileGrid tileOptions = foldr (`M.insert` Left tileOptions) M.empty
-
-type PreGrid = M.Map (Int,Int) (Either (V.Vector Tile) Tile)
-type Grid = M.Map (Int,Int) Tile
 
 doWaveCollapse :: PreGrid -> [(Int,Int)] -> IO Grid
 doWaveCollapse grid coords = do

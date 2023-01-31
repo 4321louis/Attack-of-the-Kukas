@@ -27,9 +27,9 @@ import qualified Linear as L
 
 type PathfindGraph = M.Map (Float,Float) (HS.HashSet (Float,Float))
 
-newtype Paths = Paths PathfindGraph deriving (Show)
-instance Semigroup Paths where (Paths a) <> (Paths b) = Paths (M.union a b)
-instance Monoid Paths where mempty = Paths M.empty
+data Paths = Paths PathfindGraph [(Float,Float)] deriving (Show)
+instance Semigroup Paths where (Paths a g1) <> (Paths b g2) = Paths (M.union a b) (g1 ++ g2)
+instance Monoid Paths where mempty = Paths M.empty []
 instance Component Paths where type Storage Paths = Global Paths
 
 data PathFinder = PathFinder (Maybe [(Float,Float)]) [(Float,Float)] deriving (Show)
@@ -44,9 +44,9 @@ doPathFinding = do
 
 acquireNewPaths :: (HasMany w [PathFinder, Paths, Position]) => System w ()
 acquireNewPaths = cmapM $ \(p@(PathFinder mGoals cpath), Position (V2 x y)) -> if null cpath && isJust mGoals then do
-    Paths pathscape <- get global
-    let path  = findPathToClosest pathscape (fromJust mGoals) (x,y)
-    return $ maybe p (PathFinder mGoals) path
+    Paths pathscape allgoals <- get global
+    let path  = findPathToClosest pathscape allgoals (x,y)
+    return $ maybe p (PathFinder (Just allgoals)) path
     else return p
 
 
@@ -72,13 +72,12 @@ sqDistance :: Num a => (a, a) -> (a, a) -> a
 sqDistance (x1,y1) (x2,y2) = (x1-x2)^2 + (y1-y2)^2
 
 
-
 generateGraph :: ((Float,Float) -> Maybe Tile) -> [(Float,Float)] -> PathfindGraph
 generateGraph toTile = foldr (\n -> M.insert n (HS.fromList (findAdjacent toTile n))) M.empty
 
 
 findAdjacent :: ((Float,Float) -> Maybe Tile) -> (Float,Float) -> [(Float,Float)]
-findAdjacent toTile target@(x,y) = filter (moveable toTile target) [(x - 64, y),(x + 64, y),(x, y + 64),(x, y - 64),(x - 64, y - 64),(x + 64, y + 64),(x + 64, y - 64),(x + 64, y - 64)]
+findAdjacent toTile target@(x,y) = filter (moveable toTile target) [(x - 64, y),(x + 64, y),(x, y + 64),(x, y - 64),(x - 64, y - 64),(x + 64, y + 64),(x + 64, y - 64),(x - 64, y + 64)]
 
 moveable :: ((Float,Float) -> Maybe Tile) -> (Float, Float) -> (Float, Float) -> Bool
 moveable toTile p1 p2 =  let
