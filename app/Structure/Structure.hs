@@ -13,11 +13,10 @@
 module Structure.Structure where
 
 import Apecs
-import Apecs.Gloss
 import Apecs.Extension
 import Enemy.Pathfinding
 
--- HP, attack positions?
+-- HP, attack positions
 data Structure = Structure Float [(Float,Float)] deriving (Show)
 instance Component Structure where type Storage Structure = Map Structure
 

@@ -40,7 +40,6 @@ doPathFinding :: (HasMany w [PathFinder, Paths, Position, Velocity]) => System w
 doPathFinding = do
     acquireNewPaths
     checkGoal
-    moveOnPath
 
 clearPaths :: (Has w IO PathFinder) => System w ()
 clearPaths =  cmap $ \(PathFinder mGoals _) -> PathFinder mGoals []
@@ -48,8 +47,8 @@ clearPaths =  cmap $ \(PathFinder mGoals _) -> PathFinder mGoals []
 acquireNewPaths :: (HasMany w [PathFinder, Paths, Position]) => System w ()
 acquireNewPaths = cmapM $ \(p@(PathFinder mGoals cpath), Position (V2 x y)) -> if null cpath && isJust mGoals then do
     Paths pathscape allgoals <- get global
-    let path  = findPathToClosest pathscape allgoals (x,y)
-    return $ maybe p (PathFinder (Just allgoals)) path
+    let path  = findPathToClosest pathscape (fromJust mGoals) (x,y)
+    return $ maybe p (PathFinder mGoals) path
     else return p
 
 
@@ -58,18 +57,12 @@ checkGoal = cmap $ \(p@(PathFinder goals pathNodes), Position (V2 px py)) ->
     if null pathNodes then p
     else let node = head pathNodes in if sqDistance node (px,py) < 16 then PathFinder goals (tail pathNodes)  else p
 
-moveOnPath :: (HasMany w [PathFinder, Position, Velocity]) => System w ()
-moveOnPath = cmap $ \(PathFinder _ pathNodes, Position pos, Velocity _) ->
-    if null pathNodes
-    then Velocity (V2 0 0)
-    else let (nx,ny) = head pathNodes in Velocity ((L.^* 20) . L.normalize $ V2 nx ny - pos)
-
 
 findPathToClosest graph goals = aStar
-    (fromMaybe HS.empty . (`M.lookup` graph) . tileCentre 6 )
+    (fromMaybe HS.empty . (`M.lookup` graph) . tileCentre 2 )
     (\a b -> sqrt (sqDistance a b))
     (\p -> sqrt (minimum $ map (sqDistance p) goals))
-    (\loc -> any ((<=2048) . sqDistance loc) goals)
+    (\loc -> any ((<=128) . sqDistance loc) goals)
 
 sqDistance :: Num a => (a, a) -> (a, a) -> a
 sqDistance (x1,y1) (x2,y2) = (x1-x2)^2 + (y1-y2)^2

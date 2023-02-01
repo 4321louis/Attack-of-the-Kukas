@@ -21,6 +21,7 @@ import Debug.Trace
 import Grid.Tile
 import Data.Either
 import qualified Data.Map as M
+import Misc
 
 
 toRealCoord :: Int -> (Int,Int) -> (Float,Float)
@@ -33,9 +34,7 @@ tileOfCoord :: Grid -> Int -> (Float,Float) -> Maybe Tile
 tileOfCoord grid size (x,y) = M.lookup (fromRealCoord size (x,y)) grid
 
 tileCentre :: Int -> (Float, Float) -> (Float, Float)
-tileCentre size realCoord = (x+32, y+32)
-    where   tile = fromRealCoord size realCoord
-            (x, y) = toRealCoord size tile
+tileCentre size (x,y) = if even size then (32 + fromIntegral (floorMultiple x 64),32 + fromIntegral (floorMultiple y 64)) else (fromIntegral (floorMultiple (x-32) 64),fromIntegral (floorMultiple (y-32) 64))
 
 getGridSprite :: Grid -> [(Int, Int)] -> Picture
 getGridSprite grid coords = foldr (<>) Blank [translate (64*fromIntegral x) (64*fromIntegral y) $ pic (M.findWithDefault erTile (x,y) grid)| (x,y) <-coords]

@@ -28,7 +28,6 @@ import Debug.Trace  (trace)
 import Control.Monad
 import Structure.Structure
 import Enemy.Pathfinding
-import Enemy.Pathfinding (PathFinder)
 
 data Player = Player deriving (Show)
 instance Component Player where type Storage Player = Unique Player
@@ -81,7 +80,7 @@ doMousePanning = cmap $ \(Player, Position p, Inputs keys _ d,Camera _ cscale) -
 plantPlants ::  (HasMany w [Position, Sprite, Structure, EntityCounter, Camera, Paths, PathFinder]) => V2 Float -> V2 Float -> Grid -> Int -> Float -> System w ()
 plantPlants playerPos cursorPos grid size scale =
     when (placeable tile) $ do
-        newEntity (Position (V2 cenX cenY), Sprite playerSprite, Structure 30 [(cenX+64,cenY),(cenX-64,cenY),(cenX,cenY+64),(cenX,cenY-64)] )
+        _plant <- newEntity (Position (V2 cenX cenY), Sprite playerSprite, Structure 30 [(cenX+64,cenY),(cenX-64,cenY),(cenX,cenY+64),(cenX,cenY-64)] )
         updateGoals
         clearPaths
     where   V2 a b = cursorPos
