@@ -16,11 +16,15 @@ import Apecs
 import Apecs.Gloss
 import Codec.Picture
 import Control.Monad
+import Debug.Trace (trace)
+import Debug.Time
+import qualified Data.Map as M
+import GHC.Exts (sortWith)
+import Graphics.Gloss.Export.Image
+import Graphics.Gloss.Game hiding (play)
+import Graphics.Gloss.Interface.Environment
 import Linear (V2(..))
 import qualified Linear as L
-import Graphics.Gloss.Game hiding (play)
-import Graphics.Gloss.Export.Image
-import Graphics.Gloss.Interface.Environment
 
 import Drawing.Sprites
 import Drawing.Camera
@@ -31,9 +35,6 @@ import Apecs.Extension
 import Structure.Structure
 import Grid.Implementation
 import Grid.Tile
-import qualified Data.Map as M
-import Debug.Trace (trace)
-import Debug.Time
 import Enemy.Enemy
 import Enemy.Pathfinding
 
@@ -104,13 +105,14 @@ step dT = do
 
 draw :: Picture -> (Int,Int) -> SystemW Picture
 draw bg (screenWidth, screenHeight) = do
-    sprites <- foldDraw $ \(Position pos, Sprite p) -> translateV2 pos p
+    unsortedSprites <- cfold (\sprites (Position pos@(V2 _ y), Sprite p) -> (y,translateV2 pos p):sprites) []
+    let sprites = foldMap snd $ sortWith (negate . fst) unsortedSprites
     particles <- foldDraw $
         \(Particle _, Velocity (V2 vx vy), Position pos) ->
             translateV2 pos . color orange $ Line [(0, 0), (vx / 10, vy / 10)]
     cam <- get global
     Score s <- get global
-    let score = pictureOnHud cam (V2 (fromIntegral $ 30 - div screenWidth 2) (fromIntegral $ 50 - div screenHeight 2)) . scale 0.1 0.1 . color white .  Text $ "Base HP: " ++ show s
+    let score = pictureOnHud cam (V2 (fromIntegral $ 30 - div screenWidth 2) (fromIntegral $ 50 - div screenHeight 2)) . scale 0.3 0.3 . color white .  Text $ "Base HP: " ++ show s
     return $  bg <> sprites <> particles <> score
 
 main :: IO ()
