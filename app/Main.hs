@@ -37,13 +37,6 @@ import Debug.Time
 import Enemy.Enemy
 import Enemy.Pathfinding
 
-import System.Environment
-import System.FilePath
-import qualified Data.ByteString as SB
-import Control.Concurrent
-
-import Sound.ProteaAudio
-
 
 makeWorld "World" [''Position, ''Velocity, ''Enemy, ''MovementPattern, ''MapGrid, ''Paths, ''PathFinder, ''Structure, ''Sprite, ''AnimatedSprite, ''Player, ''Particle, ''Score, ''Time, ''Inputs, ''Camera]
 type AllComps = (Position, Enemy, Velocity, MovementPattern, PathFinder, Structure, Sprite, AnimatedSprite)
@@ -120,51 +113,6 @@ draw bg (screenWidth, screenHeight) = do
     let score = pictureOnHud cam (V2 (fromIntegral $ 30 - div screenWidth 2) (fromIntegral $ 50 - div screenHeight 2)) . scale 0.1 0.1 . color white .  Text $ "Base HP: " ++ show s
     return $  bg <> sprites <> particles <> score
 
-waitPlayback = do
-    n <- soundActiveAll
-    when  (n > 0) $ do
-        threadDelay oneSec
-        waitPlayback
-
-oneSec :: Int
-oneSec = 1000000 -- micro seconds
-
-tempAudioMain = do
-    let filename = "./src/menuLoop.wav"
-
-    result <- initAudio 64 44100 1024 -- max channels, mixing frequency, mixing buffer size
-    unless result $ fail "failed to initialize the audio system"
-
-    -- (A) load sample from file
-    sampleA <- sampleFromFile filename 1.0 -- volume
-
-    -- start two sound tracks with shared sample data
-    sndTrkA <- soundPlay sampleA 1 0 0 1 -- left volume, right volume, time difference between left and right, pitch factor for playback
-    threadDelay oneSec -- wait 1 sec
-    sndTrkB <- soundPlay sampleA 0 1 0 1 -- left volume, right volume, time difference between left and right, pitch factor for playback
-    soundActive sndTrkB >>= print
-    -- play 3 sec
-    threadDelay $ 3 * oneSec
-    soundStop sndTrkB
-    soundActive sndTrkB >>= print
-    -- wait sndTrkA to finish
-    waitPlayback
-
-    -- (B) load from memory buffer
-    buffer <- SB.readFile filename
-    sampleB <- case takeExtension filename of
-        ".ogg" -> sampleFromMemoryOgg buffer 1.0
-        ".wav" -> sampleFromMemoryWav buffer 1.0
-
-    soundPlay sampleB 1 1 0 1 -- left volume, right volume, time difference between left and right, pitch factor for playback
-    waitPlayback
-
-    sampleDestroy sampleB
-    soundPlay sampleB 1 1 0 1 -- we have invalidated the handle; nothing should happen now
-    waitPlayback
-
-    finishAudio
-
 main :: IO ()
 main = do
     -- tempAudioMain
@@ -175,9 +123,9 @@ main = do
         pathFindCoords = map (tileCentre 2 . toRealCoord size) graphicTileCoords
 
 
-    screenSize <- getScreenSize
+    screenSize@(sWid,sHei) <- getScreenSize
     grid <- startTimer "WFCollapse" $ (`doWaveCollapse` graphicTileCoords) $ traceTimer "WFCollapse" $ collapseBaseGrid size $ traceTimer "WFCollapse" $ createPreTileGrid tileOptions graphicTileCoords
-    background <- startTimer "GridImage" optimisePicturewithRes screenSize (64*size,64*size) . translate 32 32 $ getGridSprite (traceTimer "GridImage" $ traceTimer "WFCollapse" grid) graphicTileCoords
+    background <- startTimer "GridImage" optimisePicturewithRes (sWid-100,sHei-100) (64*size,64*size) . translate 32 32 $ getGridSprite (traceTimer "GridImage" $ traceTimer "WFCollapse" grid) graphicTileCoords
 
     let getTile = tileOfCoord grid size
     
