@@ -25,7 +25,6 @@ import Codec.Picture (DynamicImage(ImageRGBA8), savePngImage)
 import Graphics.Gloss.Export (exportPictureToFormat)
 import Graphics.Gloss.Game (png)
 import qualified Data.Vector as V
-import Data.Fixed (mod')
 
 translatePos :: Position -> Picture -> Picture
 translatePos (Position (V2 x y)) = translate x y

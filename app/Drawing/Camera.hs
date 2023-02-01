@@ -20,6 +20,7 @@ import Apecs.Extension
 import Player (Player(..))
 import Misc
 import Worlds
+import Linear (V2(..))
 
 camOnPlayer :: (HasMany w [Player, Position, Camera]) => System w ()
 camOnPlayer = cmap $ \(Player, Position pos , Camera _ cscale) ->
@@ -28,6 +29,5 @@ camOnPlayer = cmap $ \(Player, Position pos , Camera _ cscale) ->
 rescaleCam :: (Has w IO Camera) => Float -> System w ()
 rescaleCam dt = modify global $ \(Camera pos cScale) -> Camera pos (min 1 (cScale + dt*0.9))
 
--- TODO: scale this with window size
-pictureOnHud :: Camera -> Picture -> Picture
-pictureOnHud (Camera cameraOffset cameraScale) = translateV2 cameraOffset . scale (1/cameraScale) (1/cameraScale)
+pictureOnHud :: Camera -> V2 Float -> Picture -> Picture
+pictureOnHud (Camera cameraOffset cameraScale) onScreenPos = translateV2 cameraOffset . scale (1/cameraScale) (1/cameraScale) . translateV2 onScreenPos

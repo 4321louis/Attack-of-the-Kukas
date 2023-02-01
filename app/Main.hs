@@ -14,12 +14,13 @@
 
 import Apecs
 import Apecs.Gloss
+import Codec.Picture
 import Control.Monad
 import Linear (V2(..))
 import qualified Linear as L
 import Graphics.Gloss.Game hiding (play)
 import Graphics.Gloss.Export.Image
-import Codec.Picture
+import Graphics.Gloss.Interface.Environment
 
 import Drawing.Sprites
 import Drawing.Camera
@@ -45,7 +46,7 @@ import Sound.ProteaAudio
 
 
 makeWorld "World" [''Position, ''Velocity, ''Enemy, ''MovementPattern, ''MapGrid, ''Paths, ''PathFinder, ''Structure, ''Sprite, ''AnimatedSprite, ''Player, ''Particle, ''Score, ''Time, ''Inputs, ''Camera]
-type AllComps = (Position, Enemy, Velocity, MovementPattern, PathFinder, Structure, Sprite, AnimatedSprite) 
+type AllComps = (Position, Enemy, Velocity, MovementPattern, PathFinder, Structure, Sprite, AnimatedSprite)
 
 type SystemW a = System World a
 
@@ -63,7 +64,7 @@ initialize pathGraph grid size = do
     modify global $ \(Camera pos _) -> Camera pos 1.6
     modify global $ \(Paths _ g) -> Paths pathGraph g
     modify global $ \(MapGrid _ _) -> MapGrid grid size
-    _baseEty <- newEntity(Position (V2 0 0), Structure 200 [   
+    _baseEty <- newEntity(Position (V2 0 0), Structure 200 [
         (96, 32), (96, -32),
         (-96, 32), (-96, -32),
         (32, 96), (32, -96),
@@ -73,7 +74,7 @@ initialize pathGraph grid size = do
 
 initialiseGrid :: (HasMany w [Position, Velocity, EntityCounter, Sprite]) => Grid -> [(Int,Int)] -> System w ()
 initialiseGrid grid coords  = do
-    let 
+    let
         sprite = getGridSprite grid coords
         -- sprite =
     void $ newEntity (Position (V2 0 0), Sprite sprite)
@@ -84,24 +85,14 @@ clampPlayer = cmap $ \(Player, Position (V2 x y)) ->
     Position (V2 (min xmax . max xmin $ x) y)
 
 destroyDeadStructures :: SystemW ()
-destroyDeadStructures = do 
-    pathingChanged <- cfoldM (\b (Structure hp _, ety) -> do 
+destroyDeadStructures = do
+    pathingChanged <- cfoldM (\b (Structure hp _, ety) -> do
         when (hp < 0) $ destroy ety (Proxy @AllComps )
         return (b || hp < 0)) False
-    when pathingChanged $ do        
+    when pathingChanged $ do
         updateGoals
         clearPaths
 
--- handleCollisions :: SystemW ()
--- handleCollisions =
---     cmapM_ $ \(Target, Position posT, etyT) ->
---         cmapM_ $ \(Bullet, Position posB, etyB) ->
---             when (L.norm (posT - posB) < 10) $ do
---                 destroy etyT (Proxy @(Target, Kinetic))
---                 destroy etyB (Proxy @(Bullet, Kinetic))
---                 spawnParticles 15 (Position posB) (-500, 500) (200, -50)
---                 modify global $ \(Score x) -> Score (x + hitBonus)
---                 modify global $ \(Camera pos cScale) -> Camera pos (0.85*cScale)
 
 step :: Float -> SystemW ()
 step dT = do
@@ -118,13 +109,16 @@ step dT = do
     triggerEvery dT 8 5 $  newEntity (Enemy 0 1 20, Position (V2 (-1400) 1400), Sprite targetSprite2, Velocity (V2 0 0), PathFinder Nothing [])
     triggerEvery dT 8 7 $  newEntity (Enemy 0 1 20, Position (V2 (-1400) (-1400)), Sprite targetSprite2, Velocity (V2 0 0), PathFinder Nothing [])
 
-draw :: Picture -> SystemW Picture
-draw bg = do
+draw :: Picture -> (Int,Int) -> SystemW Picture
+draw bg (screenWidth, screenHeight) = do
     sprites <- foldDraw $ \(Position pos, Sprite p) -> translateV2 pos p
     particles <- foldDraw $
         \(Particle _, Velocity (V2 vx vy), Position pos) ->
             translateV2 pos . color orange $ Line [(0, 0), (vx / 10, vy / 10)]
-    return $ bg <> sprites <> particles
+    cam <- get global
+    Score s <- get global
+    let score = pictureOnHud cam (V2 (fromIntegral $ 30 - div screenWidth 2) (fromIntegral $ 50 - div screenHeight 2)) . scale 0.1 0.1 . color white .  Text $ "Base HP: " ++ show s
+    return $  bg <> sprites <> particles <> score
 
 waitPlayback = do
     n <- soundActiveAll
@@ -136,7 +130,7 @@ oneSec :: Int
 oneSec = 1000000 -- micro seconds
 
 tempAudioMain = do
-    let filename = "./src/menuLoop.wav" 
+    let filename = "./src/menuLoop.wav"
 
     result <- initAudio 64 44100 1024 -- max channels, mixing frequency, mixing buffer size
     unless result $ fail "failed to initialize the audio system"
@@ -179,15 +173,16 @@ main = do
         tileOptions = readTilesMeta content
         graphicTileCoords = traceTimer "WFCollapse" createGrid size size
         pathFindCoords = map (tileCentre 2 . toRealCoord size) graphicTileCoords
-        
-    
+
+
+    screenSize <- getScreenSize
     grid <- startTimer "WFCollapse" $ (`doWaveCollapse` graphicTileCoords) $ traceTimer "WFCollapse" $ collapseBaseGrid size $ traceTimer "WFCollapse" $ createPreTileGrid tileOptions graphicTileCoords
-    background <- startTimer "GridImage" optimisePicture (64*size,64*size) . translate 32 32 $ getGridSprite (traceTimer "GridImage" $ traceTimer "WFCollapse" grid) graphicTileCoords
-    
+    background <- startTimer "GridImage" optimisePicturewithRes screenSize (64*size,64*size) . translate 32 32 $ getGridSprite (traceTimer "GridImage" $ traceTimer "WFCollapse" grid) graphicTileCoords
+
     let getTile = tileOfCoord grid size
     
     w <- initWorld
     runWith w $ do
-        
+
         startTimer "GraphCreation" $ initialize (traceTimer "GraphCreation" $ generateGraph (traceTimer "GraphCreation" getTile) pathFindCoords) grid size
-        play (InWindow "Haskill Issue" (1280, 720) (10, 10)) black 60 (draw (traceTimer "GridImage"  $ translate (fromIntegral $ -32*size) (fromIntegral $ -32*size) background)) handleInputs step
+        play FullScreen black 60 (draw (traceTimer "GridImage"  $ translate (fromIntegral $ -32*size) (fromIntegral $ -32*size) background) screenSize) handleInputs step
