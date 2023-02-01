@@ -38,12 +38,12 @@ moveOnPath = cmap $ \(p@(PathFinder _ pathNodes), Position pos, Velocity _, Enem
 
 
 attackOrNewPath :: (HasMany w [PathFinder, Position, Velocity, Enemy, Paths, Structure, Time]) => Float -> System w ()
-attackOrNewPath dT = cmapM $ \(p@(PathFinder oldGoals pathNodes), Position epos, Velocity _, Enemy _ dmg _, Paths _ goals) ->
+attackOrNewPath dT = cmapM $ \(p@(PathFinder oldGoals pathNodes), Position epos, Velocity _, Enemy _ dmg _, Paths _ goals) -> 
+    let trueGoals = if null goals then Nothing else Just goals in
     if null pathNodes
     then do
         (cdist, closest) <- cfold (\min@(minDist,_) (Structure _ _, Position spos, ety) ->
             let nDist = L.norm (spos - epos)
             in if nDist < minDist then (nDist,ety) else min) (10000,0)
-        if cdist < 112 then triggerEvery dT 1 0 (modify closest (\(Structure hp ps) -> Structure (hp - dmg) ps)) >> return p else return (PathFinder (Just goals) [])
-    else return (PathFinder (Just goals) pathNodes)
-
+        if cdist < 112 then triggerEvery dT 1 0 (modify closest (\(Structure hp ps) -> Structure (hp - dmg) ps)) >> return p else return (PathFinder trueGoals [])
+    else return (PathFinder trueGoals pathNodes)

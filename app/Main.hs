@@ -63,7 +63,7 @@ initialize pathGraph grid size = do
     modify global $ \(Camera pos _) -> Camera pos 1.6
     modify global $ \(Paths _ g) -> Paths pathGraph g
     modify global $ \(MapGrid _ _) -> MapGrid grid size
-    _baseEty <- newEntity(Position 0 0, Structure 200 [   
+    _baseEty <- newEntity(Position (V2 0 0), Structure 200 [   
         (96, 32), (96, -32),
         (-96, 32), (-96, -32),
         (32, 96), (32, -96),

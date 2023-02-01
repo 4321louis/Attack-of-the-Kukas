@@ -24,6 +24,7 @@ import Apecs.Extension
 import Worlds
 import Debug.Trace
 import qualified Linear as L
+import Grid.Tile
 import Grid.Implementation
 
 type PathfindGraph = M.Map (Float,Float) (HS.HashSet (Float,Float))
@@ -36,7 +37,7 @@ instance Component Paths where type Storage Paths = Global Paths
 data PathFinder = PathFinder (Maybe [(Float,Float)]) [(Float,Float)] deriving (Show)
 instance Component PathFinder where type Storage PathFinder = Map PathFinder
 
-doPathFinding :: (HasMany w [PathFinder, Paths, Position, Velocity]) => System w ()
+doPathFinding :: (HasMany w [PathFinder, Paths, Position, Velocity, MapGrid]) => System w ()
 doPathFinding = do
     acquireNewPaths
     checkGoal
@@ -44,10 +45,10 @@ doPathFinding = do
 clearPaths :: (Has w IO PathFinder) => System w ()
 clearPaths =  cmap $ \(PathFinder mGoals _) -> PathFinder mGoals []
 
-acquireNewPaths :: (HasMany w [PathFinder, Paths, Position]) => System w ()
-acquireNewPaths = cmapM $ \(p@(PathFinder mGoals cpath), Position (V2 x y)) -> if null cpath && isJust mGoals then do
-    Paths pathscape allgoals <- get global
-    let path  = findPathToClosest pathscape (fromJust mGoals) (x,y)
+acquireNewPaths :: (HasMany w [PathFinder, Paths, Position, MapGrid]) => System w ()
+acquireNewPaths = cmapM $ \(p@(PathFinder mGoals cpath), Position (V2 x y), Paths pathscape allgoals, MapGrid grid size) -> if null cpath && isJust mGoals then do
+    let startPoint = head . dropWhile (maybe False (not . walkable) . tileOfCoord grid size ) $ (x,y):(concat $ iterate (\[(x1,y1),(x2,y2),(x3,y3),(x4,y4)] -> [(x1+4,y1),(x2-4,y2),(x3,y3+4),(x4,y4-4)]) (take 4 $ repeat (x,y)))
+        path  = findPathToClosest pathscape (fromJust mGoals) startPoint
     return $ maybe p (PathFinder mGoals) path
     else return p
 
