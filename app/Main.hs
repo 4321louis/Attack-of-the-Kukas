@@ -14,6 +14,7 @@
 
 import Apecs
 import Apecs.Gloss
+import Audio
 import Codec.Picture
 import Control.Monad
 import Debug.Trace (trace)
@@ -25,6 +26,8 @@ import Graphics.Gloss.Game hiding (play)
 import Graphics.Gloss.Interface.Environment
 import Linear (V2(..))
 import qualified Linear as L
+import Sound.ProteaAudio
+
 
 import Drawing.Sprites
 import Drawing.Camera
@@ -70,9 +73,7 @@ initialiseGrid :: (HasMany w [Position, Velocity, EntityCounter, Sprite]) => Gri
 initialiseGrid grid coords  = do
     let
         sprite = getGridSprite grid coords
-        -- sprite =
     void $ newEntity (Position (V2 0 0), Sprite sprite)
-    -- mapM_ void [newEntity (Position (V2 (64*fromIntegral x) (64*fromIntegral y)), Sprite $ pic (M.findWithDefault erTile (x,y) grid))| (x,y) <-coords]
 
 clampPlayer :: SystemW ()
 clampPlayer = cmap $ \(Player, Position (V2 x y)) ->
@@ -123,22 +124,25 @@ draw bg (screenWidth, screenHeight) = do
 
 main :: IO ()
 main = do
-    -- tempAudioMain
+    -- grid creatiion
     content <- readFile "./src/meta.txt"
     let size = traceTimer "WFCollapse" 50
         tileOptions = readTilesMeta content
         graphicTileCoords = traceTimer "WFCollapse" createGrid size size
-        pathFindCoords = map (tileCentre 2 . toRealCoord size) graphicTileCoords
-
-
-    screenSize@(sWid,sHei) <- getScreenSize
     grid <- startTimer "WFCollapse" $ (`doWaveCollapse` graphicTileCoords) $ traceTimer "WFCollapse" $ collapseBaseGrid size $ traceTimer "WFCollapse" $ createPreTileGrid tileOptions graphicTileCoords
-    background <- startTimer "GridImage" optimisePicturewithRes (sWid-100,sHei-100) (64*size,64*size) . translate 32 32 $ getGridSprite (traceTimer "GridImage" $ traceTimer "WFCollapse" grid) graphicTileCoords
-
-    let getTile = tileOfCoord grid size
     
+    -- background
+    screenSize@(sWid,sHei) <- getScreenSize
+    background <- startTimer "GridImage" optimisePicturewithRes (sWid-100,sHei-100) (64*size,64*size) . translate 32 32 $ getGridSprite (traceTimer "GridImage" $ traceTimer "WFCollapse" grid) graphicTileCoords
+    
+    --pathfinding setup
+    let getTile = tileOfCoord grid size
+        pathFindCoords = map (tileCentre 2 . toRealCoord size) graphicTileCoords
+    
+    tempAudioMain
     w <- initWorld
     runWith w $ do
-
         startTimer "GraphCreation" $ initialize (traceTimer "GraphCreation" $ generateGraph (traceTimer "GraphCreation" getTile) pathFindCoords) grid size
         play FullScreen black 60 (draw (traceTimer "GridImage"  $ translate (fromIntegral $ -32*size) (fromIntegral $ -32*size) background) screenSize) handleInputs step
+    
+    finishAudio
