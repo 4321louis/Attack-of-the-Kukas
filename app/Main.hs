@@ -47,11 +47,9 @@ import Drawing.Sprites (spriteDir)
 makeWorld "World" [ ''Position, ''Velocity, ''Enemy, ''MapGrid, ''Paths, 
                     ''PathFinder, ''Structure, ''Sprite, ''AnimatedSprite, ''Player,
                     ''Particle, ''Score, ''Time, ''Inputs, ''Camera, 
-                    ''Hp, ''Seed, ''Plant, ''Cactus, ''Enchanter, 
-                    ''RockPlant, ''SeedSeeker]
+                    ''Hp, ''Seed, ''Plant]
 type AllEnemyComps = (Position, Enemy, Velocity, PathFinder, Sprite, Hp)
 type AllPlantComps = (Position, Structure, Sprite, Hp, Plant)
-type AllPlantTypeComps = (Cactus, RockPlant, Enchanter)
 
 type SystemW a = System World a
 
@@ -94,7 +92,6 @@ destroyDeadStructures = do
     pathingChanged <- cfoldM (\b (Structure _, Hp hp _ _ , ety) -> do
         when (hp <= 0) $ do 
             destroy ety (Proxy @AllPlantComps )
-            destroy ety (Proxy @AllPlantTypeComps )
         return (b || hp <= 0)) False
     when pathingChanged $ do
         updateGoals

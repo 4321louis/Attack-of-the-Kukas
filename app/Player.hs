@@ -45,7 +45,7 @@ instance Component Inputs where type Storage Inputs = Global Inputs
 playerSpeed :: Float
 playerSpeed = 170
 
-handleInputs :: (HasMany w [Seed, SeedSeeker, Enchanter, Cactus, Plant, Hp, Player, Position, Velocity, Inputs, Camera, EntityCounter, MapGrid, Sprite, Structure, Paths, PathFinder]) => Event -> System w ()
+handleInputs :: (HasMany w [Seed, Plant, Hp, Player, Position, Velocity, Inputs, Camera, EntityCounter, MapGrid, Sprite, Structure, Paths, PathFinder]) => Event -> System w ()
 handleInputs e = do
     modify global $ \(Inputs s m _) -> Inputs s m (V2 0 0)
     updateGlobalInputs e
@@ -61,7 +61,7 @@ updateGlobalInputs (EventMotion (x, y)) = do
     modify global $ \(Inputs s prev _) -> Inputs s (V2 x y) (V2 x y - prev)
 updateGlobalInputs _ = return ()
 
-handleEvent :: (HasMany w [Seed, SeedSeeker, Enchanter, Cactus, Plant, Hp, Player, Velocity, Inputs, EntityCounter, MapGrid, Position, Sprite, Camera, Structure, Paths, PathFinder]) => Event -> System w ()
+handleEvent :: (HasMany w [Seed, Plant, Hp, Player, Velocity, Inputs, EntityCounter, MapGrid, Position, Sprite, Camera, Structure, Paths, PathFinder]) => Event -> System w ()
 handleEvent (EventKey (SpecialKey KeyLeft) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyRight) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyDown) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
@@ -86,7 +86,7 @@ doMousePanning = cmap $ \(Player, Position p, Inputs keys _ d,Camera _ cscale) -
 
 
 -- Plants a plant (entity) on the cursor position
-plantPlants ::  (HasMany w [Enchanter, SeedSeeker, Cactus, Plant, Position, Hp, Sprite, Structure, EntityCounter, Camera, Paths, PathFinder]) => V2 Float -> V2 Float -> Grid -> Int -> Float -> System w ()
+plantPlants ::  (HasMany w [Plant, Position, Hp, Sprite, Structure, EntityCounter, Camera, Paths, PathFinder]) => V2 Float -> V2 Float -> Grid -> Int -> Float -> System w ()
 plantPlants playerPos cursorPos grid size scale = do
     hasPlant <- hasEntity plantPos
 
@@ -103,5 +103,5 @@ plantPlants playerPos cursorPos grid size scale = do
 -- Checks if entity exists on real coord
 -- Could expand to return the entities on the tile coord (in the future?)
 hasEntity :: (HasMany w [EntityCounter, Position, Plant]) => (Float, Float) -> SystemT w IO Bool
-hasEntity (x, y) = cfold (\bool (Position pos, Plant) -> bool || (pos==vectorPos)) False
+hasEntity (x, y) = cfold (\bool (Position pos, _::Plant) -> bool || (pos==vectorPos)) False
     where vectorPos = V2 x y
