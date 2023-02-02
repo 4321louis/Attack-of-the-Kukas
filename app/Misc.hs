@@ -31,6 +31,8 @@ translatePos (Position (V2 x y)) = translate x y
 translateV2 :: V2 Float -> Picture -> Picture
 translateV2 (V2 x y) = translate x y
 
+tileRange :: Int -> Float
+tileRange x = sqrt $ (64 * fromIntegral x + 32)**2 + (64 * fromIntegral x + 32)**2
 
 triggerEvery :: (Has w IO Time) => Float -> Float -> Float -> System w a -> System w ()
 triggerEvery dT period phase sys = do
