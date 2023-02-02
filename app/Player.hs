@@ -85,9 +85,12 @@ doMousePanning :: (HasMany w [Player, Position, Camera, Inputs]) => System w ()
 doMousePanning = cmap $ \(Player, Position p, Inputs keys _ d,Camera _ cscale) -> if S.member (MouseButton MiddleButton) keys then Position (p - (d L.^/ cscale)) else Position p
 
 
+-- Plants a plant (entity) on the cursor position
 plantPlants ::  (HasMany w [Enchanter, SeedSeeker, Cactus, Plant, Position, Hp, Sprite, Structure, EntityCounter, Camera, Paths, PathFinder]) => V2 Float -> V2 Float -> Grid -> Int -> Float -> System w ()
-plantPlants playerPos cursorPos grid size scale =
-    when (placeable tile) $ do
+plantPlants playerPos cursorPos grid size scale = do
+    hasPlant <- hasEntity plantPos
+
+    when (placeable tile && not hasPlant) $ do
         -- _plant <- newEntity (Cactus, Position (V2 cenX cenY), Sprite cactus)
         _plant <- newSeedSeeker plantPos
         updateGoals
@@ -96,3 +99,9 @@ plantPlants playerPos cursorPos grid size scale =
             (V2 x y) = playerPos + V2 (a/scale) (b/scale)
             plantPos = tileCentre size (x, y)
             tile = fromMaybe erTile3 $ tileOfCoord grid size (x, y)
+
+-- Checks if entity exists on real coord
+-- Could expand to return the entities on the tile coord (in the future?)
+hasEntity :: (HasMany w [EntityCounter, Position]) => (Float, Float) -> SystemT w IO Bool
+hasEntity (x, y) = cfold (\bool (Position pos) -> bool || (pos==vectorPos)) False
+    where vectorPos = V2 x y
