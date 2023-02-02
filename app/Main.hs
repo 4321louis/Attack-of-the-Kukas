@@ -87,7 +87,7 @@ destroyDeadStructures = do
         when (hp <= 0) $ do 
             destroy ety (Proxy @AllPlantComps )
             destroy ety (Proxy @AllPlantTypeComps )
-        return (b || hp < 0)) False
+        return (b || hp <= 0)) False
     when pathingChanged $ do
         updateGoals
         clearPaths
