@@ -64,8 +64,8 @@ doPlants dT = do
 doCactusAttack :: (HasMany w [Enemy, Position, Cactus, Score, Time, Hp]) => Float -> System w ()
 doCactusAttack dT =
     cmapM_ $ \(Cactus, Position posP) -> do
-        cmapM_ $ \(Enemy _ _ _, Position posE, etyE) -> when (L.norm (posE - posP) < tileRange 0) $
-            triggerEvery dT 1 0.6 (modify etyE $ \(Enemy hp d s)-> Enemy (hp - cactusDmg) d s)
+        cmapM_ $ \(Enemy _ _, Position posE, etyE) -> when (L.norm (posE - posP) < tileRange 0) $
+            triggerEvery dT 1 0.6 (modify etyE $ \(Enemy _ _, hp) -> dealDamage hp cactusDmg)
 
 {- doEnchanting :: (HasMany w [Enchanter, Position, Time]) => Float -> System w ()
 doEnchanting dT = 
