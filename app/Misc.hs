@@ -31,6 +31,10 @@ translatePos (Position (V2 x y)) = translate x y
 translateV2 :: V2 Float -> Picture -> Picture
 translateV2 (V2 x y) = translate x y
 
+cursorPosToReal :: Camera -> V2 Float -> V2 Float
+cursorPosToReal (Camera cameraOffset cameraScale) (V2 a b) = cameraOffset + V2 (a/cameraScale) (b/cameraScale)
+
+
 tileRange :: Int -> Float
 tileRange x = sqrt $ (64 * fromIntegral x + 32)**2 + (64 * fromIntegral x + 32)**2
 
