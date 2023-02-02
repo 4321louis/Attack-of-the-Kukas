@@ -43,7 +43,9 @@ import Enemy.Pathfinding
 import Plant.Plant
 
 makeWorld "World" [''Position, ''Velocity, ''Enemy, ''MapGrid, ''Paths, ''PathFinder, ''Structure, ''Sprite, ''AnimatedSprite, ''Player, ''Particle, ''Score, ''Time, ''Inputs, ''Camera, ''Plant, ''Cactus, ''RockPlant, ''Hp]
-type AllComps = (Position, Enemy, Velocity, PathFinder, Structure, Sprite, AnimatedSprite, Cactus)
+type AllEnemyComps = (Position, Enemy, Velocity, PathFinder, Sprite, Hp)
+type AllPlantComps = (Position, Structure, Sprite, Hp, Plant)
+type AllPlantTypeComps = (Cactus, RockPlant)
 
 type SystemW a = System World a
 
@@ -82,7 +84,9 @@ clampPlayer = cmap $ \(Player, Position (V2 x y)) ->
 destroyDeadStructures :: SystemW ()
 destroyDeadStructures = do
     pathingChanged <- cfoldM (\b (Structure _, Hp hp _ _ , ety) -> do
-        when (hp <= 0) $ destroy ety (Proxy @AllComps )
+        when (hp <= 0) $ do 
+            destroy ety (Proxy @AllPlantComps )
+            destroy ety (Proxy @AllPlantTypeComps )
         return (b || hp < 0)) False
     when pathingChanged $ do
         updateGoals
@@ -90,7 +94,7 @@ destroyDeadStructures = do
 
 destroyDeadEnemies :: SystemW ()
 destroyDeadEnemies = do
-    cmapM (\(Enemy _ _, Hp hp _ _ , ety) -> when (hp <= 0) $ destroy ety (Proxy @AllComps ))
+    cmapM (\(Enemy _ _, Hp hp _ _ , ety) -> when (hp <= 0) $ destroy ety (Proxy @AllEnemyComps ))
 
 
 step :: Float -> SystemW ()
