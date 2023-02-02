@@ -32,17 +32,20 @@ instance Component AnimatedSprite where type Storage AnimatedSprite = Map Animat
 newtype Particle = Particle Float deriving (Show)
 instance Component Particle where type Storage Particle = Map Particle
 
+spriteDir :: String
+spriteDir = "./assets/Sprites/"
+
 triangle, diamond, testPicture1, testPicture2, testPicture3, testPicture4, playerSprite, targetSprite1, stickFigure, targetSprite2, targetSprite3, targetSprite4, bulletSprite :: Picture
 triangle = Line [(0, 0.5), (-0.5, -0.5), (0.5, -0.5), (0, 0.5)]
 diamond = Line [(-1, 0), (0, -1), (1, 0), (0, 1), (-1, 0)]
 stickFigure = Line [(0,0),(0,-1),(-0.7,-1.3)] <> Line [(0.7,-1.3),(0,-1),(0,-1.5),(-0.7,-2)] <> Line [(0,-1.5),(0.7,-2)]
-testPicture1 = scale 0.1 0.1 . jpg $ "./src/test_picture.jpg"
-testPicture2 = scale 0.1 0.1 . png $ "./src/test_picture2.png"
-testPicture3 = scale 0.4 0.4 . png $ "./src/test_picture3.png"
-testPicture4 = scale 0.5 0.5 . png $ "./src/test_picture4.png"
+testPicture1 = scale 0.1 0.1 . jpg $ spriteDir ++ "Test/test_picture.jpg"
+testPicture2 = scale 0.1 0.1 . png $ spriteDir ++ "Test/test_picture2.png"
+testPicture3 = scale 0.4 0.4 . png $ spriteDir ++ "Test/test_picture3.png"
+testPicture4 = scale 0.5 0.5 . png $ spriteDir ++ "Test/test_picture4.png"
 
 cactus :: Picture
-cactus = translate 0 9.5 . png $ "./src/BRCactus.png"
+cactus = translate 0 9.5 . png $ spriteDir ++ "Entities/BRCactus.png"
 
 
 playerSprite = rotate 90 . color white . scale 10 20 $ triangle

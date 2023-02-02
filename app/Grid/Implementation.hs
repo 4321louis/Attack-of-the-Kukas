@@ -43,9 +43,9 @@ collapseBaseGrid :: Int -> PreGrid -> PreGrid
 collapseBaseGrid size = let
         doInit c t g = propegateCell c $ M.insert c (Right t) g
         landTile spr = Tile spr Land Land Land Land False False
-        enemyTile = Tile (png "./src/Water.png") Land Land Land Land True False
+        enemyTile = Tile (png $ spriteDir ++ "Terrain/Water.png") Land Land Land Land True False
         center = div size 2
-        in doInit (center-1,center) (landTile $ png "./src/Base1.png") . doInit (center,center) (landTile $ png "./src/Base2.png") .
-            doInit (center-1,center-1) (landTile $ png "./src/Base3.png") . doInit (center,center-1) (landTile $ png "./src/Base4.png") . 
+        in doInit (center-1,center) (landTile $ png $ spriteDir ++  "Terrain/Base1.png") . doInit (center,center) (landTile $ png $ spriteDir ++  "Terrain/Base2.png") .
+            doInit (center-1,center-1) (landTile $ png $ spriteDir ++  "Terrain/Base3.png") . doInit (center,center-1) (landTile $ png $ spriteDir ++  "Terrain/Base4.png") . 
             if size == 50 then doInit (46,46) enemyTile . doInit (3,46) enemyTile . 
                 doInit (46,3) enemyTile . doInit (3,3) enemyTile else id

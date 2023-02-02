@@ -13,9 +13,9 @@ import Apecs
 
 
 gameLoop, pew :: IO Sample
-gameLoopIntro = sampleFromFile "./src/gameLoopIntro.ogg" 0.3
-gameLoop = sampleFromFile "./src/gameLoop.ogg" 0.3
-pew = sampleFromFile "./src/PEW.wav" 1.0
+gameLoopIntro = sampleFromFile "./assets/Audio/Music/gameLoopIntro.ogg" 0.3
+gameLoop = sampleFromFile "./assets/Audio/Music/gameLoop.ogg" 0.3
+pew = sampleFromFile "./assets/Audio/Effects/PEW.wav" 1.0
 
 playSoundEffect :: Sample -> System w Sound
 playSoundEffect = liftIO . (\s -> soundPlay s 1 1 0 1)

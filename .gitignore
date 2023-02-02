@@ -4,3 +4,4 @@ jamgamename.cabal
 src/bg.png
 src/tmp/*.png
 .vscode/settings.json
+tmp/*.png

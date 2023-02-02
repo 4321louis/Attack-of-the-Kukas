@@ -125,7 +125,7 @@ draw bg (screenWidth, screenHeight) = do
 main :: IO ()
 main = do
     -- grid creatiion
-    content <- readFile "./src/meta.txt"
+    content <- readFile "./assets/Config/swampGeneration.txt"
     let size = traceTimer "WFCollapse" 50
         tileOptions = readTilesMeta content
         graphicTileCoords = traceTimer "WFCollapse" createGrid size size

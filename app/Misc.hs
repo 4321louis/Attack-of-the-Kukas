@@ -60,7 +60,7 @@ optimisePicturewithRes (screenX,screenY) (picX,picY) picture =
         allSnapsDimensions = [(xOff,yOff,snapLen,snapHei) | (xOff,snapLen) <- intervals picX screenX, (yOff,snapHei) <- intervals picY screenY]
         loadSnap (xOff,yOff,snapLen,snapHei) = 
             do
-                let fName = "./src/tmp/"++show xOff++" "++show yOff ++".png"
+                let fName = "./tmp/"++show xOff++" "++show yOff ++".png"
                     xTrans = fromIntegral (snapLen-screenX)/2 + fromIntegral xOff
                     yTrans = fromIntegral (snapHei-screenY)/2 + fromIntegral yOff
                 export (snapLen,snapHei) fName (translate (-xTrans) (-yTrans) corneredPic)

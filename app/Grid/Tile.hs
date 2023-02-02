@@ -71,7 +71,7 @@ readTilesMeta content =
         readTile l = if l == "" then [] else
             let [name,count,doRotate,sn,se,ss,sw,walk,place] = words l
                 [n,e,s,w] :: [Side] = read <$> [sn,se,ss,sw]
-                img = png $ "./src/" ++ name
+                img = png $ spriteDir ++  "Terrain/" ++ name
             in
                 concatRep (read count) $ (if read doRotate then id else take 1)
                     [   Tile img n e s w (read walk) (read place),
