@@ -45,7 +45,7 @@ instance Component Inputs where type Storage Inputs = Global Inputs
 playerSpeed :: Float
 playerSpeed = 170
 
-handleInputs :: (HasMany w [Seed,Enchanter, Cactus, Plant, Hp, Player, Position, Velocity, Inputs, Camera, EntityCounter, MapGrid, Sprite, Structure, Paths, PathFinder]) => Event -> System w ()
+handleInputs :: (HasMany w [Seed, SeedSeeker, Enchanter, Cactus, Plant, Hp, Player, Position, Velocity, Inputs, Camera, EntityCounter, MapGrid, Sprite, Structure, Paths, PathFinder]) => Event -> System w ()
 handleInputs e = do
     modify global $ \(Inputs s m _) -> Inputs s m (V2 0 0)
     updateGlobalInputs e
@@ -61,14 +61,14 @@ updateGlobalInputs (EventMotion (x, y)) = do
     modify global $ \(Inputs s prev _) -> Inputs s (V2 x y) (V2 x y - prev)
 updateGlobalInputs _ = return ()
 
-handleEvent :: (HasMany w [Seed,Enchanter, Cactus, Plant, Hp, Player, Velocity, Inputs, EntityCounter, MapGrid, Position, Sprite, Camera, Structure, Paths, PathFinder]) => Event -> System w ()
+handleEvent :: (HasMany w [Seed, SeedSeeker, Enchanter, Cactus, Plant, Hp, Player, Velocity, Inputs, EntityCounter, MapGrid, Position, Sprite, Camera, Structure, Paths, PathFinder]) => Event -> System w ()
 handleEvent (EventKey (SpecialKey KeyLeft) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyRight) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyDown) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyUp) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyEsc) Down _ _) = liftIO exitSuccess
 handleEvent (EventKey (MouseButton LeftButton) Down _ _) = cmapM_ $ \(Player, Inputs _ cursorPos _, MapGrid grid size, Camera pos scale ) -> plantPlants pos cursorPos grid size scale
-handleEvent (EventKey (MouseButton RightButton) Down _ _) = cmapM $ \all@(Seed, Position sPos, Sprite _, Inputs _ mPos _, camera) -> if L.norm (cursorPosToReal camera mPos - sPos) < 24
+handleEvent (EventKey (MouseButton RightButton) Down _ _) = cmapM $ \all@(s::Seed, Position sPos, Sprite _, Inputs _ mPos _, camera) -> if L.norm (cursorPosToReal camera mPos - sPos) < 24
     then do
         return $ Right (Not @(Seed, Position, Sprite))
     else return $ Left ()
@@ -85,14 +85,14 @@ doMousePanning :: (HasMany w [Player, Position, Camera, Inputs]) => System w ()
 doMousePanning = cmap $ \(Player, Position p, Inputs keys _ d,Camera _ cscale) -> if S.member (MouseButton MiddleButton) keys then Position (p - (d L.^/ cscale)) else Position p
 
 
-plantPlants ::  (HasMany w [Enchanter, Cactus, Plant, Position, Hp, Sprite, Structure, EntityCounter, Camera, Paths, PathFinder]) => V2 Float -> V2 Float -> Grid -> Int -> Float -> System w ()
+plantPlants ::  (HasMany w [Enchanter, SeedSeeker, Cactus, Plant, Position, Hp, Sprite, Structure, EntityCounter, Camera, Paths, PathFinder]) => V2 Float -> V2 Float -> Grid -> Int -> Float -> System w ()
 plantPlants playerPos cursorPos grid size scale =
     when (placeable tile) $ do
         -- _plant <- newEntity (Cactus, Position (V2 cenX cenY), Sprite cactus)
-        _plant <- newEntity (Enchanter, Plant, Position (V2 cenX cenY), Hp 1 1 0, Sprite enchanter, Structure [(cenX+64,cenY),(cenX-64,cenY),(cenX,cenY+64),(cenX,cenY-64)])
+        _plant <- newSeedSeeker plantPos
         updateGoals
         clearPaths
     where   V2 a b = cursorPos
             (V2 x y) = playerPos + V2 (a/scale) (b/scale)
-            (cenX, cenY) = tileCentre size (x, y)
+            plantPos = tileCentre size (x, y)
             tile = fromMaybe erTile3 $ tileOfCoord grid size (x, y)
