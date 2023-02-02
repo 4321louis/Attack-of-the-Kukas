@@ -45,5 +45,5 @@ attackOrNewPath dT = cmapM $ \(p@(PathFinder _oldGoals pathNodes), Position epos
         (cdist, closest) <- cfold (\min@(minDist,_) (Structure _, Position spos, ety) ->
             let nDist = L.norm (spos - epos)
             in if nDist < minDist then (nDist,ety) else min) (10000,0)
-        if cdist < 112 then triggerEvery dT 1 0 (modify closest (\(Structure _, hp) -> dealDamage hp dmg)) >> return p else return (PathFinder trueGoals [])
+        if cdist < 112 then triggerEvery dT 0.5 0 (modify closest (\(Structure _, hp) -> dealDamage hp dmg)) >> return p else return (PathFinder trueGoals [])
     else return (PathFinder trueGoals pathNodes)

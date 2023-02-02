@@ -40,10 +40,12 @@ instance Component RockPlant where type Storage RockPlant = Map RockPlant
 
 cactusDmg :: Float
 cactusDmg = 20
+enchanterShield = 20
 
-doPlants :: (HasMany w [Enemy, Position, Plant, Score, Cactus, Time, Hp]) => Float -> System w ()
+doPlants :: (HasMany w [Enemy, Position, Plant, Score, Enchanter, Cactus, Time, Hp]) => Float -> System w ()
 doPlants dT = do
     doCactusAttack dT
+    doEnchanting dT
     --do GG - SeedSeeker
     --do GB - Healer
     --do GR - Attackspeed
@@ -67,10 +69,11 @@ doCactusAttack dT =
         cmapM_ $ \(Enemy _ _, Position posE, etyE) -> when (L.norm (posE - posP) < tileRange 0) $
             triggerEvery dT 1 0.6 (modify etyE $ \(Enemy _ _, hp) -> dealDamage hp cactusDmg)
 
-{- doEnchanting :: (HasMany w [Enchanter, Position, Time]) => Float -> System w ()
+doEnchanting :: (HasMany w [Enchanter, Position, Time, Hp]) => Float -> System w ()
 doEnchanting dT = 
     cmapM_ $ \(Enchanter, Position posEch) -> do
-        cmapM_ $ \(Enchanter, Position posEnch, etyEnch) -> when (L.norm (posEch - posEnch) < tileRange 1) -}
+        cmapM_ $ \(Enchanter, Position posEnch, etyEnch) -> when (L.norm (posEch - posEnch) < tileRange 1) $
+            triggerEvery dT 10 0.6 (modify etyEnch $ \(Enchanter, hp) -> shieldHp hp enchanterShield)
 
 
 -- doCactusAttack :: (HasMany w [Enemy, Position, Plant, Score]) => System w ()

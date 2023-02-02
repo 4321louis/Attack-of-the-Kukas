@@ -46,7 +46,7 @@ testPicture4 = scale 0.5 0.5 . png $ spriteDir ++ "Test/test_picture4.png"
 
 cactus :: Picture
 cactus = translate 0 9.5 . png $ spriteDir ++ "Entities/BRCactus.png"
-
+enchanter = translate 0 9.5 . png $ spriteDir ++ "Test/HealingTemp.png"
 
 playerSprite = rotate 90 . color white . scale 10 20 $ triangle
 targetSprite1 = rotate 90 $ testPicture1 <> (translate 0 (negate 20) . scale 10 10 . color white $ stickFigure)

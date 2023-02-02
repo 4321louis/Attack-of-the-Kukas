@@ -51,3 +51,11 @@ dealDamage :: Hp -> Float -> Hp
 dealDamage (Hp hp m shield) dmg =
     let unShielded = max 0 $ dmg - shield
     in Hp (hp - unShielded) m (max 0 (shield - dmg))
+
+healHp :: Hp -> Float -> Hp
+healHp (Hp hp m shield) heal
+    | hp + heal > m = Hp m m shield
+    | otherwise = Hp (hp + heal) m shield
+
+shieldHp :: Hp -> Float -> Hp
+shieldHp (Hp hp m shield) shielding = Hp hp m shielding

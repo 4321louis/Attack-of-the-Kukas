@@ -42,7 +42,7 @@ import Enemy.Enemy
 import Enemy.Pathfinding
 import Plant.Plant
 
-makeWorld "World" [''Position, ''Velocity, ''Enemy, ''MapGrid, ''Paths, ''PathFinder, ''Structure, ''Sprite, ''AnimatedSprite, ''Player, ''Particle, ''Score, ''Time, ''Inputs, ''Camera, ''Plant, ''Cactus, ''RockPlant, ''Hp]
+makeWorld "World" [''Position, ''Velocity, ''Enemy, ''MapGrid, ''Paths, ''PathFinder, ''Structure, ''Sprite, ''AnimatedSprite, ''Player, ''Particle, ''Score, ''Time, ''Inputs, ''Camera, ''Plant, ''Cactus, ''RockPlant, ''Hp, ''Enchanter]
 type AllEnemyComps = (Position, Enemy, Velocity, PathFinder, Sprite, Hp)
 type AllPlantComps = (Position, Structure, Sprite, Hp, Plant)
 type AllPlantTypeComps = (Cactus, RockPlant)
