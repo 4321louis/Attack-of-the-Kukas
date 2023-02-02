@@ -36,10 +36,27 @@ instance Semigroup Time where (<>) = (+)
 instance Monoid Time where mempty = 0
 instance Component Time where type Storage Time = Global Time
 
+-- cur, max, shield
+data Hp = Hp Float Float Float deriving (Show)
+instance Component Hp where type Storage Hp = Map Hp
+
+newtype MovementPattern = MovementPattern (Float -> Position)
+instance Component MovementPattern where type Storage MovementPattern = Map MovementPattern
+
+orbitalPattern :: V2 Float -> Float -> Float -> Float -> Float -> Position
+orbitalPattern center radius period toffset t = Position $ center + radius L.*^ V2 (cos (2*pi*t'/period)) (sin (2*pi*t'/period)) where t' = t -toffset
+
+starPattern :: V2 Float -> Float -> Float -> Float -> Float -> Position
+starPattern center radius period toffset t = Position $ center + radius L.*^ V2 (2/7*cos (6*pi*t'/period) + 5/7*sin (4*pi*t'/period)) (2/7*sin (6*pi*t'/period) + 5/7*cos (4*pi*t'/period)) where t' = t -toffset
+
 incrTime :: (Has w IO Time) => Float -> System w ()
 incrTime dT = modify global $ \(Time t) -> Time (t + dT)
 
-stepPosition ::  (HasMany w [Position, Velocity, Time]) => Float -> System w ()
+stepPosition ::  (HasMany w [Position, Velocity]) => Float -> System w ()
 stepPosition dT = do 
     cmap $ \(Position p, Velocity v) -> Position (p + v L.^* dT)
-   
+
+dealDamage :: Hp -> Float -> Hp
+dealDamage (Hp hp m shield) dmg =
+    let unShielded = max 0 $ dmg - shield
+    in Hp (hp - unShielded) m (max 0 (shield - dmg))

@@ -42,7 +42,7 @@ import Enemy.Enemy
 import Enemy.Pathfinding
 import Plant.Plant
 
-makeWorld "World" [''Position, ''Velocity, ''Enemy, ''MapGrid, ''Paths, ''PathFinder, ''Structure, ''Sprite, ''AnimatedSprite, ''Player, ''Particle, ''Score, ''Time, ''Inputs, ''Camera, ''Plant, ''Cactus, ''RockPlant]
+makeWorld "World" [''Position, ''Velocity, ''Enemy, ''MapGrid, ''Paths, ''PathFinder, ''Structure, ''Sprite, ''AnimatedSprite, ''Player, ''Particle, ''Score, ''Time, ''Inputs, ''Camera, ''Plant, ''Cactus, ''RockPlant, ''Hp]
 type AllComps = (Position, Enemy, Velocity, PathFinder, Structure, Sprite, AnimatedSprite, Cactus)
 
 type SystemW a = System World a
@@ -61,7 +61,7 @@ initialize pathGraph grid size = do
     modify global $ \(Camera pos _) -> Camera pos 1.6
     modify global $ \(Paths _ g) -> Paths pathGraph g
     modify global $ \(MapGrid _ _) -> MapGrid grid size
-    _baseEty <- newEntity(Position (V2 0 0), Structure 200 [
+    _baseEty <- newEntity(Position (V2 0 0), Hp 200 0 0, Structure [
         (96, 32), (96, -32),
         (-96, 32), (-96, -32),
         (32, 96), (32, -96),
@@ -81,8 +81,8 @@ clampPlayer = cmap $ \(Player, Position (V2 x y)) ->
 
 destroyDeadStructures :: SystemW ()
 destroyDeadStructures = do
-    pathingChanged <- cfoldM (\b (Structure hp _, ety) -> do
-        when (hp < 0) $ destroy ety (Proxy @AllComps )
+    pathingChanged <- cfoldM (\b (Structure _, Hp hp _ _ , ety) -> do
+        when (hp <= 0) $ destroy ety (Proxy @AllComps )
         return (b || hp < 0)) False
     when pathingChanged $ do
         updateGoals
@@ -90,7 +90,7 @@ destroyDeadStructures = do
 
 destroyDeadEnemies :: SystemW ()
 destroyDeadEnemies = do
-    cmapM (\(Enemy hp _ _, ety) -> when (hp < 0) $ destroy ety (Proxy @AllComps ))
+    cmapM (\(Enemy _ _, Hp hp _ _ , ety) -> when (hp <= 0) $ destroy ety (Proxy @AllComps ))
 
 
 step :: Float -> SystemW ()
@@ -105,10 +105,10 @@ step dT = do
     doPlants dT
     destroyDeadStructures
     destroyDeadEnemies
-    triggerEvery dT 8 3 $  newEntity (Enemy 100 1 20, Position (V2 1400 1400), Sprite targetSprite2, Velocity (V2 0 0), PathFinder Nothing [])
-    triggerEvery dT 8 1 $  newEntity (Enemy 100 1 20, Position (V2 1400 (-1400)), Sprite targetSprite2, Velocity (V2 0 0), PathFinder Nothing [])
-    triggerEvery dT 8 5 $  newEntity (Enemy 100 1 20, Position (V2 (-1400) 1400), Sprite targetSprite2, Velocity (V2 0 0), PathFinder Nothing [])
-    triggerEvery dT 8 7 $  newEntity (Enemy 100 1 20, Position (V2 (-1400) (-1400)), Sprite targetSprite2, Velocity (V2 0 0), PathFinder Nothing [])
+    triggerEvery dT 8 3 $  newEntity (Hp 100 100 0, Enemy 1 20, Position (V2 1400 1400), Sprite targetSprite2, Velocity (V2 0 0), PathFinder Nothing [])
+    triggerEvery dT 8 1 $  newEntity (Hp 100 100 0, Enemy 1 20, Position (V2 1400 (-1400)), Sprite targetSprite2, Velocity (V2 0 0), PathFinder Nothing [])
+    triggerEvery dT 8 5 $  newEntity (Hp 100 100 0, Enemy 1 20, Position (V2 (-1400) 1400), Sprite targetSprite2, Velocity (V2 0 0), PathFinder Nothing [])
+    triggerEvery dT 8 7 $  newEntity (Hp 100 100 0, Enemy 1 20, Position (V2 (-1400) (-1400)), Sprite targetSprite2, Velocity (V2 0 0), PathFinder Nothing [])
 
 draw :: Picture -> (Int,Int) -> SystemW Picture
 draw bg (screenWidth, screenHeight) = do

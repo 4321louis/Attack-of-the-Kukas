@@ -39,7 +39,7 @@ cactusRange, cactusDmg :: Float
 cactusRange = 46
 cactusDmg = 10
 
-doPlants :: (HasMany w [Enemy, Position, Plant, Score, Cactus, Time]) => Float -> System w ()
+doPlants :: (HasMany w [Enemy, Position, Plant, Score, Cactus, Time, Hp]) => Float -> System w ()
 doPlants dT = do
     doCactusAttack dT
     -- doPlantsAttack
@@ -61,11 +61,11 @@ doPlants dT = do
 --         cfold (\b (Enemy e, Position posE)-> b || L.norm (posE - posP) < plantRange ) False
 --             modify global $ \(Score x) -> Score (x + hitBonus)
 
-doCactusAttack :: (HasMany w [Enemy, Position, Cactus, Score, Time]) => Float -> System w ()
+doCactusAttack :: (HasMany w [Enemy, Position, Cactus, Score, Time, Hp]) => Float -> System w ()
 doCactusAttack dT =
     cmapM_ $ \(Cactus, Position posP) -> do
-        cmapM_ $ \(Enemy _ _ _, Position posE, etyE) -> when (L.norm (posE - posP) < 46) $
-            triggerEvery dT 1 0.6 (modify etyE $ \(Enemy hp d s)-> Enemy (hp - cactusDmg) d s)
+        cmapM_ $ \(Enemy _ _, Position posE, etyE) -> when (L.norm (posE - posP) < 46) $
+            triggerEvery dT 1 0.6 (modify etyE $ \(Enemy _ _, hp) -> dealDamage hp cactusDmg)
 
 
 
