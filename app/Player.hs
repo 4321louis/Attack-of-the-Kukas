@@ -82,7 +82,7 @@ plantPlants ::  (HasMany w [Enchanter, Cactus, Plant, Position, Hp, Sprite, Stru
 plantPlants playerPos cursorPos grid size scale =
     when (placeable tile) $ do
         -- _plant <- newEntity (Cactus, Position (V2 cenX cenY), Sprite cactus)
-        _plant <- newEntity (Enchanter, Position (V2 cenX cenY), Hp 1 1 10, Sprite enchanter, Structure [(cenX+64,cenY),(cenX-64,cenY),(cenX,cenY+64),(cenX,cenY-64)])
+        _plant <- newEntity (Enchanter, Plant, Position (V2 cenX cenY), Hp 1 1 0, Sprite enchanter, Structure [(cenX+64,cenY),(cenX-64,cenY),(cenX,cenY+64),(cenX,cenY-64)])
         updateGoals
         clearPaths
     where   V2 a b = cursorPos
