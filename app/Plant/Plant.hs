@@ -15,11 +15,9 @@ module Plant.Plant where
     
 import Drawing.Sprites
 import Apecs
-import Apecs.Gloss
 import Apecs.Extension
 import Control.Monad
 import Misc
-import Graphics.Gloss.Game (jpg,png)
 import System.Random
 import qualified Linear as L
 
@@ -28,6 +26,9 @@ import Worlds
 import Plant.Seed
 import Linear (V2(..))
 import Structure.Structure
+
+type family HasPlants w :: Constraint where
+    HasPlants w = HasMany w [Plant, Cactus, Enchanter, RockPlant, SeedSeeker]
 
 data Plant = Plant deriving (Show)
 instance Component Plant where type Storage Plant = Map Plant
