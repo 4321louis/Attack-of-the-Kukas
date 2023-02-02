@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wno-missing-export-lists #-}
 
@@ -23,11 +24,13 @@ import Worlds
 import Drawing.Sprites
 import Apecs.Extension
 import Data.Maybe
+import Misc
 
 import Debug.Trace  (trace)
 import Control.Monad
 import Structure.Structure
 import Plant.Plant
+import Plant.Seed
 import Enemy.Pathfinding
 
 data Player = Player deriving (Show)
@@ -39,10 +42,10 @@ instance Semigroup Inputs where (Inputs a p1 d1) <> (Inputs b p2 d2) = Inputs (S
 instance Monoid Inputs where mempty = Inputs S.empty (V2 0.00000001 0) (V2 0 0)
 instance Component Inputs where type Storage Inputs = Global Inputs
 
-playerSpeed :: Float 
+playerSpeed :: Float
 playerSpeed = 170
 
-handleInputs :: (HasMany w [Enchanter, Cactus, Plant, Hp, Player, Position, Velocity, Inputs, Camera, EntityCounter, MapGrid, Sprite, Structure, Paths, PathFinder]) => Event -> System w ()
+handleInputs :: (HasMany w [Seed,Enchanter, Cactus, Plant, Hp, Player, Position, Velocity, Inputs, Camera, EntityCounter, MapGrid, Sprite, Structure, Paths, PathFinder]) => Event -> System w ()
 handleInputs e = do
     modify global $ \(Inputs s m _) -> Inputs s m (V2 0 0)
     updateGlobalInputs e
@@ -58,13 +61,17 @@ updateGlobalInputs (EventMotion (x, y)) = do
     modify global $ \(Inputs s prev _) -> Inputs s (V2 x y) (V2 x y - prev)
 updateGlobalInputs _ = return ()
 
-handleEvent :: (HasMany w [Enchanter, Cactus, Plant, Hp, Player, Velocity, Inputs, EntityCounter, MapGrid, Position, Sprite, Camera, Structure, Paths, PathFinder]) => Event -> System w ()
+handleEvent :: (HasMany w [Seed,Enchanter, Cactus, Plant, Hp, Player, Velocity, Inputs, EntityCounter, MapGrid, Position, Sprite, Camera, Structure, Paths, PathFinder]) => Event -> System w ()
 handleEvent (EventKey (SpecialKey KeyLeft) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyRight) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyDown) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyUp) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyEsc) Down _ _) = liftIO exitSuccess
 handleEvent (EventKey (MouseButton LeftButton) Down _ _) = cmapM_ $ \(Player, Inputs _ cursorPos _, MapGrid grid size, Camera pos scale ) -> plantPlants pos cursorPos grid size scale
+handleEvent (EventKey (MouseButton RightButton) Down _ _) = cmapM $ \all@(Seed, Position sPos, Sprite _, Inputs _ mPos _, camera) -> if L.norm (cursorPosToReal camera mPos - sPos) < 24
+    then do
+        return $ Right (Not @(Seed, Position, Sprite))
+    else return $ Left ()
 handleEvent _ = return ()
 
 playerVelocityfromInputs :: S.Set Key -> V2 Float
