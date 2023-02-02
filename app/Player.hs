@@ -92,7 +92,7 @@ plantPlants playerPos cursorPos grid size scale = do
 
     when (placeable tile && not hasPlant) $ do
         -- _plant <- newEntity (Cactus, Position (V2 cenX cenY), Sprite cactus)
-        _plant <- newSeedSeeker plantPos
+        _plant <- newPlant SeedSeeker plantPos
         updateGoals
         clearPaths
     where   V2 a b = cursorPos
