@@ -102,6 +102,6 @@ plantPlants playerPos cursorPos grid size scale = do
 
 -- Checks if entity exists on real coord
 -- Could expand to return the entities on the tile coord (in the future?)
-hasEntity :: (HasMany w [EntityCounter, Position]) => (Float, Float) -> SystemT w IO Bool
-hasEntity (x, y) = cfold (\bool (Position pos) -> bool || (pos==vectorPos)) False
+hasEntity :: (HasMany w [EntityCounter, Position, Plant]) => (Float, Float) -> SystemT w IO Bool
+hasEntity (x, y) = cfold (\bool (Position pos, Plant) -> bool || (pos==vectorPos)) False
     where vectorPos = V2 x y
