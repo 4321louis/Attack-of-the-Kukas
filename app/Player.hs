@@ -81,7 +81,7 @@ doMousePanning = cmap $ \(Player, Position p, Inputs keys _ d,Camera _ cscale) -
 plantPlants ::  (HasMany w [Cactus, Plant, Position, Sprite, Structure, EntityCounter, Camera, Paths, PathFinder]) => V2 Float -> V2 Float -> Grid -> Int -> Float -> System w ()
 plantPlants playerPos cursorPos grid size scale =
     when (placeable tile) $ do
-        _plant <- newEntity (Cactus, Position (V2 cenX cenY), Sprite cactus, Structure 30 [])
+        _plant <- newEntity (Cactus, Position (V2 cenX cenY), Sprite cactus)
         updateGoals
         clearPaths
     where   V2 a b = cursorPos

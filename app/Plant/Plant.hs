@@ -37,7 +37,7 @@ instance Component RockPlant where type Storage RockPlant = Map RockPlant
 
 cactusRange, cactusDmg :: Float
 cactusRange = 46
-cactusDmg = 50
+cactusDmg = 10
 
 doPlants :: (HasMany w [Enemy, Position, Plant, Score, Cactus, Time]) => Float -> System w ()
 doPlants dT = do
