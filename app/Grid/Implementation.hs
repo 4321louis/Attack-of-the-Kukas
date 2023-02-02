@@ -22,19 +22,20 @@ import Grid.Tile
 import Data.Either
 import qualified Data.Map as M
 import Misc
+import Linear (V2(..))
 
 
-toRealCoord :: Int -> (Int,Int) -> (Float,Float)
-toRealCoord size (x,y) = (fromIntegral (64*x-32*size),fromIntegral ( 64*y-32*size)) 
+toRealCoord :: Int -> (Int,Int) -> V2 Float
+toRealCoord size (x,y) = V2 (fromIntegral (64*x-32*size)) (fromIntegral ( 64*y-32*size)) 
 
-fromRealCoord :: Int -> (Float,Float) -> (Int,Int)
-fromRealCoord size (x,y) = (floor  $ (x+32*fromIntegral size)/64 , floor $ (y+32*fromIntegral size)/64 )
+fromRealCoord :: Int -> V2 Float -> (Int,Int)
+fromRealCoord size (V2 x y) = (floor  $ (x+32*fromIntegral size)/64 , floor $ (y+32*fromIntegral size)/64 )
 
-tileOfCoord :: Grid -> Int -> (Float,Float) -> Maybe Tile
-tileOfCoord grid size (x,y) = M.lookup (fromRealCoord size (x,y)) grid
+tileOfCoord :: Grid -> Int -> V2 Float -> Maybe Tile
+tileOfCoord grid size coord = M.lookup (fromRealCoord size coord) grid
 
-tileCentre :: Int -> (Float, Float) -> (Float, Float)
-tileCentre size (x,y) = if even size then (32 + fromIntegral (floorMultiple x 64),32 + fromIntegral (floorMultiple y 64)) else (fromIntegral (floorMultiple (x-32) 64),fromIntegral (floorMultiple (y-32) 64))
+tileCentre :: Int -> V2 Float -> V2 Float
+tileCentre size (V2 x y) = if even size then V2 (32 + fromIntegral (floorMultiple x 64)) (32 + fromIntegral (floorMultiple y 64)) else V2 (fromIntegral (floorMultiple (x-32) 64)) (fromIntegral (floorMultiple (y-32) 64))
 
 getGridSprite :: Grid -> [(Int, Int)] -> Picture
 getGridSprite grid coords = foldr (<>) Blank [translate (64*fromIntegral x) (64*fromIntegral y) $ pic (M.findWithDefault erTile (x,y) grid)| (x,y) <-coords]

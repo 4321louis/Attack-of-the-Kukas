@@ -15,9 +15,10 @@ module Structure.Structure where
 import Apecs
 import Apecs.Extension
 import Enemy.Pathfinding
+import Linear (V2(..))
 
 -- HP, attack positions
-newtype Structure = Structure [(Float,Float)] deriving (Show)
+newtype Structure = Structure [V2 Float] deriving (Show)
 instance Component Structure where type Storage Structure = Map Structure
 
 updateGoals :: (HasMany w [Paths, Structure]) => System w ()

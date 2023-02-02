@@ -49,7 +49,6 @@ makeWorld "World" [ ''Position, ''Velocity, ''Enemy, ''MapGrid, ''Paths,
                     ''Particle, ''Score, ''Time, ''Inputs, ''Camera, 
                     ''Hp, ''Seed, ''Plant]
 type AllEnemyComps = (Position, Enemy, Velocity, PathFinder, Sprite, Hp)
-type AllPlantComps = (Position, Structure, Sprite, Hp, Plant)
 
 type SystemW a = System World a
 
@@ -70,10 +69,10 @@ initialize pathGraph grid size = do
     _seed <- newEntity(Position (V2 32 96), Sprite greenSeed, GreenSeed)
     _seed <- newEntity(Position (V2 96 (-32)), Sprite greenSeed, GreenSeed)
     _baseEty <- newEntity(Position (V2 0 0), Hp 200 0 0, Structure [
-        (96, 32), (96, -32),
-        (-96, 32), (-96, -32),
-        (32, 96), (32, -96),
-        (-32, 96), (-32, -96)])
+        V2 96 32, V2 96 (-32),
+        V2 (-96) 32, V2 (-96) (-32),
+        V2 32 96, V2 32 (-96),
+        V2 (-32) 96, V2 (-32) (-96)])
     updateGoals
     return ()
 

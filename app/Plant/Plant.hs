@@ -17,6 +17,7 @@ import Drawing.Sprites
 import Apecs
 import Apecs.Extension
 import Control.Monad
+import Data.Kind
 import Misc
 import System.Random
 import qualified Linear as L
@@ -26,6 +27,8 @@ import Worlds
 import Plant.Seed
 import Linear (V2(..))
 import Structure.Structure
+
+type AllPlantComps = (Position, Structure, Sprite, Hp, Plant)
 
 data Plant = Cactus | Enchanter | RockPlant | SeedSeeker deriving (Show)
 instance Component Plant where type Storage Plant = Map Plant
@@ -40,11 +43,11 @@ enchanterShield = 5
 --         cfold (\b (Enemy e, Position posE)-> b || L.norm (posE - posP) < plantRange ) False
 --             modify global $ \(Score x) -> Score (x + hitBonus)
 
-newPlant :: (HasMany w [Plant, Position, Hp, Sprite, Structure, EntityCounter]) => Plant -> (Float, Float) -> System w Entity
-newPlant Cactus (x, y) = newEntity (Cactus, Position (V2 x y), Hp 20 20 0, Sprite cactus)
-newPlant Enchanter (x, y) = newEntity (Enchanter, Position (V2 x y), Hp 4 4 0, Sprite enchanter, Structure [(x+64,y),(x-64,y),(x,y+64),(x,y-64)])
-newPlant SeedSeeker (x, y) = newEntity (SeedSeeker, Position (V2 x y), Hp 20 20 0, Sprite seedSeeker, Structure [(x+64,y),(x-64,y),(x,y+64),(x,y-64)])
-newPlant RockPlant (x, y) = newEntity (RockPlant, Position (V2 x y), Hp 80 80 0, Sprite rockPlant, Structure [(x+64,y),(x-64,y),(x,y+64),(x,y-64)])
+newPlant :: (HasMany w [Plant, Position, Hp, Sprite, Structure, EntityCounter]) => Plant -> V2 Float -> System w Entity
+newPlant Cactus pos@(V2 x y) = newEntity (Cactus, Position pos, Hp 20 20 0, Sprite cactus)
+newPlant Enchanter pos@(V2 x y) = newEntity (Enchanter, Position pos, Hp 4 4 0, Sprite enchanter, Structure [V2 (x+64) y, V2 (x-64) y, V2 x (y+64),V2 x (y-64)])
+newPlant SeedSeeker pos@(V2 x y) = newEntity (SeedSeeker, Position pos, Hp 20 20 0, Sprite seedSeeker, Structure [V2 (x+64) y, V2 (x-64) y, V2 x (y+64),V2 x (y-64)])
+newPlant RockPlant pos@(V2 x y) = newEntity (RockPlant, Position pos, Hp 80 80 0, Sprite rockPlant, Structure [V2 (x+64) y, V2 (x-64) y, V2 x (y+64),V2 x (y-64)])
 
 doPlants :: (HasMany w [Enemy, Position, Plant, Score, Time, Hp, EntityCounter, Sprite, Seed])=> Float -> System w ()
 doPlants dT = cmapM_ $ \(plant::Plant, Position pos) ->

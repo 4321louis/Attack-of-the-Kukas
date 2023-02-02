@@ -34,7 +34,7 @@ moveOnPath :: (HasMany w [PathFinder, Position, Velocity, Enemy]) => System w ()
 moveOnPath = cmap $ \(p@(PathFinder _ pathNodes), Position pos, Velocity _, Enemy _ speed) ->
     if null pathNodes
     then (PathFinder Nothing [],Velocity (V2 0 0))
-    else let (nx,ny) = head pathNodes in (p,Velocity ((L.^* speed) . L.normalize $ V2 nx ny - pos))
+    else (p,Velocity ((L.^* speed) . L.normalize $ (head pathNodes) - pos))
 
 
 attackOrNewPath :: (HasMany w [PathFinder, Position, Velocity, Enemy, Paths, Structure, Time, Hp]) => Float -> System w ()

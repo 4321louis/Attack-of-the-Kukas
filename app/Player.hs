@@ -67,7 +67,10 @@ handleEvent (EventKey (SpecialKey KeyRight) _ _ _) = cmap $ \(Player, Velocity _
 handleEvent (EventKey (SpecialKey KeyDown) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyUp) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyEsc) Down _ _) = liftIO exitSuccess
-handleEvent (EventKey (MouseButton LeftButton) Down _ _) = cmapM_ $ \(Player, Inputs _ cursorPos _, MapGrid grid size, Camera pos scale ) -> plantPlants pos cursorPos grid size scale
+handleEvent (EventKey (MouseButton LeftButton) Down modifiers _) = cmapM_ $ \(Player, Inputs _ cursorPos _, MapGrid grid size, cam ) -> 
+    if Up == alt modifiers
+    then plantPlants cam cursorPos grid size
+    else removePlant cam cursorPos
 handleEvent (EventKey (MouseButton RightButton) Down _ _) = cmapM $ \all@(s::Seed, Position sPos, Sprite _, Inputs _ mPos _, camera) -> if L.norm (cursorPosToReal camera mPos - sPos) < 24
     then do
         return $ Right (Not @(Seed, Position, Sprite))
@@ -86,22 +89,24 @@ doMousePanning = cmap $ \(Player, Position p, Inputs keys _ d,Camera _ cscale) -
 
 
 -- Plants a plant (entity) on the cursor position
-plantPlants ::  (HasMany w [Plant, Position, Hp, Sprite, Structure, EntityCounter, Camera, Paths, PathFinder]) => V2 Float -> V2 Float -> Grid -> Int -> Float -> System w ()
-plantPlants playerPos cursorPos grid size scale = do
+plantPlants ::  (HasMany w [Plant, Position, Hp, Sprite, Structure, EntityCounter, Camera, Paths, PathFinder]) => Camera -> V2 Float -> Grid -> Int -> System w ()
+plantPlants cam cursorPos grid size = do
     hasPlant <- hasEntity plantPos
-
     when (placeable tile && not hasPlant) $ do
-        -- _plant <- newEntity (Cactus, Position (V2 cenX cenY), Sprite cactus)
         _plant <- newPlant SeedSeeker plantPos
         updateGoals
         clearPaths
-    where   V2 a b = cursorPos
-            (V2 x y) = playerPos + V2 (a/scale) (b/scale)
-            plantPos = tileCentre size (x, y)
-            tile = fromMaybe erTile3 $ tileOfCoord grid size (x, y)
+    where   realCursorPos = cursorPosToReal cam cursorPos
+            plantPos = tileCentre 2 realCursorPos
+            tile = fromMaybe erTile3 $ tileOfCoord grid size realCursorPos
+
+removePlant cam cursorPos = cmapM_ $ \(Position pos, _::Plant, ety) -> 
+    when (L.norm (pos - tileCentre 2 (cursorPosToReal cam cursorPos )) < 10) $ do
+        destroy ety (Proxy @AllPlantComps )        
+        updateGoals
+        clearPaths
 
 -- Checks if entity exists on real coord
 -- Could expand to return the entities on the tile coord (in the future?)
-hasEntity :: (HasMany w [EntityCounter, Position, Plant]) => (Float, Float) -> SystemT w IO Bool
-hasEntity (x, y) = cfold (\bool (Position pos, _::Plant) -> bool || (pos==vectorPos)) False
-    where vectorPos = V2 x y
+hasEntity :: (HasMany w [EntityCounter, Position, Plant]) => V2 Float -> SystemT w IO Bool
+hasEntity vectorPos = cfold (\bool (Position pos, _::Plant) -> bool || (pos==vectorPos)) False
