@@ -11,19 +11,8 @@
 {-# OPTIONS_GHC -Wno-missing-export-lists #-}
 
 module Plant.Seed where
-    
-import Drawing.Sprites
+
 import Apecs
-import Apecs.Gloss
-import Apecs.Extension
-import Control.Monad
-import Misc
-import Graphics.Gloss.Game (jpg,png)
-import System.Random
-import qualified Linear as L
 
-import Enemy.Enemy
-import Worlds
-
-data Seed = Seed deriving (Show)
+data Seed = GreenSeed | RedSeed | BlueSeed | Spore deriving (Show)
 instance Component Seed where type Storage Seed = Map Seed

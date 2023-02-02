@@ -25,6 +25,9 @@ import qualified Linear as L
 
 import Enemy.Enemy
 import Worlds
+import Plant.Seed
+import Linear (V2(..))
+import Structure.Structure
 
 data Plant = Plant deriving (Show)
 instance Component Plant where type Storage Plant = Map Plant
@@ -38,15 +41,18 @@ instance Component Enchanter where type Storage Enchanter = Map Enchanter
 data RockPlant = RockPlant deriving (Show)
 instance Component RockPlant where type Storage RockPlant = Map RockPlant
 
-cactusDmg :: Float
+data SeedSeeker = SeedSeeker deriving (Show)
+instance Component SeedSeeker where type Storage SeedSeeker = Map SeedSeeker
+
+cactusDmg, enchanterShield :: Float
 cactusDmg = 20
 enchanterShield = 5
 
-doPlants :: (HasMany w [Enemy, Position, Plant, Score, Enchanter, Cactus, Time, Hp]) => Float -> System w ()
+doPlants :: (HasMany w [Enemy, Position, Plant, Score, Enchanter, Cactus, SeedSeeker, Time, Hp, EntityCounter, Sprite, Seed]) => Float -> System w ()
 doPlants dT = do
     doCactusAttack dT
     doEnchanting dT
-    --do GG - SeedSeeker
+    doSeedSeeking dT
     --do GB - Healer
     --do GR - Attackspeed
     --do GS - Vampiric 
@@ -63,6 +69,15 @@ doPlants dT = do
 --         cfold (\b (Enemy e, Position posE)-> b || L.norm (posE - posP) < plantRange ) False
 --             modify global $ \(Score x) -> Score (x + hitBonus)
 
+newCactus :: (HasMany w [Cactus, Plant, Position, Hp, Sprite, Structure, EntityCounter]) => (Float, Float) -> System w Entity
+newCactus (x, y) = newEntity (Cactus, Plant, Position (V2 x y), Hp 20 20 0, Sprite cactus)
+newEnchanter :: (HasMany w [Enchanter, Plant, Position, Hp, Sprite, Structure, EntityCounter]) => (Float, Float) -> System w Entity
+newEnchanter (x, y) = newEntity (Enchanter, Plant, Position (V2 x y), Hp 4 4 0, Sprite enchanter, Structure [(x+64,y),(x-64,y),(x,y+64),(x,y-64)])
+newSeedSeeker :: (HasMany w [SeedSeeker, Plant, Position, Hp, Sprite, Structure, EntityCounter]) => (Float, Float) -> System w Entity
+newSeedSeeker (x, y) = newEntity (SeedSeeker, Plant, Position (V2 x y), Hp 20 20 0, Sprite seedSeeker, Structure [(x+64,y),(x-64,y),(x,y+64),(x,y-64)])
+newRockPlant :: (HasMany w [RockPlant, Plant, Position, Hp, Sprite, Structure, EntityCounter]) => (Float, Float) -> System w Entity
+newRockPlant (x, y) = newEntity (RockPlant, Plant, Position (V2 x y), Hp 80 80 0, Sprite rockPlant, Structure [(x+64,y),(x-64,y),(x,y+64),(x,y-64)])
+
 doCactusAttack :: (HasMany w [Enemy, Position, Cactus, Score, Time, Hp]) => Float -> System w ()
 doCactusAttack dT =
     cmapM_ $ \(Cactus, Position posP) -> do
@@ -74,6 +89,14 @@ doEnchanting dT =
     cmapM_ $ \(Enchanter, Position posEch) -> do
         cmapM_ $ \(Plant, Position posP, etyP) -> when (L.norm (posEch - posP) < tileRange 1) $
             triggerEvery dT 1 0.6 (modify etyP $ \(Plant, hp) -> shieldHp hp enchanterShield)
+
+doSeedSeeking :: (HasMany w [SeedSeeker, Seed, Sprite, Plant, Position, Time, EntityCounter]) => Float -> System w ()
+doSeedSeeking dT = 
+    cmapM_ $ \(SeedSeeker, Position (V2 x y)) -> do
+        seed <- liftIO $ randomRIO (0,3)
+        xoff <- liftIO $ randomRIO (-32,32)
+        yoff <- liftIO $ randomRIO (-32,-1)
+        triggerEvery dT 30 0.6 $ newEntity ([GreenSeed,RedSeed,BlueSeed,Spore]!! seed, Position (V2 xoff yoff + V2 x y), Sprite $ [greenSeed,redSeed,blueSeed,spore] !! seed )
 
 
 -- doCactusAttack :: (HasMany w [Enemy, Position, Plant, Score]) => System w ()

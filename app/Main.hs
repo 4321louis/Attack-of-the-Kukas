@@ -47,8 +47,8 @@ import Drawing.Sprites (spriteDir)
 makeWorld "World" [ ''Position, ''Velocity, ''Enemy, ''MapGrid, ''Paths, 
                     ''PathFinder, ''Structure, ''Sprite, ''AnimatedSprite, ''Player,
                     ''Particle, ''Score, ''Time, ''Inputs, ''Camera, 
-                    ''Plant, ''Cactus, ''Enchanter, ''RockPlant, ''Hp, 
-                    ''Seed]
+                    ''Hp, ''Seed, ''Plant, ''Cactus, ''Enchanter, 
+                    ''RockPlant, ''SeedSeeker]
 type AllEnemyComps = (Position, Enemy, Velocity, PathFinder, Sprite, Hp)
 type AllPlantComps = (Position, Structure, Sprite, Hp, Plant)
 type AllPlantTypeComps = (Cactus, RockPlant, Enchanter)
@@ -69,7 +69,8 @@ initialize pathGraph grid size = do
     modify global $ \(Camera pos _) -> Camera pos 1.6
     modify global $ \(Paths _ g) -> Paths pathGraph g
     modify global $ \(MapGrid _ _) -> MapGrid grid size
-    _seed <- newEntity(Position (V2 32 160), Sprite (scale 0.6 0.6 . png $ spriteDir++ "UI/GSeed.png"), Seed)
+    _seed <- newEntity(Position (V2 32 96), Sprite greenSeed, GreenSeed)
+    _seed <- newEntity(Position (V2 96 (-32)), Sprite greenSeed, GreenSeed)
     _baseEty <- newEntity(Position (V2 0 0), Hp 200 0 0, Structure [
         (96, 32), (96, -32),
         (-96, 32), (-96, -32),
