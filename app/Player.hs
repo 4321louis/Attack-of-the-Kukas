@@ -105,7 +105,7 @@ plantPlants ::  (HasMany w [Craft, Plant, Position, Hp, Sprite, Structure, Entit
 plantPlants cam cursorPos grid size = do
     Craft craft <- get 0
     let plant = getPlant craft
-    hasPlant <- trace $ hasEntity plantPos
+    hasPlant <- hasEntity plantPos
     when (placeable tile && not hasPlant) $ do
         xoff <- liftIO $ randomRIO (-8,8)
         yoff <- liftIO $ randomRIO (-8,8)
