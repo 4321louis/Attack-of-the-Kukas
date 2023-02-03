@@ -32,6 +32,7 @@ import Structure.Structure
 import Plant.Plant
 import Plant.Seed
 import Enemy.Pathfinding
+import System.Random
 
 data Player = Player deriving (Show)
 instance Component Player where type Storage Player = Unique Player
@@ -94,7 +95,9 @@ plantPlants ::  (HasMany w [Plant, Position, Hp, Sprite, Structure, EntityCounte
 plantPlants cam cursorPos grid size = do
     hasPlant <- hasEntity plantPos
     when (placeable tile && not hasPlant) $ do
-        _plant <- newPlant SeedSeeker plantPos
+        xoff <- liftIO $ randomRIO (-8,8)
+        yoff <- liftIO $ randomRIO (-8,8)
+        _plant <- newPlant SeedSeeker (plantPos + V2 xoff yoff)
         updateGoals
         clearPaths
     where   realCursorPos = cursorPosToReal cam cursorPos
@@ -111,4 +114,4 @@ removePlant cam cursorPos = cmapM_ $ \(Position pos, _::Plant, ety) ->
 -- Checks if entity exists on real coord
 -- Could expand to return the entities on the tile coord (in the future?)
 hasEntity :: (HasMany w [EntityCounter, Position, Plant]) => V2 Float -> SystemT w IO Bool
-hasEntity vectorPos = cfold (\bool (Position pos, _::Plant) -> bool || (pos==vectorPos)) False
+hasEntity vectorPos = cfold (\bool (Position pos, _::Plant) -> bool || 11.4 >= L.norm (pos-vectorPos)) False
