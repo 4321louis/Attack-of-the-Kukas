@@ -69,7 +69,10 @@ handleEvent (EventKey (SpecialKey KeyUp) _ _ _) = cmap $ \(Player, Velocity _, I
 
 handleEvent (EventKey (SpecialKey KeyEsc) Down _ _) = liftIO exitSuccess
 
-handleEvent (EventKey q Down _ _) = cmap $ \(Craft craftLog) -> Craft (GreenSeed:craftLog)
+handleEvent (EventKey (Char 'q') Down _ _) = modify global $ \(Craft craftLog) -> Craft (GreenSeed:craftLog)
+handleEvent (EventKey (Char 'w') Down _ _) = modify global $ \(Craft craftLog) -> Craft (RedSeed:craftLog)
+handleEvent (EventKey (Char 'e') Down _ _) = modify global $ \(Craft craftLog) -> Craft (BlueSeed:craftLog)
+handleEvent (EventKey (Char 'r') Down _ _) = modify global $ \(Craft craftLog) -> Craft (Spore:craftLog)
 
 
 handleEvent (EventKey (MouseButton LeftButton) Down modifiers _) = cmapM_ $ \(Player, Inputs _ cursorPos _, MapGrid grid size, cam ) -> 
