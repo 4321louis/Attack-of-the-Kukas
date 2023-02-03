@@ -46,7 +46,7 @@ import Drawing.Sprites (spriteDir)
 
 makeWorld "World" [ ''Position, ''Velocity, ''Enemy, ''MapGrid, ''Paths, 
                     ''PathFinder, ''Structure, ''Sprite, ''AnimatedSprite, ''Player,
-                    ''Particle, ''Score, ''Time, ''Inputs, ''Camera, 
+                    ''Particle, ''Base, ''Time, ''Inputs, ''Camera, 
                     ''Hp, ''Seed, ''Plant, ''DropHandler]
 
 type SystemW a = System World a
@@ -69,7 +69,7 @@ initialize pathGraph grid size = do
     _seed <- newEntity(Position (V2 96 (-32)), Sprite redSeed, RedSeed)
     _seed <- newEntity(Position (V2 96 32), Sprite redSeed, RedSeed)
     _seed <- newEntity(Position (V2 (-96) (-32)), Sprite blueSeed, BlueSeed)
-    _baseEty <- newEntity(Position (V2 0 0), Hp 200 0 0, Structure [
+    _baseEty <- newEntity(Base, Position (V2 0 0), Hp 200 0 0, Structure [
         V2 96 32, V2 96 (-32),
         V2 (-96) 32, V2 (-96) (-32),
         V2 32 96, V2 32 (-96),
@@ -89,7 +89,6 @@ step dT = do
     incrTime dT
     stepPosition dT
     animatedSprites dT
-    stepParticles dT
     camOnPlayer
     doEnemy dT
     doPathFinding
@@ -112,9 +111,11 @@ draw bg (screenWidth, screenHeight) = do
         \(Particle _, Velocity (V2 vx vy), Position pos) ->
             translateV2 pos . color orange $ Line [(0, 0), (vx / 10, vy / 10)]
     cam <- get global
-    Score s <- get global
-    let score = pictureOnHud cam (V2 (fromIntegral $ 30 - div screenWidth 2) (fromIntegral $ 50 - div screenHeight 2)) . scale 0.3 0.3 . color white .  Text $ "Base HP: " ++ show s
-    return $  bg <> sprites <> particles <> score
+    Time time <- get global
+    hp <- cfold (\a (Base, Hp hp _ _) -> hp) 0 
+    let hpPic = pictureOnHud cam (V2 (fromIntegral $ 30 - div screenWidth 2) (fromIntegral $ 50 - div screenHeight 2)) . scale 0.3 0.3 . color white .  Text $ "Base HP: " ++ show (ceiling hp)
+        timeSpr = pictureOnHud cam (V2 (fromIntegral $ 30 - div screenWidth 2) (fromIntegral $ 100 - div screenHeight 2)) . scale 0.3 0.3 . color white .  Text $ "Time: " ++ show (floor $ time/60)  ++ ":"++ show (mod (floor time) 60 )
+    return $  bg <> sprites <> particles <>  hpPic <> timeSpr
 
 main :: IO ()
 main = do

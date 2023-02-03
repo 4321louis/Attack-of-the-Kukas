@@ -78,9 +78,3 @@ spawnParticles n pos dvx dvy = replicateM_ n $ do
     vy <- liftIO $ randomRIO dvy
     t <- liftIO $ randomRIO (0.02, 0.3)
     newEntity (Particle t, pos, Velocity (V2 vx vy))
-
-stepParticles :: (HasMany w [Position, Velocity, Particle]) => Float -> System w ()
-stepParticles dT = cmap $ \(Particle t) ->
-    if t < 0
-        then Right $ Not @(Particle, Kinetic)
-        else Left $ Particle (t - dT)

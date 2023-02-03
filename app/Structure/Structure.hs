@@ -21,6 +21,9 @@ import Linear (V2(..))
 newtype Structure = Structure [V2 Float] deriving (Show)
 instance Component Structure where type Storage Structure = Map Structure
 
+data Base = Base deriving (Show)
+instance Component Base where type Storage Base = Unique Base
+
 updateGoals :: (HasMany w [Paths, Structure]) => System w ()
 updateGoals = do
     modify global $ \(Paths graph _) -> Paths graph []

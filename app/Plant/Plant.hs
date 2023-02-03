@@ -50,7 +50,7 @@ newPlant Enchanter pos = newEntity (Enchanter, Position pos, Hp 4 4 0, Sprite en
 newPlant SeedSeeker pos = newEntity (SeedSeeker, Position pos, Hp 20 20 0, Sprite seedSeeker, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
 newPlant RockPlant pos = newEntity (RockPlant, Position pos, Hp 80 80 0, Sprite rockPlant, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
 
-doPlants :: (HasMany w [Enemy, Position, Plant, Score, Time, Hp, EntityCounter, Sprite, Seed])=> Float -> System w ()
+doPlants :: (HasMany w [Enemy, Position, Plant, Time, Hp, EntityCounter, Sprite, Seed])=> Float -> System w ()
 doPlants dT = cmapM_ $ \(plant::Plant, Position pos) ->
     case plant of
         Cactus -> doCactusAttack dT pos
@@ -67,7 +67,7 @@ doPlants dT = cmapM_ $ \(plant::Plant, Position pos) ->
         --do SS - Necromancy
         _ -> do return ()
 
-doCactusAttack :: (HasMany w [Enemy, Position, Plant, Score, Time, Hp]) => Float -> V2 Float -> System w ()
+doCactusAttack :: (HasMany w [Enemy, Position, Plant, Time, Hp]) => Float -> V2 Float -> System w ()
 doCactusAttack dT posP = do
     cmapM_ $ \(Enemy _ _, Position posE, etyE) -> when (L.norm (posE - posP) < tileRange 0) $
         triggerEvery dT 1 0.6 (modify etyE $ \(Enemy _ _, hp) -> dealDamage hp cactusDmg)
