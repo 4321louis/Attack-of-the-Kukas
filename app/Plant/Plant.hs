@@ -22,6 +22,7 @@ import Misc
 import System.Random
 import qualified Linear as L
 
+import Audio
 import Enemy.Enemy
 import Enemy.Pathfinding
 import Worlds
@@ -107,6 +108,7 @@ destroyDeadStructures :: (HasMany w [Sprite, Plant, Position, Paths, PathFinder,
 destroyDeadStructures = do
     pathingChanged <- cfoldM (\b (Structure _, Hp hp _ _ , ety) -> do
         when (hp <= 0) $ do 
+            playIOSoundEffect explosion
             destroy ety (Proxy @AllPlantComps )
         return (b || hp <= 0)) False
     when pathingChanged $ do

@@ -24,6 +24,7 @@ import Drawing.Sprites
 import Control.Monad
 import System.Random (randomRIO)
 import Plant.Seed
+import Audio
 --dmg, speed
 data Enemy = Enemy Float Float deriving (Show)
 instance Component Enemy where type Storage Enemy = Map Enemy
@@ -37,12 +38,13 @@ type AllEnemyComps = (Position, Enemy, Velocity, PathFinder, Sprite, Hp)
 
 destroyDeadEnemies :: (HasMany w [PathFinder, Position, Velocity, Enemy, Sprite, Hp, DropHandler, Seed, EntityCounter, DropHandler]) => System w ()
 destroyDeadEnemies =
-    cmapM $ \(Enemy _ _, Hp hp _ _ , ety, Position pos, DropHandler chance) -> 
-        if (hp <= 0) 
-        then do 
+    cmapM $ \(Enemy _ _, Hp hp _ _ , ety, Position pos, DropHandler chance) ->
+        if hp <= 0
+        then do
             destroy ety (Proxy @AllEnemyComps )
+            playIOSoundEffect kukasDeath
             roll <- randomRIO (0,100)
-            if roll < chance 
+            if roll < chance
             then do
                 seed <- liftIO $ randomRIO (0,3)
                 xoff <- liftIO $ randomRIO (-32,32)
@@ -62,16 +64,19 @@ moveOnPath :: (HasMany w [PathFinder, Position, Velocity, Enemy]) => System w ()
 moveOnPath = cmap $ \(p@(PathFinder _ pathNodes), Position pos, Velocity _, Enemy _ speed) ->
     if null pathNodes
     then (PathFinder Nothing [],Velocity (V2 0 0))
-    else (p,Velocity ((L.^* speed) . L.normalize $ (head pathNodes) - pos))
+    else (p,Velocity ((L.^* speed) . L.normalize $ head pathNodes - pos))
 
 
 attackOrNewPath :: (HasMany w [PathFinder, Position, Velocity, Enemy, Paths, Structure, Time, Hp]) => Float -> System w ()
-attackOrNewPath dT = cmapM $ \(p@(PathFinder _oldGoals pathNodes), Position epos, Velocity _, Enemy dmg _, Paths _ goals) -> 
+attackOrNewPath dT = cmapM $ \(p@(PathFinder _oldGoals pathNodes), Position epos, Velocity _, Enemy dmg _, Paths _ goals) ->
     let trueGoals = if null goals then Nothing else Just goals in
     if null pathNodes
     then do
         (cdist, closest) <- cfold (\min@(minDist,_) (Structure _, Position spos, ety) ->
             let nDist = L.norm (spos - epos)
             in if nDist < minDist then (nDist,ety) else min) (10000,0)
-        if cdist < 112 then triggerEvery dT 1 0 (modify closest (\(Structure _, hp) -> dealDamage hp dmg)) >> return p else return (PathFinder trueGoals [])
+        if cdist < 112 then triggerEvery dT 1 0 (do
+            modify closest (\(Structure _, hp) -> dealDamage hp dmg)
+            playIOSoundEffect kukasAttack) >> return p
+        else return (PathFinder trueGoals [])
     else return (PathFinder trueGoals pathNodes)

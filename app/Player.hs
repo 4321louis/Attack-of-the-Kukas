@@ -26,6 +26,7 @@ import Apecs.Extension
 import Data.Maybe
 import Misc
 
+import Audio
 import Debug.Trace  (trace)
 import Control.Monad
 import Structure.Structure
@@ -75,6 +76,7 @@ handleEvent (EventKey (MouseButton LeftButton) Down modifiers _) = cmapM_ $ \(Pl
 handleEvent (EventKey (MouseButton RightButton) Down _ _) = cmapM $ \all@(s::Seed, Position sPos, Sprite _, Inputs _ mPos _, camera) -> 
     if L.norm (cursorPosToReal camera mPos - sPos) < 24
     then do
+        playIOSoundEffect pickUpSeed
         return $ Right (Not @(Seed, Position, Sprite))
     else return $ Left ()
 handleEvent _ = return ()
@@ -98,6 +100,7 @@ plantPlants cam cursorPos grid size = do
         xoff <- liftIO $ randomRIO (-8,8)
         yoff <- liftIO $ randomRIO (-8,8)
         _plant <- newPlant SeedSeeker (plantPos + V2 xoff yoff)
+        playIOSoundEffect plantPlant
         updateGoals
         clearPaths
     where   realCursorPos = cursorPosToReal cam cursorPos

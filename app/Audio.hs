@@ -11,11 +11,27 @@ import Control.Monad
 import Sound.ProteaAudio
 import Apecs
 
+musicDir :: String
+musicDir = "./assets/Audio/Music/"
+menuLoop, menuLoopIntro, gameLoop, gameLoopIntro :: IO Sample
+menuLoopIntro = sampleFromFile (musicDir ++ "Sunny_day_intro.ogg") 0.3
+menuLoop = sampleFromFile (musicDir ++ "Sunny_day_loop.ogg") 0.3
+gameLoopIntro = sampleFromFile (musicDir ++ "Uncharted_Encounter_intro.ogg") 0.3
+gameLoop = sampleFromFile (musicDir ++ "Uncharted_Encounter_loop.ogg") 0.3
 
-gameLoop, pew :: IO Sample
-gameLoopIntro = sampleFromFile "./assets/Audio/Music/gameLoopIntro.ogg" 0.3
-gameLoop = sampleFromFile "./assets/Audio/Music/gameLoop.ogg" 0.3
-pew = sampleFromFile "./assets/Audio/Effects/PEW.wav" 1.0
+effectsDir :: String
+effectsDir = "./assets/Audio/Effects/"
+pew, fastAttack, kukasAttack, eatSound, explosion, invokeSeed, kukasDeath, pickUpSeed, laserGun, plantPlant :: IO Sample
+pew = sampleFromFile (effectsDir ++ "PEW.wav") 1.0
+fastAttack = sampleFromFile (effectsDir ++ "basic attack.ogg") 1.0
+kukasAttack = sampleFromFile (effectsDir ++ "kukas attack.ogg") 1.0
+eatSound = sampleFromFile (effectsDir ++ "eating sound question mark.ogg") 1.0
+explosion = sampleFromFile (effectsDir ++ "generic explosion.ogg") 1.0
+invokeSeed = sampleFromFile (effectsDir ++ "invoke seed.ogg") 1.0
+kukasDeath = sampleFromFile (effectsDir ++ "kukas death.ogg") 1.0
+pickUpSeed = sampleFromFile (effectsDir ++ "pick up seed.ogg") 1.0
+laserGun = sampleFromFile (effectsDir ++ "laser gun 1.ogg") 1.0
+plantPlant = sampleFromFile (effectsDir ++ "plant plant.ogg") 1.0
 
 playSoundEffect :: Sample -> System w Sound
 playSoundEffect = liftIO . (\s -> soundPlay s 1 1 0 1)
