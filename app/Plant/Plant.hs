@@ -46,6 +46,20 @@ enchanterShield = 5
 --         cfold (\b (Enemy e, Position posE)-> b || L.norm (posE - posP) < plantRange ) False
 --             modify global $ \(Score x) -> Score (x + hitBonus)
 
+getPlant :: [Seed] -> Plant
+getPlant [GreenSeed, GreenSeed] = SeedSeeker
+getPlant [GreenSeed, BlueSeed] = Enchanter
+getPlant [GreenSeed, RedSeed] = SeedSeeker
+getPlant [GreenSeed, Spore] = SeedSeeker
+getPlant [BlueSeed, BlueSeed] = RockPlant
+getPlant [BlueSeed, RedSeed] = Cactus
+getPlant [BlueSeed, Spore] = SeedSeeker
+getPlant [RedSeed, RedSeed] = SeedSeeker
+getPlant [RedSeed, Spore] = SeedSeeker
+getPlant [Spore, Spore] = SeedSeeker
+getPlant [x, y] = getPlant [y, x]
+getPlant _ = SeedSeeker
+
 newPlant :: (HasMany w [Plant, Position, Hp, Sprite, Structure, EntityCounter]) => Plant -> V2 Float -> System w Entity
 newPlant Cactus pos = newEntity (Cactus, Position pos, Hp 20 20 0, Sprite cactus)
 newPlant Enchanter pos = newEntity (Enchanter, Position pos, Hp 4 4 0, Sprite enchanter, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
