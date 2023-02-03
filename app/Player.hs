@@ -69,10 +69,10 @@ handleEvent (EventKey (SpecialKey KeyUp) _ _ _) = cmap $ \(Player, Velocity _, I
 
 handleEvent (EventKey (SpecialKey KeyEsc) Down _ _) = liftIO exitSuccess
 
-handleEvent (EventKey (Char 'q') Down _ _) = modify global $ \(Craft craftLog) -> Craft (GreenSeed:craftLog)
-handleEvent (EventKey (Char 'w') Down _ _) = modify global $ \(Craft craftLog) -> Craft (RedSeed:craftLog)
-handleEvent (EventKey (Char 'e') Down _ _) = modify global $ \(Craft craftLog) -> Craft (BlueSeed:craftLog)
-handleEvent (EventKey (Char 'r') Down _ _) = modify global $ \(Craft craftLog) -> Craft (Spore:craftLog)
+handleEvent (EventKey (Char 'q') Down _ _) = modify global $ \(Craft (seed:seeds)) -> Craft [GreenSeed, seed]
+handleEvent (EventKey (Char 'w') Down _ _) = modify global $ \(Craft (seed:seeds)) -> Craft [RedSeed, seed]
+handleEvent (EventKey (Char 'e') Down _ _) = modify global $ \(Craft (seed:seeds)) -> Craft [BlueSeed, seed]
+handleEvent (EventKey (Char 'r') Down _ _) = modify global $ \(Craft (seed:seeds)) -> Craft [Spore, seed]
 
 
 handleEvent (EventKey (MouseButton LeftButton) Down modifiers _) = cmapM_ $ \(Player, Inputs _ cursorPos _, MapGrid grid size, cam ) -> 
@@ -97,11 +97,13 @@ doMousePanning = cmap $ \(Player, Position p, Inputs keys _ d,Camera _ cscale) -
 
 
 -- Plants a plant (entity) on the cursor position
-plantPlants ::  (HasMany w [Plant, Position, Hp, Sprite, Structure, EntityCounter, Camera, Paths, PathFinder]) => Camera -> V2 Float -> Grid -> Int -> System w ()
+plantPlants ::  (HasMany w [Craft, Plant, Position, Hp, Sprite, Structure, EntityCounter, Camera, Paths, PathFinder]) => Camera -> V2 Float -> Grid -> Int -> System w ()
 plantPlants cam cursorPos grid size = do
-    hasPlant <- hasEntity plantPos
+    Craft craft <- get 0
+    let plant = getPlant craft
+    hasPlant <- trace (show craft) $ hasEntity plantPos
     when (placeable tile && not hasPlant) $ do
-        _plant <- newPlant SeedSeeker plantPos
+        _plant <- newPlant plant plantPos
         updateGoals
         clearPaths
     where   realCursorPos = cursorPosToReal cam cursorPos

@@ -49,6 +49,10 @@ newPlant Enchanter pos@(V2 x y) = newEntity (Enchanter, Position pos, Hp 4 4 0, 
 newPlant SeedSeeker pos@(V2 x y) = newEntity (SeedSeeker, Position pos, Hp 20 20 0, Sprite seedSeeker, Structure [V2 (x+64) y, V2 (x-64) y, V2 x (y+64),V2 x (y-64)])
 newPlant RockPlant pos@(V2 x y) = newEntity (RockPlant, Position pos, Hp 80 80 0, Sprite rockPlant, Structure [V2 (x+64) y, V2 (x-64) y, V2 x (y+64),V2 x (y-64)])
 
+getPlant :: [Seed] -> Plant
+getPlant [GreenSeed, GreenSeed] = SeedSeeker
+getPlant _ = Enchanter
+
 doPlants :: (HasMany w [Enemy, Position, Plant, Score, Time, Hp, EntityCounter, Sprite, Seed])=> Float -> System w ()
 doPlants dT = cmapM_ $ \(plant::Plant, Position pos) ->
     case plant of
