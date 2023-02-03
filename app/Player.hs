@@ -71,7 +71,8 @@ handleEvent (EventKey (MouseButton LeftButton) Down modifiers _) = cmapM_ $ \(Pl
     if Up == alt modifiers
     then plantPlants cam cursorPos grid size
     else removePlant cam cursorPos
-handleEvent (EventKey (MouseButton RightButton) Down _ _) = cmapM $ \all@(s::Seed, Position sPos, Sprite _, Inputs _ mPos _, camera) -> if L.norm (cursorPosToReal camera mPos - sPos) < 24
+handleEvent (EventKey (MouseButton RightButton) Down _ _) = cmapM $ \all@(s::Seed, Position sPos, Sprite _, Inputs _ mPos _, camera) -> 
+    if L.norm (cursorPosToReal camera mPos - sPos) < 24
     then do
         return $ Right (Not @(Seed, Position, Sprite))
     else return $ Left ()
@@ -93,13 +94,14 @@ plantPlants ::  (HasMany w [Plant, Position, Hp, Sprite, Structure, EntityCounte
 plantPlants cam cursorPos grid size = do
     hasPlant <- hasEntity plantPos
     when (placeable tile && not hasPlant) $ do
-        _plant <- newPlant SeedSeeker plantPos
+        _plant <- newPlant Cactus plantPos
         updateGoals
         clearPaths
     where   realCursorPos = cursorPosToReal cam cursorPos
             plantPos = tileCentre 2 realCursorPos
             tile = fromMaybe erTile3 $ tileOfCoord grid size realCursorPos
 
+removePlant :: HasMany w [Position, Plant, Structure, Sprite, Hp, Paths, PathFinder] => Camera -> V2 Float -> SystemT w IO ()
 removePlant cam cursorPos = cmapM_ $ \(Position pos, _::Plant, ety) -> 
     when (L.norm (pos - tileCentre 2 (cursorPosToReal cam cursorPos )) < 10) $ do
         destroy ety (Proxy @AllPlantComps )        

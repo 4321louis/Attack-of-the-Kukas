@@ -20,15 +20,43 @@ import qualified Linear as L
 import Worlds
 import Misc
 import Linear (V2(..))
+import Drawing.Sprites
+import Control.Monad
+import System.Random (randomRIO)
+import Plant.Seed
 --dmg, speed
 data Enemy = Enemy Float Float deriving (Show)
 instance Component Enemy where type Storage Enemy = Map Enemy
+
+newtype DropHandler = DropHandler Float deriving (Show, Num)
+instance Semigroup DropHandler where (<>) = (+)
+instance Monoid DropHandler where mempty = 0
+instance Component DropHandler where type Storage DropHandler = Global DropHandler
+
+type AllEnemyComps = (Position, Enemy, Velocity, PathFinder, Sprite, Hp)
+
+destroyDeadEnemies :: (HasMany w [PathFinder, Position, Velocity, Enemy, Sprite, Hp, DropHandler, Seed, EntityCounter, DropHandler]) => System w ()
+destroyDeadEnemies =
+    cmapM $ \(Enemy _ _, Hp hp _ _ , ety, Position pos, DropHandler chance) -> 
+        if (hp <= 0) 
+        then do 
+            destroy ety (Proxy @AllEnemyComps )
+            roll <- randomRIO (0,100)
+            if roll < chance 
+            then do
+                seed <- liftIO $ randomRIO (0,3)
+                xoff <- liftIO $ randomRIO (-32,32)
+                yoff <- liftIO $ randomRIO (-32,32)
+                _ <- newEntity ([GreenSeed,RedSeed,BlueSeed,Spore] !! seed, Position (V2 xoff yoff + pos), Sprite $ [greenSeed,redSeed,blueSeed,spore] !! seed )
+                return (DropHandler 0)
+            else return (DropHandler (chance+4))
+        else return (DropHandler chance)
+
 
 doEnemy :: (HasMany w [PathFinder, Position, Velocity, Enemy, Paths, Structure, Time, Hp]) => Float -> System w ()
 doEnemy dT = do
     moveOnPath
     attackOrNewPath dT
-
 
 moveOnPath :: (HasMany w [PathFinder, Position, Velocity, Enemy]) => System w ()
 moveOnPath = cmap $ \(p@(PathFinder _ pathNodes), Position pos, Velocity _, Enemy _ speed) ->

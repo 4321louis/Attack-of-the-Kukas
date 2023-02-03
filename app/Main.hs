@@ -47,8 +47,7 @@ import Drawing.Sprites (spriteDir)
 makeWorld "World" [ ''Position, ''Velocity, ''Enemy, ''MapGrid, ''Paths, 
                     ''PathFinder, ''Structure, ''Sprite, ''AnimatedSprite, ''Player,
                     ''Particle, ''Score, ''Time, ''Inputs, ''Camera, 
-                    ''Hp, ''Seed, ''Plant]
-type AllEnemyComps = (Position, Enemy, Velocity, PathFinder, Sprite, Hp)
+                    ''Hp, ''Seed, ''Plant, ''DropHandler]
 
 type SystemW a = System World a
 
@@ -95,10 +94,6 @@ destroyDeadStructures = do
     when pathingChanged $ do
         updateGoals
         clearPaths
-
-destroyDeadEnemies :: SystemW ()
-destroyDeadEnemies = do
-    cmapM (\(Enemy _ _, Hp hp _ _ , ety) -> when (hp <= 0) $ destroy ety (Proxy @AllEnemyComps ))
 
 
 step :: Float -> SystemW ()
