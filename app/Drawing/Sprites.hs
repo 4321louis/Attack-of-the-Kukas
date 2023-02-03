@@ -44,12 +44,13 @@ testPicture2 = scale 0.1 0.1 . png $ spriteDir ++ "Test/test_picture2.png"
 testPicture3 = scale 0.4 0.4 . png $ spriteDir ++ "Test/test_picture3.png"
 testPicture4 = scale 0.5 0.5 . png $ spriteDir ++ "Test/test_picture4.png"
 
-cactus, enchanter, rockPlant , seedSeeker, aoeMushroom :: Picture
+cactus, enchanter, rockPlant , seedSeeker, aoeMushroom , attackSpeedFlower:: Picture
 cactus = translate 0 9.5 . png $ spriteDir ++ "Entities/BRCactus.png"
-enchanter = png $ spriteDir ++ "Entities/GBShield.png"
+enchanter = translate 0 6 . png $ spriteDir ++ "Entities/GBShield.png"
 rockPlant = png $ spriteDir ++ "Entities/GGSeedSeeker.png"
 seedSeeker = translate 0 11.5 . png $ spriteDir ++ "Entities/GGSeedSeeker.png"
 aoeMushroom = translate 0 (-3) . png $ spriteDir ++ "Entities/BSAoE.png"
+attackSpeedFlower = translate 0 (-4) . png $ spriteDir ++ "Entities/GRAttackSpeed.png"
 
 redSeed, greenSeed, blueSeed, spore :: Picture
 redSeed =  scale 0.6 0.6 . png $ spriteDir ++ "UI/RSeed.png"
