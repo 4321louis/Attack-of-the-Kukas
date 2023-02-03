@@ -83,20 +83,6 @@ initialiseGrid grid coords  = do
         sprite = getGridSprite grid coords
     void $ newEntity (Position (V2 0 0), Sprite sprite)
 
-clampPlayer :: SystemW ()
-clampPlayer = cmap $ \(Player, Position (V2 x y)) ->
-    Position (V2 (min xmax . max xmin $ x) y)
-
-destroyDeadStructures :: SystemW ()
-destroyDeadStructures = do
-    pathingChanged <- cfoldM (\b (Structure _, Hp hp _ _ , ety) -> do
-        when (hp <= 0) $ do 
-            destroy ety (Proxy @AllPlantComps )
-        return (b || hp <= 0)) False
-    when pathingChanged $ do
-        updateGoals
-        clearPaths
-
 
 step :: Float -> SystemW ()
 step dT = do
@@ -117,8 +103,11 @@ step dT = do
 
 draw :: Picture -> (Int,Int) -> SystemW Picture
 draw bg (screenWidth, screenHeight) = do
-    unsortedSprites <- cfold (\sprites (Position pos@(V2 _ y), Sprite p) -> (y,translateV2 pos p):sprites) []
+    unsortedSprites <- cfoldM (\sprites (Position pos@(V2 _ y), Sprite p, ety) -> do
+        isSeed <- exists ety (Proxy @Seed)
+        return $ (if isSeed then y-200 else y,translateV2 pos p):sprites) []
     let sprites = foldMap snd $ sortWith (negate . fst) unsortedSprites
+
     particles <- foldDraw $
         \(Particle _, Velocity (V2 vx vy), Position pos) ->
             translateV2 pos . color orange $ Line [(0, 0), (vx / 10, vy / 10)]

@@ -94,7 +94,7 @@ plantPlants ::  (HasMany w [Plant, Position, Hp, Sprite, Structure, EntityCounte
 plantPlants cam cursorPos grid size = do
     hasPlant <- hasEntity plantPos
     when (placeable tile && not hasPlant) $ do
-        _plant <- newPlant Cactus plantPos
+        _plant <- newPlant SeedSeeker plantPos
         updateGoals
         clearPaths
     where   realCursorPos = cursorPosToReal cam cursorPos

@@ -23,6 +23,7 @@ import System.Random
 import qualified Linear as L
 
 import Enemy.Enemy
+import Enemy.Pathfinding
 import Worlds
 import Plant.Seed
 import Linear (V2(..))
@@ -44,10 +45,10 @@ enchanterShield = 5
 --             modify global $ \(Score x) -> Score (x + hitBonus)
 
 newPlant :: (HasMany w [Plant, Position, Hp, Sprite, Structure, EntityCounter]) => Plant -> V2 Float -> System w Entity
-newPlant Cactus pos@(V2 x y) = newEntity (Cactus, Position pos, Hp 20 20 0, Sprite cactus)
-newPlant Enchanter pos@(V2 x y) = newEntity (Enchanter, Position pos, Hp 4 4 0, Sprite enchanter, Structure [V2 (x+64) y, V2 (x-64) y, V2 x (y+64),V2 x (y-64)])
-newPlant SeedSeeker pos@(V2 x y) = newEntity (SeedSeeker, Position pos, Hp 20 20 0, Sprite seedSeeker, Structure [V2 (x+64) y, V2 (x-64) y, V2 x (y+64),V2 x (y-64)])
-newPlant RockPlant pos@(V2 x y) = newEntity (RockPlant, Position pos, Hp 80 80 0, Sprite rockPlant, Structure [V2 (x+64) y, V2 (x-64) y, V2 x (y+64),V2 x (y-64)])
+newPlant Cactus pos = newEntity (Cactus, Position pos, Hp 20 20 0, Sprite cactus)
+newPlant Enchanter pos = newEntity (Enchanter, Position pos, Hp 4 4 0, Sprite enchanter, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
+newPlant SeedSeeker pos = newEntity (SeedSeeker, Position pos, Hp 20 20 0, Sprite seedSeeker, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
+newPlant RockPlant pos = newEntity (RockPlant, Position pos, Hp 80 80 0, Sprite rockPlant, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
 
 doPlants :: (HasMany w [Enemy, Position, Plant, Score, Time, Hp, EntityCounter, Sprite, Seed])=> Float -> System w ()
 doPlants dT = cmapM_ $ \(plant::Plant, Position pos) ->
@@ -100,3 +101,14 @@ doSeedSeeking dT pos = do
 --                 spawnParticles 15 (Position posB) (-500, 500) (200, -50)
 --                 modify global $ \(Score x) -> Score (x + hitBonus)
 --                 modify global $ \(Camera pos cScale) -> Camera pos (0.85*cScale)
+
+
+destroyDeadStructures :: (HasMany w [Sprite, Plant, Position, Paths, PathFinder, Structure, Hp]) => System w ()
+destroyDeadStructures = do
+    pathingChanged <- cfoldM (\b (Structure _, Hp hp _ _ , ety) -> do
+        when (hp <= 0) $ do 
+            destroy ety (Proxy @AllPlantComps )
+        return (b || hp <= 0)) False
+    when pathingChanged $ do
+        updateGoals
+        clearPaths
