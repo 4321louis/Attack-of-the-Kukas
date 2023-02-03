@@ -18,7 +18,6 @@ import Apecs
 import Apecs.Extension
 import Apecs.Gloss (Camera(..))
 import Control.Monad
-import Data.Kind
 import Misc
 import System.Random
 import qualified Linear as L
