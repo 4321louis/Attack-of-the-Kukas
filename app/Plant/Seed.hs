@@ -16,3 +16,8 @@ import Apecs
 
 data Seed = GreenSeed | RedSeed | BlueSeed | Spore deriving (Show)
 instance Component Seed where type Storage Seed = Map Seed
+
+newtype Craft = Craft [Seed] deriving (Show)
+instance Semigroup Craft where Craft a <> Craft b = Craft (a ++ b)
+instance Monoid Craft where mempty = Craft []
+instance Component Craft where type Storage Craft = Global Craft
