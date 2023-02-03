@@ -14,6 +14,7 @@ module Enemy.Enemy where
 
 import Apecs
 import Apecs.Extension
+import Apecs.Gloss (Camera(..))
 import Structure.Structure
 import Enemy.Pathfinding
 import qualified Linear as L
@@ -36,7 +37,7 @@ instance Component DropHandler where type Storage DropHandler = Global DropHandl
 
 type AllEnemyComps = (Position, Enemy, Velocity, PathFinder, Sprite, Hp)
 
-destroyDeadEnemies :: (HasMany w [PathFinder, Position, Velocity, Enemy, Sprite, Hp, DropHandler, Seed, EntityCounter, DropHandler]) => System w ()
+destroyDeadEnemies :: (HasMany w [PathFinder, Position, Velocity, Enemy, Sprite, Hp, DropHandler, Seed, EntityCounter, DropHandler, Camera]) => System w ()
 destroyDeadEnemies =
     cmapM $ \(Enemy _ _, Hp hp _ _ , ety, Position pos, DropHandler chance) ->
         if hp <= 0
@@ -55,7 +56,7 @@ destroyDeadEnemies =
         else return (DropHandler chance)
 
 
-doEnemy :: (HasMany w [PathFinder, Position, Velocity, Enemy, Paths, Structure, Time, Hp]) => Float -> System w ()
+doEnemy :: (HasMany w [PathFinder, Position, Velocity, Enemy, Paths, Structure, Time, Hp, Camera]) => Float -> System w ()
 doEnemy dT = do
     moveOnPath
     attackOrNewPath dT
@@ -67,7 +68,7 @@ moveOnPath = cmap $ \(p@(PathFinder _ pathNodes), Position pos, Velocity _, Enem
     else (p,Velocity ((L.^* speed) . L.normalize $ head pathNodes - pos))
 
 
-attackOrNewPath :: (HasMany w [PathFinder, Position, Velocity, Enemy, Paths, Structure, Time, Hp]) => Float -> System w ()
+attackOrNewPath :: (HasMany w [PathFinder, Position, Velocity, Enemy, Paths, Structure, Time, Hp, Camera]) => Float -> System w ()
 attackOrNewPath dT = cmapM $ \(p@(PathFinder _oldGoals pathNodes), Position epos, Velocity _, Enemy dmg _, Paths _ goals) ->
     let trueGoals = if null goals then Nothing else Just goals in
     if null pathNodes

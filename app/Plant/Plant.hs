@@ -16,6 +16,7 @@ module Plant.Plant where
 import Drawing.Sprites
 import Apecs
 import Apecs.Extension
+import Apecs.Gloss (Camera(..))
 import Control.Monad
 import Data.Kind
 import Misc
@@ -104,7 +105,7 @@ doSeedSeeking dT pos = do
 --                 modify global $ \(Camera pos cScale) -> Camera pos (0.85*cScale)
 
 
-destroyDeadStructures :: (HasMany w [Sprite, Plant, Position, Paths, PathFinder, Structure, Hp]) => System w ()
+destroyDeadStructures :: (HasMany w [Sprite, Plant, Position, Paths, PathFinder, Structure, Hp, Camera]) => System w ()
 destroyDeadStructures = do
     pathingChanged <- cfoldM (\b (Structure _, Hp hp _ _ , ety, Position pos) -> do
         when (hp <= 0) $ do 
