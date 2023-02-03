@@ -43,10 +43,13 @@ getGridSprite grid coords = foldr (<>) Blank [translate (64*fromIntegral x) (64*
 collapseBaseGrid :: Int -> PreGrid -> PreGrid
 collapseBaseGrid size = let
         doInit c t g = propegateCell c $ M.insert c (Right t) g
-        landTile spr = Tile spr Land Land Land Land False False
+        baseTile spr = Tile spr Land Land Land Land False False
+        landTile = Tile (png $ spriteDir ++  "Terrain/Land.png") Land Land Land Land True True
         enemyTile = Tile (png $ spriteDir ++ "Terrain/Water.png") Land Land Land Land True False
         center = div size 2
-        in doInit (center-1,center) (landTile $ png $ spriteDir ++  "Terrain/Base1.png") . doInit (center,center) (landTile $ png $ spriteDir ++  "Terrain/Base2.png") .
-            doInit (center-1,center-1) (landTile $ png $ spriteDir ++  "Terrain/Base3.png") . doInit (center,center-1) (landTile $ png $ spriteDir ++  "Terrain/Base4.png") . 
+        in doInit (center-1,center) (baseTile $ png $ spriteDir ++  "Terrain/Base1.png") . doInit (center,center) (baseTile $ png $ spriteDir ++  "Terrain/Base2.png") .
+            doInit (center-1,center-1) (baseTile $ png $ spriteDir ++  "Terrain/Base3.png") . doInit (center,center-1) (baseTile $ png $ spriteDir ++  "Terrain/Base4.png") . 
+            doInit (center+1,center) landTile . doInit (center+1,center-1) landTile . 
+            doInit (center,center+1) landTile . doInit (center-2,center-1) landTile . 
             if size == 50 then doInit (46,46) enemyTile . doInit (3,46) enemyTile . 
                 doInit (46,3) enemyTile . doInit (3,3) enemyTile else id

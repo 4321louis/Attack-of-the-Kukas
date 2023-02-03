@@ -46,9 +46,8 @@ import Drawing.Sprites (spriteDir)
 
 makeWorld "World" [ ''Position, ''Velocity, ''Enemy, ''MapGrid, ''Paths, 
                     ''PathFinder, ''Structure, ''Sprite, ''AnimatedSprite, ''Player,
-                    ''Particle, ''Score, ''Time, ''Inputs, ''Camera, 
-                    ''Hp, ''Seed, ''Plant, ''Craft]
-type AllEnemyComps = (Position, Enemy, Velocity, PathFinder, Sprite, Hp)
+                    ''Particle, ''Base, ''Time, ''Inputs, ''Camera, 
+                    ''Hp, ''Seed, ''Plant, ''Craft, ''DropHandler]
 
 type SystemW a = System World a
 
@@ -68,8 +67,10 @@ initialize pathGraph grid size = do
     modify global $ \(MapGrid _ _) -> MapGrid grid size
     modify global $ \(Craft _) -> Craft [GreenSeed, GreenSeed]
     _seed <- newEntity(Position (V2 32 96), Sprite greenSeed, GreenSeed)
-    _seed <- newEntity(Position (V2 96 (-32)), Sprite greenSeed, GreenSeed)
-    _baseEty <- newEntity(Position (V2 0 0), Hp 200 0 0, Structure [
+    _seed <- newEntity(Position (V2 96 (-32)), Sprite redSeed, RedSeed)
+    _seed <- newEntity(Position (V2 96 32), Sprite redSeed, RedSeed)
+    _seed <- newEntity(Position (V2 (-96) (-32)), Sprite blueSeed, BlueSeed)
+    _baseEty <- newEntity(Base, Position (V2 0 0), Hp 200 0 0, Structure [
         V2 96 32, V2 96 (-32),
         V2 (-96) 32, V2 (-96) (-32),
         V2 32 96, V2 32 (-96),
@@ -83,31 +84,12 @@ initialiseGrid grid coords  = do
         sprite = getGridSprite grid coords
     void $ newEntity (Position (V2 0 0), Sprite sprite)
 
-clampPlayer :: SystemW ()
-clampPlayer = cmap $ \(Player, Position (V2 x y)) ->
-    Position (V2 (min xmax . max xmin $ x) y)
-
-destroyDeadStructures :: SystemW ()
-destroyDeadStructures = do
-    pathingChanged <- cfoldM (\b (Structure _, Hp hp _ _ , ety) -> do
-        when (hp <= 0) $ do 
-            destroy ety (Proxy @AllPlantComps )
-        return (b || hp <= 0)) False
-    when pathingChanged $ do
-        updateGoals
-        clearPaths
-
-destroyDeadEnemies :: SystemW ()
-destroyDeadEnemies = do
-    cmapM (\(Enemy _ _, Hp hp _ _ , ety) -> when (hp <= 0) $ destroy ety (Proxy @AllEnemyComps ))
-
 
 step :: Float -> SystemW ()
 step dT = do
     incrTime dT
     stepPosition dT
     animatedSprites dT
-    stepParticles dT
     camOnPlayer
     doEnemy dT
     doPathFinding
@@ -121,15 +103,20 @@ step dT = do
 
 draw :: Picture -> (Int,Int) -> SystemW Picture
 draw bg (screenWidth, screenHeight) = do
-    unsortedSprites <- cfold (\sprites (Position pos@(V2 _ y), Sprite p) -> (y,translateV2 pos p):sprites) []
+    unsortedSprites <- cfoldM (\sprites (Position pos@(V2 _ y), Sprite p, ety) -> do
+        isSeed <- exists ety (Proxy @Seed)
+        return $ (if isSeed then y-200 else y,translateV2 pos p):sprites) []
     let sprites = foldMap snd $ sortWith (negate . fst) unsortedSprites
+
     particles <- foldDraw $
         \(Particle _, Velocity (V2 vx vy), Position pos) ->
             translateV2 pos . color orange $ Line [(0, 0), (vx / 10, vy / 10)]
     cam <- get global
-    Score s <- get global
-    let score = pictureOnHud cam (V2 (fromIntegral $ 30 - div screenWidth 2) (fromIntegral $ 50 - div screenHeight 2)) . scale 0.3 0.3 . color white .  Text $ "Base HP: " ++ show s
-    return $  bg <> sprites <> particles <> score
+    Time time <- get global
+    hp <- cfold (\a (Base, Hp hp _ _) -> hp) 0 
+    let hpPic = pictureOnHud cam (V2 (fromIntegral $ 30 - div screenWidth 2) (fromIntegral $ 50 - div screenHeight 2)) . scale 0.3 0.3 . color white .  Text $ "Base HP: " ++ show (ceiling hp)
+        timeSpr = pictureOnHud cam (V2 (fromIntegral $ 30 - div screenWidth 2) (fromIntegral $ 100 - div screenHeight 2)) . scale 0.3 0.3 . color white .  Text $ "Time: " ++ show (floor $ time/60)  ++ ":"++ show (mod (floor time) 60 )
+    return $  bg <> sprites <> particles <>  hpPic <> timeSpr
 
 main :: IO ()
 main = do

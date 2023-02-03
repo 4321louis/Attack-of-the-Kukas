@@ -24,13 +24,6 @@ instance Component Position where type Storage Position = Map Position
 newtype Velocity = Velocity (V2 Float) deriving (Show)
 instance Component Velocity where type Storage Velocity = Map Velocity
 
-type Kinetic = (Position, Velocity)
-
-newtype Score = Score Int deriving (Show, Num)
-instance Semigroup Score where (<>) = (+)
-instance Monoid Score where mempty = 0
-instance Component Score where type Storage Score = Global Score
-
 newtype Time = Time Float deriving (Show, Num)
 instance Semigroup Time where (<>) = (+)
 instance Monoid Time where mempty = 0

@@ -26,12 +26,14 @@ import Apecs.Extension
 import Data.Maybe
 import Misc
 
+import Audio
 import Debug.Trace  (trace)
 import Control.Monad
 import Structure.Structure
 import Plant.Plant
 import Plant.Seed
 import Enemy.Pathfinding
+import System.Random
 
 data Player = Player deriving (Show)
 instance Component Player where type Storage Player = Unique Player
@@ -79,8 +81,10 @@ handleEvent (EventKey (MouseButton LeftButton) Down modifiers _) = cmapM_ $ \(Pl
     if Up == alt modifiers
     then plantPlants cam cursorPos grid size
     else removePlant cam cursorPos
-handleEvent (EventKey (MouseButton RightButton) Down _ _) = cmapM $ \all@(s::Seed, Position sPos, Sprite _, Inputs _ mPos _, camera) -> if L.norm (cursorPosToReal camera mPos - sPos) < 24
+handleEvent (EventKey (MouseButton RightButton) Down _ _) = cmapM $ \all@(s::Seed, Position sPos, Sprite _, Inputs _ mPos _, camera) -> 
+    if L.norm (cursorPosToReal camera mPos - sPos) < 24
     then do
+        playIOSoundEffect pickUpSeed
         return $ Right (Not @(Seed, Position, Sprite))
     else return $ Left ()
 handleEvent _ = return ()
@@ -103,13 +107,17 @@ plantPlants cam cursorPos grid size = do
     let plant = getPlant craft
     hasPlant <- trace (show craft) $ hasEntity plantPos
     when (placeable tile && not hasPlant) $ do
-        _plant <- newPlant plant plantPos
+        xoff <- liftIO $ randomRIO (-8,8)
+        yoff <- liftIO $ randomRIO (-8,8)
+        _plant <- newPlant SeedSeeker (plantPos + V2 xoff yoff)
+        playIOSoundEffect plantPlant
         updateGoals
         clearPaths
     where   realCursorPos = cursorPosToReal cam cursorPos
             plantPos = tileCentre 2 realCursorPos
             tile = fromMaybe erTile3 $ tileOfCoord grid size realCursorPos
 
+removePlant :: HasMany w [Position, Plant, Structure, Sprite, Hp, Paths, PathFinder] => Camera -> V2 Float -> SystemT w IO ()
 removePlant cam cursorPos = cmapM_ $ \(Position pos, _::Plant, ety) -> 
     when (L.norm (pos - tileCentre 2 (cursorPosToReal cam cursorPos )) < 10) $ do
         destroy ety (Proxy @AllPlantComps )        
@@ -119,4 +127,4 @@ removePlant cam cursorPos = cmapM_ $ \(Position pos, _::Plant, ety) ->
 -- Checks if entity exists on real coord
 -- Could expand to return the entities on the tile coord (in the future?)
 hasEntity :: (HasMany w [EntityCounter, Position, Plant]) => V2 Float -> SystemT w IO Bool
-hasEntity vectorPos = cfold (\bool (Position pos, _::Plant) -> bool || (pos==vectorPos)) False
+hasEntity vectorPos = cfold (\bool (Position pos, _::Plant) -> bool || 11.4 >= L.norm (pos-vectorPos)) False
