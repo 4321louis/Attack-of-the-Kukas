@@ -1,4 +1,13 @@
 
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Audio where
 
@@ -10,6 +19,9 @@ import Control.Monad
 
 import Sound.ProteaAudio
 import Apecs
+import Apecs.Gloss (Camera(Camera))
+import Linear (V2 (..),norm)
+import Worlds
 
 musicDir :: String
 musicDir = "./assets/Audio/Music/"
@@ -40,6 +52,16 @@ playIOSoundEffect iosample = do
     sample <- liftIO iosample
     liftIO $ soundPlay sample 1 1 0 1
 
+playIOSoundEffectAt :: Has w IO Camera => V2 Float -> IO Sample -> System w Sound
+playIOSoundEffectAt location iosample = do
+    sample <- liftIO iosample
+    (Camera playerPos _) <- get global
+    let leftEar = playerPos - V2 600 0
+        rightEar = playerPos + V2 600 0
+        leftVol = 1/(1+2**(0.01*norm (location - leftEar) - 12))
+        rightVol = 1/(1+2**(0.01*norm (location - rightEar) - 12))
+    liftIO $ soundPlay sample leftVol rightVol 0 1
+
 -- waitPlayback :: IO ()
 -- waitPlayback = do
 --     n <- soundActiveAll
@@ -50,7 +72,7 @@ playIOSoundEffect iosample = do
 waitSound :: Sound -> IO ()
 waitSound s = do
     playing <- soundActive s
-    when  (playing) $ do
+    when playing $ do
         threadDelay (div oneSec 100)
         waitSound s
 

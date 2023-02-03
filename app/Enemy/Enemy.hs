@@ -42,7 +42,7 @@ destroyDeadEnemies =
         if hp <= 0
         then do
             destroy ety (Proxy @AllEnemyComps )
-            playIOSoundEffect kukasDeath
+            playIOSoundEffectAt pos kukasDeath
             roll <- randomRIO (0,100)
             if roll < chance
             then do
@@ -77,6 +77,6 @@ attackOrNewPath dT = cmapM $ \(p@(PathFinder _oldGoals pathNodes), Position epos
             in if nDist < minDist then (nDist,ety) else min) (10000,0)
         if cdist < 112 then triggerEvery dT 1 0 (do
             modify closest (\(Structure _, hp) -> dealDamage hp dmg)
-            playIOSoundEffect kukasAttack) >> return p
+            playIOSoundEffectAt epos kukasAttack) >> return p
         else return (PathFinder trueGoals [])
     else return (PathFinder trueGoals pathNodes)

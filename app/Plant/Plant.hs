@@ -106,9 +106,9 @@ doSeedSeeking dT pos = do
 
 destroyDeadStructures :: (HasMany w [Sprite, Plant, Position, Paths, PathFinder, Structure, Hp]) => System w ()
 destroyDeadStructures = do
-    pathingChanged <- cfoldM (\b (Structure _, Hp hp _ _ , ety) -> do
+    pathingChanged <- cfoldM (\b (Structure _, Hp hp _ _ , ety, Position pos) -> do
         when (hp <= 0) $ do 
-            playIOSoundEffect explosion
+            playIOSoundEffectAt pos explosion
             destroy ety (Proxy @AllPlantComps )
         return (b || hp <= 0)) False
     when pathingChanged $ do
