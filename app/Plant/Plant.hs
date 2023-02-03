@@ -68,20 +68,20 @@ doPlants dT = cmapM_ $ \(plant::Plant, Position pos) ->
 
 doCactusAttack :: (HasMany w [Enemy, Position, Plant, Score, Time, Hp]) => Float -> V2 Float -> System w ()
 doCactusAttack dT posP = do
-        cmapM_ $ \(Enemy _ _, Position posE, etyE) -> when (L.norm (posE - posP) < tileRange 0) $
-            triggerEvery dT 1 0.6 (modify etyE $ \(Enemy _ _, hp) -> dealDamage hp cactusDmg)
+    cmapM_ $ \(Enemy _ _, Position posE, etyE) -> when (L.norm (posE - posP) < tileRange 0) $
+        triggerEvery dT 1 0.6 (modify etyE $ \(Enemy _ _, hp) -> dealDamage hp cactusDmg)
 
 doEnchanting :: (HasMany w [Plant, Position, Time, Hp]) => Float -> V2 Float -> System w ()
 doEnchanting dT posEch = do
-        cmapM_ $ \(_::Plant, Position posP, etyP) -> when (L.norm (posEch - posP) < tileRange 1) $
-            triggerEvery dT 1 0.6 (modify etyP $ \(_::Plant, hp) -> shieldHp hp enchanterShield)
+    cmapM_ $ \(_::Plant, Position posP, etyP) -> when (L.norm (posEch - posP) < tileRange 1) $
+        triggerEvery dT 1 0.6 (modify etyP $ \(_::Plant, hp) -> shieldHp hp enchanterShield)
 
 doSeedSeeking :: (HasMany w [Seed, Sprite, Plant, Position, Time, EntityCounter]) => Float -> V2 Float -> System w ()
 doSeedSeeking dT pos = do
-        seed <- liftIO $ randomRIO (0,3)
-        xoff <- liftIO $ randomRIO (-32,32)
-        yoff <- liftIO $ randomRIO (-32,-1)
-        triggerEvery dT 30 0.6 $ newEntity ([GreenSeed,RedSeed,BlueSeed,Spore]!! seed, Position (V2 xoff yoff + pos), Sprite $ [greenSeed,redSeed,blueSeed,spore] !! seed )
+    seed <- liftIO $ randomRIO (0,3)
+    xoff <- liftIO $ randomRIO (-32,32)
+    yoff <- liftIO $ randomRIO (-32,-1)
+    triggerEvery dT 30 0.6 $ newEntity ([GreenSeed,RedSeed,BlueSeed,Spore]!! seed, Position (V2 xoff yoff + pos), Sprite $ [greenSeed,redSeed,blueSeed,spore] !! seed )
 
 
 -- doCactusAttack :: (HasMany w [Enemy, Position, Plant, Score]) => System w ()

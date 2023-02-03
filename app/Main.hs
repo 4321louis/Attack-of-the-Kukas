@@ -66,7 +66,9 @@ initialize pathGraph grid size = do
     modify global $ \(Paths _ g) -> Paths pathGraph g
     modify global $ \(MapGrid _ _) -> MapGrid grid size
     _seed <- newEntity(Position (V2 32 96), Sprite greenSeed, GreenSeed)
-    _seed <- newEntity(Position (V2 96 (-32)), Sprite greenSeed, GreenSeed)
+    _seed <- newEntity(Position (V2 96 (-32)), Sprite redSeed, RedSeed)
+    _seed <- newEntity(Position (V2 96 32), Sprite redSeed, RedSeed)
+    _seed <- newEntity(Position (V2 (-96) (-32)), Sprite blueSeed, BlueSeed)
     _baseEty <- newEntity(Position (V2 0 0), Hp 200 0 0, Structure [
         V2 96 32, V2 96 (-32),
         V2 (-96) 32, V2 (-96) (-32),

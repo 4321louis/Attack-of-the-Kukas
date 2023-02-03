@@ -48,5 +48,7 @@ collapseBaseGrid size = let
         center = div size 2
         in doInit (center-1,center) (landTile $ png $ spriteDir ++  "Terrain/Base1.png") . doInit (center,center) (landTile $ png $ spriteDir ++  "Terrain/Base2.png") .
             doInit (center-1,center-1) (landTile $ png $ spriteDir ++  "Terrain/Base3.png") . doInit (center,center-1) (landTile $ png $ spriteDir ++  "Terrain/Base4.png") . 
+            doInit (center+2,center-1) (landTile $ png $ spriteDir ++  "Terrain/Land.png") . doInit (center+2,center+1) (landTile $ png $ spriteDir ++  "Terrain/Land.png") . 
+            doInit (center-2,center-1) (landTile $ png $ spriteDir ++  "Terrain/Land.png") . doInit (center+1,center+2) (landTile $ png $ spriteDir ++  "Terrain/Land.png") . 
             if size == 50 then doInit (46,46) enemyTile . doInit (3,46) enemyTile . 
                 doInit (46,3) enemyTile . doInit (3,3) enemyTile else id
