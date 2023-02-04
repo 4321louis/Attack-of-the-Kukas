@@ -16,7 +16,7 @@ module Plant.Plant where
 import Drawing.Sprites
 import Apecs
 import Apecs.Extension
-import Apecs.Gloss (Camera(..))
+import Apecs.Gloss 
 import Control.Monad
 import Misc
 import System.Random
@@ -58,6 +58,19 @@ getPlant [RedSeed, Spore] = Mycelium
 getPlant [Spore, Spore] = Mycelium
 getPlant [x, y] = getPlant [y, x]
 getPlant _ = SeedSeeker
+
+getPlantSprite :: Plant -> Picture
+getPlantSprite Cactus = cactus
+getPlantSprite Enchanter = enchanter
+getPlantSprite SeedSeeker = seedSeeker
+getPlantSprite RockPlant = rockPlant
+getPlantSprite CorpseFlower = attackSpeedFlower
+getPlantSprite VampireFlower = vampireFlower
+getPlantSprite BigMushroom = aoeMushroom
+getPlantSprite BirdOfParadise = birdOfParadise
+getPlantSprite Mycelium = mycelium
+
+getSprite _ = seedSeeker
 
 newPlant :: (HasMany w [Plant, Position, Hp, Sprite, Structure, EntityCounter]) => Plant -> V2 Float -> System w Entity
 newPlant Cactus pos = newEntity (Cactus, Position pos, Hp 20 20 0, Sprite cactus)

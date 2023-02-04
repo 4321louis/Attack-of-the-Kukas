@@ -18,8 +18,11 @@ import Apecs.Gloss
 import Apecs.Extension
 
 import Plant.Seed
+import Plant.Plant
 import Drawing.Camera
 import Drawing.Sprites
+
+import Debug.Trace (trace)
 
 ----- Hotbar
 
@@ -52,3 +55,10 @@ drawHotbar inv = drawButtons buttons
 
 ----- Crafting
 
+drawCraft craft = circleThing
+
+
+-- todo: make colour
+circleThing = circle <> sprite
+    where   circle = color white $ circleSolid 100
+            sprite = scale 1 1 $ seedSeeker
