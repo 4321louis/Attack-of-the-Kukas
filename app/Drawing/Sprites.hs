@@ -88,7 +88,7 @@ aoe8 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect7.png"
 
 aoeEffect, aoeEffectMini :: AnimatedSprite
 aoeEffect = AnimatedSprite 0.25 $ map (scale 22 22) [aoe1, aoe2, aoe3, aoe4, aoe5, aoe6, aoe7, aoe8]
-aoeEffectMini = AnimatedSprite 0.25 $ map (scale 1 1) [aoe1, aoe2, aoe3, aoe4, aoe5, aoe6, aoe7, aoe8]
+aoeEffectMini = AnimatedSprite 0.25 $ map (scale 4 4) [aoe1, aoe2, aoe3, aoe4, aoe5, aoe6]
  
 playerSprite = rotate 90 . color white . scale 10 20 $ triangle
 targetSprite1 = rotate 90 $ testPicture1 <> (translate 0 (negate 20) . scale 10 10 . color white $ stickFigure)
