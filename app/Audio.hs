@@ -28,7 +28,7 @@ musicDir = "./assets/Audio/Music/"
 menuLoop, menuLoopIntro, gameLoop, gameLoopIntro :: IO Sample
 menuLoopIntro = sampleFromFile (musicDir ++ "Sunny_day_intro.ogg") 0.35
 menuLoop = sampleFromFile (musicDir ++ "Sunny_day_loop.ogg") 0.35
-gameLoopIntro = sampleFromFile (musicDir ++ "Uncharted_Encounter_intro.ogg") 0.35
+gameLoopIntro = sampleFromFile (musicDir ++ "Uncharted_Encounter_intro.ogg") 0.45
 gameLoop = sampleFromFile (musicDir ++ "Uncharted_Encounter_loop.ogg") 0.35
 
 effectsDir :: String
