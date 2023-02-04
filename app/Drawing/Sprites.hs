@@ -74,6 +74,18 @@ droneKukasWalkLeft, droneKukasWalkRight:: AnimatedSprite
 droneKukasWalkRight = AnimatedSprite 0.15 [dronekukasf1,dronekukasf2,dronekukasf3,dronekukasf4,dronekukasf5]
 droneKukasWalkLeft = AnimatedSprite 0.15 $ map (scale (-1) 1) [dronekukasf1,dronekukasf2,dronekukasf3,dronekukasf4,dronekukasf5]
 
+aoe1, aoe2, aoe3, aoe4, aoe5, aoe6, aoe7 :: Picture
+aoe1 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect1.png"
+aoe2 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect2.png"
+aoe3 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect3.png"
+aoe4 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect4.png"
+aoe5 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect5.png"
+aoe6 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect6.png"
+aoe7 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect7.png"
+
+aoeEffect :: AnimatedSprite
+aoeEffect = AnimatedSprite 0.15 [aoe1, aoe2, aoe3, aoe4, aoe5, aoe6, aoe7]
+
 playerSprite = rotate 90 . color white . scale 10 20 $ triangle
 targetSprite1 = rotate 90 $ testPicture1 <> (translate 0 (negate 20) . scale 10 10 . color white $ stickFigure)
 targetSprite2 = testPicture2 <> (translate 0 (negate 20) . scale 10 10 . color white $ stickFigure)

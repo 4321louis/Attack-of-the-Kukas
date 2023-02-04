@@ -35,7 +35,8 @@ type AllPlantComps = (Position, Structure, Sprite, Hp, Plant)
 data Plant = RockPlant | Cactus | BigMushroom | Enchanter | SeedSeeker | CorpseFlower | VampireFlower | BirdOfParadise | Mycelium | Necromancer deriving (Show)
 instance Component Plant where type Storage Plant = Map Plant
 
-cactusDmg, enchanterShield :: Float
+bigMushroomDmg, cactusDmg, enchanterShield :: Float
+bigMushroomDmg = 20
 cactusDmg = 20
 enchanterShield = 5
 
@@ -77,6 +78,7 @@ doPlants dT = cmapM_ $ \(plant::Plant, Position pos) ->
         Cactus -> doCactusAttack dT pos
         Enchanter -> doEnchanting dT pos
         SeedSeeker -> doSeedSeeking dT pos
+        BigMushroom -> doBigMushroomAttack dT pos
         --do GB - Healer
         --do GR - Attackspeed
         --do GS - Vampiric 
@@ -92,6 +94,11 @@ doCactusAttack :: (HasMany w [Enemy, Position, Plant, Time, Hp]) => Float -> V2 
 doCactusAttack dT posP = do
     cmapM_ $ \(Enemy _ _, Position posE, etyE) -> when (L.norm (posE - posP) < tileRange 0) $
         triggerEvery dT 1 0.6 (modify etyE $ \(Enemy _ _, hp) -> dealDamage hp cactusDmg)
+
+doBigMushroomAttack :: (HasMany w [Enemy, Position, Plant, Time, Hp]) => Float -> V2 Float -> System w ()
+doBigMushroomAttack dT posP = do
+    cmapM_ $ \(Enemy _ _, Position posE, etyE) -> when (L.norm (posE - posP) < tileRange 2) $
+        triggerEvery dT 2 0.6 (modify etyE $ \(Enemy _ _, hp) -> dealDamage hp bigMushroomDmg)
 
 doEnchanting :: (HasMany w [Plant, Position, Time, Hp, Sprite, Particle, EntityCounter]) => Float -> V2 Float -> System w ()
 doEnchanting dT posEch = do
