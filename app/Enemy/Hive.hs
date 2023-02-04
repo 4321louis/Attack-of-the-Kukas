@@ -166,6 +166,6 @@ spawnWave time dT amount rate system = do
     foldM_ (\_ etime ->triggerAt dT etime system) () [time,time+rate .. time+(amount-1)*rate]
 
 getEnemyFromType :: HasMany w  [Hp, Enemy, Position, Sprite, AnimatedSprite, Velocity, PathFinder, EntityCounter] => EnemyType -> Float -> V2 Float -> System w Entity
-getEnemyFromType Normal scaling pos = newEntity (Hp (100*scaling) (100*scaling) 0, Enemy 1 25, Position pos,Sprite dronekukasf1, droneKukasWalkRight, Velocity (V2 0 0), PathFinder Nothing [])
+getEnemyFromType Normal scaling pos = newEntity (Hp (100*scaling) (100*scaling) 0, Enemy 1 25, Position pos, droneKukasWalkRight, Velocity (V2 0 0), PathFinder Nothing [])
 getEnemyFromType Tank scaling pos = newEntity (Hp (50*scaling) (50*scaling) 0, Enemy 1 35, Position pos, Sprite targetSprite2, Velocity (V2 0 0), PathFinder Nothing [])
 getEnemyFromType Fast scaling pos = newEntity (Hp (200*scaling) (200*scaling) 0, Enemy 1 20, Position pos, Sprite targetSprite2, Velocity (V2 0 0), PathFinder Nothing [])
