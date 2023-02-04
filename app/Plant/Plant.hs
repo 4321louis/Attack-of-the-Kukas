@@ -73,6 +73,7 @@ getPlantSprite VampireFlower = vampireFlower
 getPlantSprite BigMushroom = aoeMushroom
 getPlantSprite BirdOfParadise = birdOfParadise
 getPlantSprite Mycelium = mycelium
+getPlantSprite Necromancer = mycelium
 getPlantSprite _ = seedSeeker
 
 newPlant :: (HasMany w [Plant, Position, Hp, Sprite, Structure, EntityCounter]) => Plant -> V2 Float -> System w Entity
@@ -108,7 +109,14 @@ doAttacks dT = cmapM_ $ \(plant::Plant, Position pos, ety) ->
         _ -> do return ()
 
 doOnDeaths :: (HasMany w [Enemy, Position, Plant, Time, Hp, EntityCounter, Sprite, Seed, Particle]) => System w ()
-doOnDeaths = return ()
+doOnDeaths = do
+    deadEnemies <- cfold (\etys (Enemy _ _, Hp hp _ _,ety::Entity)-> if hp <=0 then ety:etys else etys ) [] 
+    cmapM_ $ \(plant::Plant, Position pos, ety::Entity) ->
+        case plant of
+            -- BigMushroom -> domush deadEnemies
+            --do GS - Vampiric 
+            --do SS - Necromancy
+            _ -> do return ()
 
 doRockPlant :: (HasMany w [Time, Hp]) => Float -> Entity -> System w ()
 doRockPlant dT ety = triggerEvery dT 1 0.6 $ modify ety $ (`healHp` 1)
