@@ -55,6 +55,8 @@ vampireFlower = png $ spriteDir ++ "Entities/GSVampire.png"
 birdOfParadise = translate 0 (-7) . png $ spriteDir ++ "Entities/RRLazer.png"
 mycelium = translate 0 1.5 . png $ spriteDir ++ "Entities/RSDoT.png"
 
+shieldEffect = scale 1.5 1.5 . png $ spriteDir ++ "Effects/ShieldEffect.png"
+
 redSeed, greenSeed, blueSeed, spore :: Picture
 redSeed =  scale 0.6 0.6 . png $ spriteDir ++ "UI/RSeed.png"
 greenSeed = scale 0.6 0.6 . png $ spriteDir ++ "UI/GSeed.png"
@@ -87,9 +89,15 @@ animatedSprites :: (HasMany w [Time, AnimatedSprite, Sprite]) => Float -> System
 animatedSprites dT = cmap $ \(AnimatedSprite rate frames, Time t) -> Sprite (frames !! mod (floor ((t + dT) / rate)) (length frames))
 
 
-spawnParticles ::  (HasMany w [Position, Velocity, Particle, EntityCounter]) => Int -> Position -> (Float, Float) -> (Float, Float) -> System w ()
-spawnParticles n pos dvx dvy = replicateM_ n $ do
-    vx <- liftIO $ randomRIO dvx
-    vy <- liftIO $ randomRIO dvy
-    t <- liftIO $ randomRIO (0.02, 0.3)
-    newEntity (Particle t, pos, Velocity (V2 vx vy))
+-- spawnParticles ::  (HasMany w [Position, Velocity, Particle, EntityCounter]) => Int -> Position -> (Float, Float) -> (Float, Float) -> System w ()
+-- spawnParticles n pos dvx dvy = replicateM_ n $ do
+--     vx <- liftIO $ randomRIO dvx
+--     vy <- liftIO $ randomRIO dvy
+--     t <- liftIO $ randomRIO (0.02, 0.3)
+--     newEntity (Particle t, pos, Velocity (V2 vx vy))
+
+stepParticles :: (HasMany w [Position, Particle, Sprite]) => Float -> System w ()
+stepParticles dT = cmap $ \(Particle t) ->
+    if t < 0
+        then Right $ Not @(Particle, Position, Sprite)
+        else Left  $ Particle (t-dT)

@@ -32,7 +32,7 @@ import Structure.Structure
 
 type AllPlantComps = (Position, Structure, Sprite, Hp, Plant)
 
-data Plant = RockPlant | Cactus | BigMushroom | Enchanter | SeedSeeker | CorpseFlower | VampireFlower | BirdOfParadise | Mycelium deriving (Show)
+data Plant = RockPlant | Cactus | BigMushroom | Enchanter | SeedSeeker | CorpseFlower | VampireFlower | BirdOfParadise | Mycelium | Necromancer deriving (Show)
 instance Component Plant where type Storage Plant = Map Plant
 
 cactusDmg, enchanterShield :: Float
@@ -55,7 +55,7 @@ getPlant [BlueSeed, RedSeed] = Cactus
 getPlant [BlueSeed, Spore] = BigMushroom
 getPlant [RedSeed, RedSeed] = BirdOfParadise
 getPlant [RedSeed, Spore] = Mycelium
-getPlant [Spore, Spore] = Mycelium
+getPlant [Spore, Spore] = Necromancer
 getPlant [x, y] = getPlant [y, x]
 getPlant _ = SeedSeeker
 
@@ -69,8 +69,9 @@ newPlant VampireFlower pos = newEntity (VampireFlower, Position pos, Hp 20 20 0,
 newPlant BigMushroom pos = newEntity (BigMushroom, Position pos, Hp 20 20 0, Sprite aoeMushroom, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
 newPlant BirdOfParadise pos = newEntity (BirdOfParadise, Position pos, Hp 20 20 0, Sprite birdOfParadise, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
 newPlant Mycelium pos = newEntity (Mycelium, Position pos, Hp 20 20 0, Sprite mycelium, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
+newPlant Necromancer pos = newEntity (Necromancer, Position pos, Hp 20 20 0, Sprite mycelium, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
 
-doPlants :: (HasMany w [Enemy, Position, Plant, Time, Hp, EntityCounter, Sprite, Seed])=> Float -> System w ()
+doPlants :: (HasMany w [Enemy, Position, Plant, Time, Hp, EntityCounter, Sprite, Seed, Particle])=> Float -> System w ()
 doPlants dT = cmapM_ $ \(plant::Plant, Position pos) ->
     case plant of
         Cactus -> doCactusAttack dT pos
@@ -92,10 +93,14 @@ doCactusAttack dT posP = do
     cmapM_ $ \(Enemy _ _, Position posE, etyE) -> when (L.norm (posE - posP) < tileRange 0) $
         triggerEvery dT 1 0.6 (modify etyE $ \(Enemy _ _, hp) -> dealDamage hp cactusDmg)
 
-doEnchanting :: (HasMany w [Plant, Position, Time, Hp]) => Float -> V2 Float -> System w ()
+doEnchanting :: (HasMany w [Plant, Position, Time, Hp, Sprite, Particle, EntityCounter]) => Float -> V2 Float -> System w ()
 doEnchanting dT posEch = do
-    cmapM_ $ \(_::Plant, Position posP, etyP) -> when (L.norm (posEch - posP) < tileRange 1) $
-        triggerEvery dT 1 0.6 (modify etyP $ \(_::Plant, hp) -> shieldHp hp enchanterShield)
+    cmapM_ $ \(_::Plant, Position posP, etyP) -> when (L.norm (posEch - posP) < tileRange 1) $ 
+        triggerEvery dT 8 0.6 (do
+            modify etyP $ \(_::Plant, hp) -> shieldHp hp enchanterShield
+            xoff <- liftIO $ randomRIO (-16,16)
+            yoff <- liftIO $ randomRIO (-16,16) 
+            newEntity (Sprite shieldEffect, Position (posP+V2 xoff yoff), Particle 2))
 
 doSeedSeeking :: (HasMany w [Seed, Sprite, Plant, Position, Time, EntityCounter]) => Float -> V2 Float -> System w ()
 doSeedSeeking dT pos = do
