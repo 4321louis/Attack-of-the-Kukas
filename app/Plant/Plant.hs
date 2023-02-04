@@ -14,6 +14,7 @@
 
 module Plant.Plant where
 
+import Debug.Trace
 import Drawing.Sprites
 import Apecs
 import Apecs.Extension
@@ -45,14 +46,28 @@ instance Component UndeadBomber where type Storage UndeadBomber = Map UndeadBomb
 data SporeResidue = SporeResidue deriving (Show)
 instance Component SporeResidue where type Storage SporeResidue = Map SporeResidue
 --Timer
-data AttackSpeed = AttackSpeed Float deriving (Show)
+newtype AttackSpeed = AttackSpeed Float deriving (Show)
 instance Component AttackSpeed where type Storage AttackSpeed = Map AttackSpeed
 
+-- Target, speed , turn ratio
+data Homer = Homer Entity Float Float deriving (Show)
+instance Component Homer where type Storage Homer = Map Homer
 
-bigMushroomDmg, cactusDmg, enchanterShield :: Float
+-- Timer
+newtype Poison = Poison Float deriving (Show)
+instance Component Poison where type Storage Poison = Map Poison
+
+-- dmg
+data Bullet = PoisonBullet | DamageBullet Float deriving (Show)
+instance Component Bullet where type Storage Bullet = Map Bullet
+
+
+bigMushroomDmg, cactusDmg, doTDmg, enchanterShield :: Float
 bigMushroomDmg = 15
 cactusDmg = 20
 lazerDmg = 100
+poisonDuration = 5
+doTDmg = 10
 enchanterShield = 5
 attackSpeedModifier = 3
 
@@ -95,12 +110,12 @@ newPlant BirdOfParadise pos = newEntity (BirdOfParadise, Position pos, Hp 20 20 
 newPlant Mycelium pos = newEntity (Mycelium, Position pos, Hp 20 20 0, Sprite mycelium, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
 newPlant Necromancer pos = newEntity (Necromancer, Position pos, Hp 20 20 0, Sprite mycelium, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
 
-doPlants :: (HasMany w [Enemy, Position, Plant, Time, Hp, EntityCounter, Sprite, AttackSpeed, Seed, Particle, UndeadBomber, SporeResidue, PathFinder, Hive, Velocity, AnimatedSprite])=> Float -> System w ()
+doPlants :: (HasMany w [Enemy, Position, Plant, Time, Hp, EntityCounter, Sprite, AttackSpeed, Seed, Particle, UndeadBomber, SporeResidue, PathFinder, Hive, Velocity, AnimatedSprite, Poison, Bullet, Homer])=> Float -> System w ()
 doPlants dT = do 
     doAttacks dT
     doOnDeaths
 
-doAttacks :: (HasMany w [Enemy, Position, Plant, Time, Hp, EntityCounter, Sprite, AttackSpeed, Seed, Particle, AnimatedSprite, UndeadBomber, SporeResidue, PathFinder, Hive, Velocity])=> Float -> System w ()
+doAttacks :: (HasMany w [Enemy, Position, Plant, Time, Hp, EntityCounter, Sprite, AttackSpeed, Seed, Particle, AnimatedSprite, UndeadBomber, SporeResidue, PathFinder, Hive, Velocity, Poison, Bullet, Homer])=> Float -> System w ()
 doAttacks dT = do
     cmapM_ $ \(plant::Plant, Position pos, ety) -> do
         case plant of
@@ -111,12 +126,46 @@ doAttacks dT = do
             BirdOfParadise -> doLazerAttack dT pos ety
             RockPlant -> doRockPlant dT ety
             CorpseFlower -> doAttackSpeedBuff dT pos
-            --do GS - Vampiric 
-            --do RS - Damage over time ety
+            Mycelium -> doDoTAttack dT pos ety
             _ -> return ()
     stepAttackSpeedTimer dT
+    stepPoisonTimer dT
+    doBulletCollision
     doUndeadBombers dT
     doSporeResidue
+    
+doOnDeaths :: (HasMany w [Enemy, Position, Velocity, UndeadBomber, PathFinder, Hive, Plant, Time, Hp, EntityCounter, Sprite, Seed, Particle, AnimatedSprite, SporeResidue]) => System w ()
+doOnDeaths = do
+    (deadPositions, deadEnemies) <- cfold (\(poss, etys) (Enemy _ _, Hp hp _ _,ety::Entity, Position pos)-> if hp <=0 then (pos:poss,ety:etys) else (poss,etys)) ([],[])
+    cmapM_ $ \(plant, Position pos, ety::Entity) ->
+        case plant of
+            VampireFlower -> vampireOnDeath pos deadEnemies 
+            BigMushroom -> doBigMushroomOnDeath pos deadPositions
+            Necromancer -> necromancyOnDeath pos deadEnemies
+            _ -> return ()
+
+
+stepPoisonTimer :: (HasMany w [Position, Poison, Enemy, Hp, AnimatedSprite, Particle, EntityCounter, Time]) => Float -> System w ()
+stepPoisonTimer dT = cmapM $ \(Poison t, Position pos, Enemy _ _, Hp hp _ _, etyE) ->
+    if t < 0
+        then do
+            return $ Right $ Not @Poison
+        else do
+            triggerEvery dT 0.5 0 $ do 
+                newEntity (Position pos, aoeEffectMini, Particle 0.4)
+                modify etyE (\(Enemy _ _, hp) -> dealDamage hp doTDmg)
+            return $ Left $ Poison (t-dT)
+
+doBulletCollision :: (HasMany w [Position, Bullet, Enemy, Hp, Velocity, Homer, Sprite, Poison]) => System w ()
+doBulletCollision = 
+    cmapM $ \(Enemy _ _, Position posE, etyE) ->
+        cmapM $ \(b::Bullet, Position posB, etyB) ->
+            when (L.norm (posE - posB) < 10) $ do
+                case b of 
+                    (DamageBullet dmg) -> do
+                        modify etyE (\(Enemy _ _, hp) -> dealDamage hp dmg)
+                    PoisonBullet -> modify etyE (\(Enemy _ _) -> Poison poisonDuration)
+                destroy etyB (Proxy @(Bullet, Position, Velocity, Homer, Sprite)) 
 
 doSporeResidue :: (HasMany w [Enemy, Position, Hp, EntityCounter, Sprite, Particle, AnimatedSprite, SporeResidue]) => System w ()
 doSporeResidue = 
@@ -133,23 +182,13 @@ doUndeadBombers dT = cmapM $
         if fuse <= 0 
         then do  
             cmap $ \(Enemy _ _, Position posE, hp) -> if L.norm (posE - pos) < tileRange 1 then dealDamage hp dmg else hp
-            newEntity (Position (pos), aoeEffect, Particle 2)
+            newEntity (Position pos, aoeEffect, Particle 2)
             return $ Right (Not @(Sprite,PathFinder,Position,Velocity,UndeadBomber))
         else do
             newFuse <- (`cfold` fuse) $ \f (Enemy _ _,Position posE) -> if L.norm (posE - pos) < tileRange 1 then f - dT else f
             if null pathNodes
             then return $ Left (PathFinder Nothing [],Velocity (V2 0 0),UndeadBomber dmg newFuse speed)
             else return $ Left (p,Velocity ((L.^* speed) . L.normalize $ head pathNodes - pos),UndeadBomber dmg newFuse  speed)
-
-doOnDeaths :: (HasMany w [Enemy, Position, Velocity, UndeadBomber, PathFinder, Hive, Plant, Time, Hp, EntityCounter, Sprite, Seed, Particle, AnimatedSprite, SporeResidue]) => System w ()
-doOnDeaths = do
-    (deadPositions, deadEnemies) <- cfold (\(poss, etys) (Enemy _ _, Hp hp _ _,ety::Entity, Position pos)-> if hp <=0 then (pos:poss,ety:etys) else (poss,etys)) ([],[])
-    cmapM_ $ \(plant, Position pos, ety::Entity) ->
-        case plant of
-            VampireFlower -> vampireOnDeath pos deadEnemies 
-            BigMushroom -> doBigMushroomOnDeath pos deadPositions
-            Necromancer -> necromancyOnDeath pos deadEnemies
-            _ -> return ()
 
 doRockPlant :: (HasMany w [Time, Hp]) => Float -> Entity -> System w ()
 doRockPlant dT ety = triggerEvery dT 1 0.6 $ modify ety (`healHp` 1)
@@ -191,8 +230,6 @@ doBigMushroomOnDeath posP = foldM (\b pos -> do
     when (L.norm(posP - pos) < tileRange 2) $ do
         void $ newEntity (Position pos, SporeResidue, aoeEffectMini)) ()
 
-    
-
 doEnchanting :: (HasMany w [Plant, Position, Time, Hp, Sprite, Particle, EntityCounter]) => Float -> V2 Float -> System w ()
 doEnchanting dT posEch = triggerEvery dT 8 0.6 $ do
     cmapM_ $ \(_::Plant, Position posP, etyP) -> when (L.norm (posEch - posP) < tileRange 1) $ 
@@ -203,12 +240,24 @@ doEnchanting dT posEch = triggerEvery dT 8 0.6 $ do
             void $ newEntity (Sprite shieldEffect, Position (posP+V2 xoff yoff), Particle 2))
 
 doSeedSeeking :: (HasMany w [Seed, Sprite, Plant, Position, Time, EntityCounter]) => Float -> V2 Float -> System w ()
-doSeedSeeking dT pos = triggerEvery dT 40 0.6 $ do
+doSeedSeeking dT pos = triggerEvery dT 1 0.6 $ do
     seed <- liftIO $ randomRIO (0,3)
     xoff <- liftIO $ randomRIO (-32,32)
     yoff <- liftIO $ randomRIO (-32,-1)
     newEntity ([GreenSeed,RedSeed,BlueSeed,Spore]!! seed, Position (V2 xoff yoff + pos), Sprite $ [greenSeed,redSeed,blueSeed,spore] !! seed )
 
+doDoTAttack :: (HasMany w [Enemy, Position, Time, Homer,  Sprite, EntityCounter, AttackSpeed, Bullet, Poison, Velocity]) => Float -> V2 Float -> Entity -> System w ()
+doDoTAttack dT posP ety = do
+    hasAttackBuff <- exists ety (Proxy @AttackSpeed)
+    let rate = 3/if hasAttackBuff then attackSpeedModifier else 1 
+    triggerEvery dT rate 0.6 $ do
+        (cdist, target, _) <- cfoldM (\min@(minDist,_,minPois) (Enemy _ _, Position posE, etyE) -> do
+                let nDist = L.norm (posP - posE)
+                poisoned <- exists etyE (Proxy @Poison)
+                Poison poisonDuration <- if poisoned then get etyE else return (Poison 0)
+                return $ if nDist < tileRange 5 && ( poisonDuration < minPois || (poisonDuration == minPois && nDist < minDist)) then (nDist,etyE,poisonDuration) else min) (10000,0,1000)
+        when (cdist < tileRange 5) $ do
+                void $ newEntity (Sprite targetSprite1, PoisonBullet, Position posP, Velocity (V2 0 0), Homer target 100 0.08)
 
 
 doLazerAttack :: (HasMany w [Enemy, Position, Time, Hp, Particle, Sprite, EntityCounter, AttackSpeed]) => Float -> V2 Float -> Entity -> System w ()
@@ -247,6 +296,15 @@ vampireOnDeath posP =  foldM (\b ety -> do
             newEntity (Particle 0.25, posT::Position, Sprite shieldEffect)
             modify target (`healHp` (maxHp/50))
     ) ()
+
+stepHomers :: (HasMany w [Velocity, Position, Homer, Sprite, Bullet]) => System w ()
+stepHomers = cmapM $ \(Homer target speed turnRatio, Velocity v, Position pos) -> do
+    targetAlive <- exists target (Proxy @Position)
+    if targetAlive 
+    then do
+        Position posT <- get target
+        return $ Left $ Velocity ((speed L.*^) . L.normalize $ (v L.^* (1-turnRatio) + turnRatio L.*^ (posT-pos)))
+    else return $ Right (Not @(Velocity, Position, Homer, Sprite, Bullet))
 
 destroyDeadStructures :: (HasMany w [Sprite, Plant, Position, Paths, PathFinder, Structure, Hp, Camera]) => System w ()
 destroyDeadStructures = do
