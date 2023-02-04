@@ -32,7 +32,7 @@ import Structure.Structure
 
 type AllPlantComps = (Position, Structure, Sprite, Hp, Plant)
 
-data Plant = Cactus | Enchanter | RockPlant | SeedSeeker deriving (Show)
+data Plant = RockPlant | Cactus | BigMushroom | Enchanter | SeedSeeker | CorpseFlower | VampireFlower | BirdOfParadise | Mycelium deriving (Show)
 instance Component Plant where type Storage Plant = Map Plant
 
 cactusDmg, enchanterShield :: Float
@@ -48,14 +48,14 @@ enchanterShield = 5
 getPlant :: [Seed] -> Plant
 getPlant [GreenSeed, GreenSeed] = SeedSeeker
 getPlant [GreenSeed, BlueSeed] = Enchanter
-getPlant [GreenSeed, RedSeed] = SeedSeeker
-getPlant [GreenSeed, Spore] = SeedSeeker
+getPlant [GreenSeed, RedSeed] = CorpseFlower
+getPlant [GreenSeed, Spore] = VampireFlower
 getPlant [BlueSeed, BlueSeed] = RockPlant
 getPlant [BlueSeed, RedSeed] = Cactus
-getPlant [BlueSeed, Spore] = SeedSeeker
-getPlant [RedSeed, RedSeed] = SeedSeeker
-getPlant [RedSeed, Spore] = SeedSeeker
-getPlant [Spore, Spore] = SeedSeeker
+getPlant [BlueSeed, Spore] = BigMushroom
+getPlant [RedSeed, RedSeed] = BirdOfParadise
+getPlant [RedSeed, Spore] = Mycelium
+getPlant [Spore, Spore] = Mycelium
 getPlant [x, y] = getPlant [y, x]
 getPlant _ = SeedSeeker
 
@@ -64,6 +64,11 @@ newPlant Cactus pos = newEntity (Cactus, Position pos, Hp 20 20 0, Sprite cactus
 newPlant Enchanter pos = newEntity (Enchanter, Position pos, Hp 4 4 0, Sprite enchanter, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
 newPlant SeedSeeker pos = newEntity (SeedSeeker, Position pos, Hp 20 20 0, Sprite seedSeeker, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
 newPlant RockPlant pos = newEntity (RockPlant, Position pos, Hp 80 80 0, Sprite rockPlant, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
+newPlant CorpseFlower pos = newEntity (CorpseFlower, Position pos, Hp 20 20 0, Sprite attackSpeedFlower, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
+newPlant VampireFlower pos = newEntity (VampireFlower, Position pos, Hp 20 20 0, Sprite vampireFlower, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
+newPlant BigMushroom pos = newEntity (BigMushroom, Position pos, Hp 20 20 0, Sprite aoeMushroom, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
+newPlant BirdOfParadise pos = newEntity (BirdOfParadise, Position pos, Hp 20 20 0, Sprite birdOfParadise, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
+newPlant Mycelium pos = newEntity (Mycelium, Position pos, Hp 20 20 0, Sprite mycelium, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
 
 doPlants :: (HasMany w [Enemy, Position, Plant, Time, Hp, EntityCounter, Sprite, Seed])=> Float -> System w ()
 doPlants dT = cmapM_ $ \(plant::Plant, Position pos) ->
