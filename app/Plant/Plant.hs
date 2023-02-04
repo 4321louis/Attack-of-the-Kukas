@@ -77,16 +77,16 @@ getPlantSprite Necromancer = mycelium
 getSprite _ = seedSeeker
 
 newPlant :: (HasMany w [Plant, Position, Hp, Sprite, Structure, EntityCounter]) => Plant -> V2 Float -> System w Entity
-newPlant Cactus pos = newEntity (Cactus, Position pos, Hp 20 20 0, getPlantSprite Cactus)
-newPlant Enchanter pos = newEntity (Enchanter, Position pos, Hp 4 4 0, getPlantSprite Enchanter, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
-newPlant SeedSeeker pos = newEntity (SeedSeeker, Position pos, Hp 20 20 0, getPlantSprite SeedSeeker, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
-newPlant RockPlant pos = newEntity (RockPlant, Position pos, Hp 80 80 0, getPlantSprite RockPlant, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
-newPlant CorpseFlower pos = newEntity (CorpseFlower, Position pos, Hp 20 20 0, getPlantSprite AttackSpeedFlower, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
-newPlant VampireFlower pos = newEntity (VampireFlower, Position pos, Hp 20 20 0, getPlantSprite VampireFlower, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
-newPlant BigMushroom pos = newEntity (BigMushroom, Position pos, Hp 20 20 0, getPlantSprite AoeMushroom, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
-newPlant BirdOfParadise pos = newEntity (BirdOfParadise, Position pos, Hp 20 20 0, getPlantSprite BirdOfParadise, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
-newPlant Mycelium pos = newEntity (Mycelium, Position pos, Hp 20 20 0, getPlantSprite Mycelium, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
-newPlant Necromancer pos = newEntity (Necromancer, Position pos, Hp 20 20 0, getPlantSprite Necromancer, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
+newPlant Cactus pos = newEntity (Cactus, Position pos, Hp 20 20 0, Sprite cactus)
+newPlant Enchanter pos = newEntity (Enchanter, Position pos, Hp 4 4 0, Sprite enchanter, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
+newPlant SeedSeeker pos = newEntity (SeedSeeker, Position pos, Hp 20 20 0, Sprite seedSeeker, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
+newPlant RockPlant pos = newEntity (RockPlant, Position pos, Hp 80 80 0, Sprite rockPlant, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
+newPlant CorpseFlower pos = newEntity (CorpseFlower, Position pos, Hp 20 20 0, Sprite attackSpeedFlower, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
+newPlant VampireFlower pos = newEntity (VampireFlower, Position pos, Hp 20 20 0, Sprite vampireFlower, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
+newPlant BigMushroom pos = newEntity (BigMushroom, Position pos, Hp 20 20 0, Sprite aoeMushroom, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
+newPlant BirdOfParadise pos = newEntity (BirdOfParadise, Position pos, Hp 20 20 0, Sprite birdOfParadise, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
+newPlant Mycelium pos = newEntity (Mycelium, Position pos, Hp 20 20 0, Sprite mycelium, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
+newPlant Necromancer pos = newEntity (Necromancer, Position pos, Hp 20 20 0, Sprite mycelium, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
 
 doPlants :: (HasMany w [Enemy, Position, Plant, Time, Hp, EntityCounter, Sprite, Seed, Particle, AnimatedSprite])=> Float -> System w ()
 doPlants dT = do 
@@ -109,7 +109,14 @@ doAttacks dT = cmapM_ $ \(plant::Plant, Position pos, ety) ->
         _ -> do return ()
 
 doOnDeaths :: (HasMany w [Enemy, Position, Plant, Time, Hp, EntityCounter, Sprite, Seed, Particle]) => System w ()
-doOnDeaths = return ()
+doOnDeaths = do
+    deadEnemies <- cfold (\etys (Enemy _ _, Hp hp _ _,ety::Entity)-> if hp <=0 then ety:etys else etys ) [] 
+    cmapM_ $ \(plant::Plant, Position pos, ety::Entity) ->
+        case plant of
+            -- BigMushroom -> domush deadEnemies
+            --do GS - Vampiric 
+            --do SS - Necromancy
+            _ -> do return ()
 
 doRockPlant :: (HasMany w [Time, Hp]) => Float -> Entity -> System w ()
 doRockPlant dT ety = triggerEvery dT 1 0.6 $ modify ety $ (`healHp` 1)
