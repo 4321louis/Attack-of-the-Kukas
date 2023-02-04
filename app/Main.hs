@@ -44,6 +44,7 @@ import Enemy.Pathfinding
 import Plant.Plant
 import Plant.Seed
 import Drawing.Sprites (spriteDir)
+import Drawing.Hotbar
 
 makeWorld "World" [ ''Position, ''Velocity, ''Enemy, ''MapGrid, ''Paths, 
                     ''PathFinder, ''Structure, ''Sprite, ''AnimatedSprite, ''Player,
@@ -113,9 +114,13 @@ draw bg (screenWidth, screenHeight) = do
     cam <- get global
     Time time <- get global
     hp <- cfold (\a (Base, Hp hp _ _) -> hp) 0 
-    let hpPic = pictureOnHud cam (V2 (fromIntegral $ 30 - div screenWidth 2) (fromIntegral $ 50 - div screenHeight 2)) . scale 0.3 0.3 . color white .  Text $ "Base HP: " ++ show (ceiling hp)
+    
+    Inventory inv _ <- get global
+    let 
+        hpPic = pictureOnHud cam (V2 (fromIntegral $ 30 - div screenWidth 2) (fromIntegral $ 50 - div screenHeight 2)) . scale 0.3 0.3 . color white .  Text $ "Base HP: " ++ show (ceiling hp)
         timeSpr = pictureOnHud cam (V2 (fromIntegral $ 30 - div screenWidth 2) (fromIntegral $ 100 - div screenHeight 2)) . scale 0.3 0.3 . color white .  Text $ "Time: " ++ show (floor $ time/60)  ++ ":"++ show (mod (floor time) 60 )
-    return $  bg <> sprites <> particles <>  hpPic <> timeSpr
+        hotbar = pictureOnHud cam (V2 (fromIntegral $ 80 - div screenWidth 2) (fromIntegral $ -350 + div screenHeight 2)) $ drawHotbar inv
+    return $  bg <> sprites <> particles <> hotbar -- <> hpPic <> timeSpr
 
 main :: IO ()
 main = do
