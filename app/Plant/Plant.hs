@@ -16,7 +16,7 @@ module Plant.Plant where
 import Drawing.Sprites
 import Apecs
 import Apecs.Extension
-import Apecs.Gloss (Camera(..))
+import Apecs.Gloss
 import Control.Monad
 import Misc
 import System.Random
@@ -38,6 +38,7 @@ instance Component Plant where type Storage Plant = Map Plant
 bigMushroomDmg, cactusDmg, enchanterShield :: Float
 bigMushroomDmg = 20
 cactusDmg = 20
+lazerDmg = 80
 enchanterShield = 5
 
 -- doCactusAttack :: (HasMany w [Enemy, Position, Plant]) => System w ()
@@ -79,21 +80,21 @@ doPlants dT = cmapM_ $ \(plant::Plant, Position pos) ->
         Enchanter -> doEnchanting dT pos
         SeedSeeker -> doSeedSeeking dT pos
         BigMushroom -> doBigMushroomAttack dT pos
+        BirdOfParadise -> doLazerAttack dT pos
         --do GB - Healer
         --do GR - Attackspeed
         --do GS - Vampiric 
         --do BB - ROCK PLANT
         --do BR - Cactus
         --do BS - Aoe mushroom, corpses fume as well
-        --do RR - Lazer/swatter
         --do RS - Damage over time
         --do SS - Necromancy
         _ -> do return ()
 
 doCactusAttack :: (HasMany w [Enemy, Position, Plant, Time, Hp]) => Float -> V2 Float -> System w ()
-doCactusAttack dT posP = do
+doCactusAttack dT posP = triggerEvery dT 1 0.6 $ do
     cmapM_ $ \(Enemy _ _, Position posE, etyE) -> when (L.norm (posE - posP) < tileRange 0) $
-        triggerEvery dT 1 0.6 (modify etyE $ \(Enemy _ _, hp) -> dealDamage hp cactusDmg)
+        (modify etyE $ \(Enemy _ _, hp) -> dealDamage hp cactusDmg)
 
 doBigMushroomAttack :: (HasMany w [Enemy, Position, Plant, Time, Hp]) => Float -> V2 Float -> System w ()
 doBigMushroomAttack dT posP = do
@@ -101,22 +102,34 @@ doBigMushroomAttack dT posP = do
         triggerEvery dT 2 0.6 (modify etyE $ \(Enemy _ _, hp) -> dealDamage hp bigMushroomDmg)
 
 doEnchanting :: (HasMany w [Plant, Position, Time, Hp, Sprite, Particle, EntityCounter]) => Float -> V2 Float -> System w ()
-doEnchanting dT posEch = do
+doEnchanting dT posEch = triggerEvery dT 8 0.6 $ do
     cmapM_ $ \(_::Plant, Position posP, etyP) -> when (L.norm (posEch - posP) < tileRange 1) $ 
-        triggerEvery dT 8 0.6 (do
+        (do
             modify etyP $ \(_::Plant, hp) -> shieldHp hp enchanterShield
             xoff <- liftIO $ randomRIO (-16,16)
             yoff <- liftIO $ randomRIO (-16,16) 
-            newEntity (Sprite shieldEffect, Position (posP+V2 xoff yoff), Particle 2))
+            void $ newEntity (Sprite shieldEffect, Position (posP+V2 xoff yoff), Particle 2))
 
 doSeedSeeking :: (HasMany w [Seed, Sprite, Plant, Position, Time, EntityCounter]) => Float -> V2 Float -> System w ()
-doSeedSeeking dT pos = do
+doSeedSeeking dT pos = triggerEvery dT 30 0.6 $ do
     seed <- liftIO $ randomRIO (0,3)
     xoff <- liftIO $ randomRIO (-32,32)
     yoff <- liftIO $ randomRIO (-32,-1)
-    triggerEvery dT 30 0.6 $ newEntity ([GreenSeed,RedSeed,BlueSeed,Spore]!! seed, Position (V2 xoff yoff + pos), Sprite $ [greenSeed,redSeed,blueSeed,spore] !! seed )
+    newEntity ([GreenSeed,RedSeed,BlueSeed,Spore]!! seed, Position (V2 xoff yoff + pos), Sprite $ [greenSeed,redSeed,blueSeed,spore] !! seed )
 
 
+
+doLazerAttack :: (HasMany w [Enemy, Position, Time, Hp, Particle, Sprite, EntityCounter]) => Float -> V2 Float -> System w ()
+doLazerAttack dT posP = triggerEvery dT 2 0.6 $ do
+    (cdist, closest) <- cfold (\min@(minDist,_) (Enemy _ _, Position posE, etyE) ->
+            let nDist = L.norm (posP - posE)
+            in if nDist < minDist then (nDist,etyE) else min) (10000,0)
+    when (cdist < tileRange 2) $ do
+        Position posE <- get closest
+        let V2 lx ly = posE - posP
+            lazerLine = color red $ Line [(0,0),(lx,ly)]
+        newEntity (Particle 0.5, Position posP, Sprite lazerLine)
+        modify closest $ \(Enemy _ _, hp) -> dealDamage hp lazerDmg
 -- doCactusAttack :: (HasMany w [Enemy, Position, Plant, Score]) => System w ()
 -- doCactusAttack =
 --     cmapM_ $ \(Plant, Position posP) -> do
