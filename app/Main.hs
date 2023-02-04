@@ -67,7 +67,7 @@ initialize pathGraph grid size = do
     modify global $ \(Camera pos _) -> Camera pos 1.6
     modify global $ \(Paths _ g) -> Paths pathGraph g
     modify global $ \(MapGrid _ _) -> MapGrid grid size
-    modify global $ \(Inventory _ _) -> Inventory [0, 0, 0, 0] [GreenSeed, GreenSeed]
+    modify global $ \(Inventory _ _) -> Inventory [0, 0, 0, 0] [RedSeed, RedSeed]
     _seed <- newEntity(Position (V2 32 96), Sprite greenSeed, GreenSeed)
     _seed <- newEntity(Position (V2 96 (-32)), Sprite redSeed, RedSeed)
     _seed <- newEntity(Position (V2 96 32), Sprite redSeed, RedSeed)

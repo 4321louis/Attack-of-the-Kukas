@@ -118,8 +118,8 @@ plantPlants cam cursorPos grid size = do
     let inv' = updateInv inv craft
         validInv = all (>=0) inv'
     when (placeable tile && not hasPlant && not validInv) $ do
-        -- todo: play some sort of sfx 
-        playIOSoundEffect plantPlant
+        -- todo: play some sort of sfx
+        void $ playIOSoundEffect plantPlant
 
     -- attempt to plant
     when (placeable tile && not hasPlant && validInv) $ do
