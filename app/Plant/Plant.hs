@@ -117,15 +117,16 @@ doAttacks dT = do
     stepAttackSpeedTimer dT
     doUndeadBombers dT
 
+doUndeadBombers :: (HasMany w [PathFinder, Position, Velocity, UndeadBomber, Sprite, Enemy, Hp, AnimatedSprite, Particle, EntityCounter]) => Float -> System w ()
 doUndeadBombers dT = cmapM $ 
     \(p@(PathFinder _ pathNodes), Position pos, Velocity _, UndeadBomber dmg fuse speed) ->
         if fuse <= 0 
         then do  
-            cmap $ \(Enemy _ _, Position posE, hp) -> if (L.norm (posE - pos) < tileRange 1) then dealDamage hp dmg else hp
+            cmap $ \(Enemy _ _, Position posE, hp) -> if L.norm (posE - pos) < tileRange 1 then dealDamage hp dmg else hp
             newEntity (Position (pos), aoeEffect, Particle 2)
             return $ Right (Not @(Sprite,PathFinder,Position,Velocity,UndeadBomber))
         else do
-            newFuse <- (`cfold` fuse) $ \f (Enemy _ _,Position posE) -> if (L.norm (posE - pos) < tileRange 1) then f - dT else f
+            newFuse <- (`cfold` fuse) $ \f (Enemy _ _,Position posE) -> if L.norm (posE - pos) < tileRange 1 then f - dT else f
             if null pathNodes
             then return $ Left (PathFinder Nothing [],Velocity (V2 0 0),UndeadBomber dmg newFuse speed)
             else return $ Left (p,Velocity ((L.^* speed) . L.normalize $ head pathNodes - pos),UndeadBomber dmg newFuse  speed)
@@ -133,10 +134,10 @@ doUndeadBombers dT = cmapM $
 doOnDeaths :: (HasMany w [Enemy, Position, Velocity, UndeadBomber, PathFinder, Hive, Plant, Time, Hp, EntityCounter, Sprite, Seed, Particle]) => System w ()
 doOnDeaths = do
     (deadPositions, deadEnemies) <- cfold (\(poss, etys) (Enemy _ _, Hp hp _ _,ety::Entity, Position pos)-> if hp <=0 then (pos:poss,ety:etys) else (poss,etys)) ([],[])
-    cmapM_ $ \(plant::Plant, Position pos, ety::Entity) ->
+    cmapM_ $ \(plant, Position pos, ety::Entity) ->
         case plant of
             -- BigMushroom -> domush deadEnemies
-            --do GS - Vampiric 
+            VampireFlower -> vampireOnDeath pos deadEnemies 
             Necromancer -> necromancyOnDeath pos deadEnemies
             _ -> return ()
 
@@ -193,7 +194,7 @@ doEnchanting dT posEch = triggerEvery dT 8 0.6 $ do
             void $ newEntity (Sprite shieldEffect, Position (posP+V2 xoff yoff), Particle 2))
 
 doSeedSeeking :: (HasMany w [Seed, Sprite, Plant, Position, Time, EntityCounter]) => Float -> V2 Float -> System w ()
-doSeedSeeking dT pos = triggerEvery dT 0.5 0.6 $ do
+doSeedSeeking dT pos = triggerEvery dT 40 0.6 $ do
     seed <- liftIO $ randomRIO (0,3)
     xoff <- liftIO $ randomRIO (-32,32)
     yoff <- liftIO $ randomRIO (-32,-1)
@@ -224,6 +225,19 @@ necromancyOnDeath posP = foldM (\b ety -> do
         hives <- (`cfold` []) $ \hs (h::Hive, Position pos) -> pos:hs
         void $ newEntity (Position pos, Velocity (V2 0 0), UndeadBomber (maxHp/3) 4 speed, Sprite targetSprite1, PathFinder (Just hives) [])) ()
 
+
+vampireOnDeath posP =  foldM (\b ety -> do 
+    (Position posE, Hp _ maxHp _) <- get ety
+    when (L.norm (posP - posE) < tileRange 4) $ do
+        newEntity (Particle 0.25, Position posE, Sprite shieldEffect)
+        (tHp, target) <- cfold (\min@(minHp,_) (_::Plant, Position posT, Hp hp max _, ety) ->
+            let nDist = L.norm (posP - posT)
+            in if nDist < tileRange 2 && hp < minHp && hp < max then (hp,ety) else min) (10000,0)
+        when (tHp /= 10000) $ do 
+            posT <- get target
+            newEntity (Particle 0.25, posT::Position, Sprite shieldEffect)
+            modify target (`healHp` (maxHp/50))
+    ) ()
 
 destroyDeadStructures :: (HasMany w [Sprite, Plant, Position, Paths, PathFinder, Structure, Hp, Camera]) => System w ()
 destroyDeadStructures = do
