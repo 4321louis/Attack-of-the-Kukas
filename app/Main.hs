@@ -92,6 +92,7 @@ step :: Float -> SystemW ()
 step dT = do
     incrTime dT
     stepPosition dT
+    stepParticles dT
     animatedSprites dT
     camOnPlayer
     doEnemy dT
@@ -105,7 +106,8 @@ draw :: Picture -> (Int,Int) -> SystemW Picture
 draw bg (screenWidth, screenHeight) = do
     unsortedSprites <- cfoldM (\sprites (Position pos@(V2 _ y), Sprite p, ety) -> do
         isSeed <- exists ety (Proxy @Seed)
-        return $ (if isSeed then y-200 else y,translateV2 pos p):sprites) []
+        isParticle <- exists ety (Proxy @Particle)
+        return $ (if isSeed || isParticle then y-200 else y,translateV2 pos p):sprites) []
     let sprites = foldMap snd $ sortWith (negate . fst) unsortedSprites
 
     particles <- foldDraw $

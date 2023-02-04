@@ -33,7 +33,7 @@ gameLoop = sampleFromFile (musicDir ++ "Uncharted_Encounter_loop.ogg") 0.35
 
 effectsDir :: String
 effectsDir = "./assets/Audio/Effects/"
-pew, fastAttack, kukasAttack, eatSound, explosion, invokeSeed, kukasDeath, pickUpSeed, laserGun, plantPlant :: IO Sample
+pew, fastAttack, kukasAttack, eatSound, explosion, invokeSeed, kukasDeath, pickUpSeed, laserGun, plantPlant, errorSound :: IO Sample
 pew = sampleFromFile (effectsDir ++ "PEW.wav") 0.4
 fastAttack = sampleFromFile (effectsDir ++ "basic attack.ogg") 0.3
 kukasAttack = sampleFromFile (effectsDir ++ "kukas attack.ogg") 0.3

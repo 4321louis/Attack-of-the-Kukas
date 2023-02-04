@@ -29,7 +29,7 @@ import Enemy.Pathfinding
 initializeHives :: (HasMany w [Hive, Time, Hp, Enemy, Position, Sprite, Velocity, PathFinder, EntityCounter]) => Int -> [(Int,Int)] -> System w ()
 initializeHives size poses = do
     rposes <- liftIO $ shuffleList poses
-    foldM_ (\_ (hive,pos) -> newEntity (Position (toRealCoord size pos),hive)) 0 $
+    foldM_ (\_ (hive,pos) -> newEntity (Position (tileCentre 2 $ toRealCoord size pos),hive)) 0 $
         zip [Hive1, Hive2, Hive3, Hive4, Hive5] rposes
 
 data EnemyType = Normal | Tank | Fast
