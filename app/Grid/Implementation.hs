@@ -71,7 +71,7 @@ collapseLand center bugbases grid  =
 
 collapseBugBase :: Foldable t => t (Int, Int) -> PreGrid -> PreGrid
 collapseBugBase bugBases grid =
-    let bugBaseTile = Tile (png $ spriteDir ++ "Terrain/Water.png") Land Land Land Land True False
+    let bugBaseTile = Tile (png $ spriteDir ++ "Terrain/KukasBase.png") Land Land Land Land True False
     in foldr (`intialiseCell` bugBaseTile) grid bugBases
 
 placeLastBase :: Int -> Int -> [(Int,Int)] -> (Int,Int)
