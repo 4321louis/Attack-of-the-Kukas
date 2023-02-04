@@ -55,10 +55,21 @@ drawHotbar inv = drawButtons buttons
 
 ----- Crafting
 
-drawCraft craft = circleThing
+drawCraft craft@[s1, s2] = seed'' <> seed' <> plant'
+    where   plant = getPlantSprite $ getPlant craft
+            seed = getSeedSprite s1
+            plant' = scale 1.2 1.2 $ plantCircle plant
+            seed' = translate fromPlantCircle (fromPlantCircle + offset) $ seedCircle seed
+            seed'' = translate (fromPlantCircle + offset) fromPlantCircle $ seedCircle seed
+            fromPlantCircle = -120
+            offset = 65
 
 
 -- todo: make colour
-circleThing = circle <> sprite
-    where   circle = color white $ circleSolid 100
-            sprite = scale 1 1 $ seedSeeker
+plantCircle s = circle <> sprite
+    where   circle = color white $ circleSolid 70
+            sprite = translate 1 (-20.0) s
+
+seedCircle s = circle <> sprite
+    where   circle = color white $ circleSolid 35
+            sprite = scale 1.2 1.2 $ s

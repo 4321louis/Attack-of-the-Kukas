@@ -73,8 +73,7 @@ getPlantSprite VampireFlower = vampireFlower
 getPlantSprite BigMushroom = aoeMushroom
 getPlantSprite BirdOfParadise = birdOfParadise
 getPlantSprite Mycelium = mycelium
-
-getSprite _ = seedSeeker
+getPlantSprite _ = seedSeeker
 
 newPlant :: (HasMany w [Plant, Position, Hp, Sprite, Structure, EntityCounter]) => Plant -> V2 Float -> System w Entity
 newPlant Cactus pos = newEntity (Cactus, Position pos, Hp 20 20 0, Sprite cactus)

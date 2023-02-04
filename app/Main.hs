@@ -122,7 +122,7 @@ draw bg (screenWidth, screenHeight) = do
         hpPic = pictureOnHud cam (V2 (fromIntegral $ 30 - div screenWidth 2) (fromIntegral $ 50 - div screenHeight 2)) . scale 0.3 0.3 . color white .  Text $ "Base HP: " ++ show (ceiling hp)
         timeSpr = pictureOnHud cam (V2 (fromIntegral $ 30 - div screenWidth 2) (fromIntegral $ 100 - div screenHeight 2)) . scale 0.3 0.3 . color white .  Text $ "Time: " ++ show (floor $ time/60)  ++ ":"++ show (mod (floor time) 60 )
         hotbar = pictureOnHud cam (V2 (fromIntegral $ 80 - div screenWidth 2) (fromIntegral $ -350 + div screenHeight 2)) $ drawHotbar inv
-        crafting = pictureOnHud cam (V2 (fromIntegral $ 100 - div screenWidth 2) (fromIntegral $ 100 - div screenHeight 2)) $ drawCraft craft
+        crafting = pictureOnHud cam (V2 (fromIntegral $ 180 - div screenWidth 2) (fromIntegral $ 180 - div screenHeight 2)) $ drawCraft craft
     return $  bg <> sprites <> particles <> hotbar <> crafting -- <> hpPic <> timeSpr
 
 main :: IO ()
