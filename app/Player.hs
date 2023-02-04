@@ -119,7 +119,7 @@ plantPlants cam cursorPos grid size = do
         validInv = all (>=0) inv'
     when (placeable tile && not hasPlant && not validInv) $ do
         -- todo: play some sort of sfx
-        void $ playIOSoundEffect plantPlant
+        void $ playIOSoundEffect errorSound
 
     -- attempt to plant
     when (placeable tile && not hasPlant && validInv) $ do

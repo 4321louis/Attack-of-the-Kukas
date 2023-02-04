@@ -26,24 +26,25 @@ import Worlds
 musicDir :: String
 musicDir = "./assets/Audio/Music/"
 menuLoop, menuLoopIntro, gameLoop, gameLoopIntro :: IO Sample
-menuLoopIntro = sampleFromFile (musicDir ++ "Sunny_day_intro.ogg") 0.3
-menuLoop = sampleFromFile (musicDir ++ "Sunny_day_loop.ogg") 0.3
-gameLoopIntro = sampleFromFile (musicDir ++ "Uncharted_Encounter_intro.ogg") 0.3
-gameLoop = sampleFromFile (musicDir ++ "Uncharted_Encounter_loop.ogg") 0.3
+menuLoopIntro = sampleFromFile (musicDir ++ "Sunny_day_intro.ogg") 0.35
+menuLoop = sampleFromFile (musicDir ++ "Sunny_day_loop.ogg") 0.35
+gameLoopIntro = sampleFromFile (musicDir ++ "Uncharted_Encounter_intro.ogg") 0.35
+gameLoop = sampleFromFile (musicDir ++ "Uncharted_Encounter_loop.ogg") 0.35
 
 effectsDir :: String
 effectsDir = "./assets/Audio/Effects/"
 pew, fastAttack, kukasAttack, eatSound, explosion, invokeSeed, kukasDeath, pickUpSeed, laserGun, plantPlant :: IO Sample
-pew = sampleFromFile (effectsDir ++ "PEW.wav") 1.0
-fastAttack = sampleFromFile (effectsDir ++ "basic attack.ogg") 1.0
-kukasAttack = sampleFromFile (effectsDir ++ "kukas attack.ogg") 1.0
+pew = sampleFromFile (effectsDir ++ "PEW.wav") 0.4
+fastAttack = sampleFromFile (effectsDir ++ "basic attack.ogg") 0.3
+kukasAttack = sampleFromFile (effectsDir ++ "kukas attack.ogg") 0.3
 eatSound = sampleFromFile (effectsDir ++ "eating sound question mark.ogg") 1.0
-explosion = sampleFromFile (effectsDir ++ "generic explosion.ogg") 1.0
-invokeSeed = sampleFromFile (effectsDir ++ "invoke seed.ogg") 1.0
-kukasDeath = sampleFromFile (effectsDir ++ "kukas death.ogg") 1.0
-pickUpSeed = sampleFromFile (effectsDir ++ "pick up seed.ogg") 1.0
-laserGun = sampleFromFile (effectsDir ++ "laser gun 1.ogg") 1.0
-plantPlant = sampleFromFile (effectsDir ++ "plant plant.ogg") 1.0
+explosion = sampleFromFile (effectsDir ++ "generic explosion.ogg") 0.5
+invokeSeed = sampleFromFile (effectsDir ++ "invoke seed.ogg") 0.4
+kukasDeath = sampleFromFile (effectsDir ++ "kukas death.ogg") 0.3
+pickUpSeed = sampleFromFile (effectsDir ++ "pick up seed.ogg") 0.5
+laserGun = sampleFromFile (effectsDir ++ "laser gun 1.ogg") 0.4
+plantPlant = sampleFromFile (effectsDir ++ "plant plant.ogg") 0.25
+errorSound = sampleFromFile (effectsDir ++ "error.ogg") 0.3
 
 playSoundEffect :: Sample -> System w Sound
 playSoundEffect = liftIO . (\s -> soundPlay s 1 1 0 1)
