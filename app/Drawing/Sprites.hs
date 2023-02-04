@@ -26,7 +26,7 @@ import Worlds
 newtype Sprite = Sprite Picture deriving (Show)
 instance Component Sprite where type Storage Sprite = Map Sprite
 
-data AnimatedSprite = AnimatedSprite Float [Picture] deriving (Show)
+data AnimatedSprite = AnimatedSprite Float [Picture] deriving (Show,Eq)
 instance Component AnimatedSprite where type Storage AnimatedSprite = Map AnimatedSprite
 
 newtype Particle = Particle Float deriving (Show)
@@ -65,16 +65,24 @@ greenSeed = scale 0.6 0.6 . png $ spriteDir ++ "UI/GSeed.png"
 blueSeed =  scale 0.6 0.6 . png $ spriteDir ++ "UI/BSeed.png"
 spore =  scale 0.6 0.6 . png $ spriteDir ++ "UI/FungalSpore.png"
 
-dronekukasf1, dronekukasf2, dronekukasf3, dronekukasf4, dronekukasf5 :: Picture
-dronekukasf1 = png $ spriteDir ++ "Entities/Kukas/DroneKukasJump1.png"
-dronekukasf2 = png $ spriteDir ++ "Entities/Kukas/DroneKukasJump2.png"
-dronekukasf3 = png $ spriteDir ++ "Entities/Kukas/DroneKukasJump3.png"
-dronekukasf4 = png $ spriteDir ++ "Entities/Kukas/DroneKukasJump4.png"
-dronekukasf5 = png $ spriteDir ++ "Entities/Kukas/DroneKukasJump5.png"
+dronekukaswf1, dronekukaswf2, dronekukaswf3, dronekukaswf4, dronekukaswf5 :: Picture
+dronekukaswf1 = png $ spriteDir ++ "Entities/Kukas/DroneKukasJump1.png"
+dronekukaswf2 = png $ spriteDir ++ "Entities/Kukas/DroneKukasJump2.png"
+dronekukaswf3 = png $ spriteDir ++ "Entities/Kukas/DroneKukasJump3.png"
+dronekukaswf4 = png $ spriteDir ++ "Entities/Kukas/DroneKukasJump4.png"
+dronekukaswf5 = png $ spriteDir ++ "Entities/Kukas/DroneKukasJump5.png"
+dronekukasaf1 = png $ spriteDir ++ "Entities/Kukas/DroneKukasAttack1.png"
+dronekukasaf2 = png $ spriteDir ++ "Entities/Kukas/DroneKukasAttack2.png"
+dronekukasaf3 = png $ spriteDir ++ "Entities/Kukas/DroneKukasAttack3.png"
+dronekukasaf4 = png $ spriteDir ++ "Entities/Kukas/DroneKukasAttack4.png"
+dronekukasaf5 = png $ spriteDir ++ "Entities/Kukas/DroneKukasAttack5.png"
 
 droneKukasWalkLeft, droneKukasWalkRight:: AnimatedSprite
-droneKukasWalkRight = AnimatedSprite 0.15 [dronekukasf1,dronekukasf2,dronekukasf3,dronekukasf4,dronekukasf5]
-droneKukasWalkLeft = AnimatedSprite 0.15 $ map (scale (-1) 1) [dronekukasf1,dronekukasf2,dronekukasf3,dronekukasf4,dronekukasf5]
+droneKukasWalkRight = AnimatedSprite 0.15 [dronekukaswf1,dronekukaswf2,dronekukaswf3,dronekukaswf4,dronekukaswf5]
+droneKukasWalkLeft = AnimatedSprite 0.15 $ map (scale (-1) 1) [dronekukaswf1,dronekukaswf2,dronekukaswf3,dronekukaswf4,dronekukaswf5]
+droneKukasAttackLeft, droneKukasAttackRight:: AnimatedSprite
+droneKukasAttackRight = AnimatedSprite 0.15 [dronekukasaf1,dronekukasaf2,dronekukasaf3,dronekukasaf4,dronekukasaf5]
+droneKukasAttackLeft = AnimatedSprite 0.15 $ map (scale (-1) 1) [dronekukasaf1,dronekukasaf2,dronekukasaf3,dronekukasaf4,dronekukasaf5]
 
 aoe1, aoe2, aoe3, aoe4, aoe5, aoe6, aoe7, aoe8 :: Picture
 aoe1 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect1.png"
