@@ -38,7 +38,7 @@ instance Component Plant where type Storage Plant = Map Plant
 bigMushroomDmg, cactusDmg, enchanterShield :: Float
 bigMushroomDmg = 20
 cactusDmg = 20
-lazerDmg = 80
+lazerDmg = 100
 enchanterShield = 5
 
 -- doCactusAttack :: (HasMany w [Enemy, Position, Plant]) => System w ()
@@ -127,8 +127,9 @@ doLazerAttack dT posP = triggerEvery dT 2 0.6 $ do
     when (cdist < tileRange 2) $ do
         Position posE <- get closest
         let V2 lx ly = posE - posP
-            lazerLine = color red $ Line [(0,0),(lx,ly)]
-        newEntity (Particle 0.5, Position posP, Sprite lazerLine)
+            (ox,oy) = if lx< 0 then (0,0) else (0,0) --TODO:origin of lazer
+            lazerLine = (color orange $ Line [(ox,oy),(lx,ly)]) <> (color red $ Line [(ox,oy+2),(lx,ly)]) <> (color red $ Line [(ox,oy-2),(lx,ly)])
+        newEntity (Particle 0.25, Position posP, Sprite lazerLine)
         modify closest $ \(Enemy _ _, hp) -> dealDamage hp lazerDmg
 -- doCactusAttack :: (HasMany w [Enemy, Position, Plant, Score]) => System w ()
 -- doCactusAttack =
