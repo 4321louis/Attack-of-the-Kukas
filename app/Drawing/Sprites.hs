@@ -55,7 +55,9 @@ vampireFlower = png $ spriteDir ++ "Entities/GSVampire.png"
 birdOfParadise = translate 0 (-7) . png $ spriteDir ++ "Entities/RRLazer.png"
 mycelium = translate 0 1.5 . png $ spriteDir ++ "Entities/RSDoT.png"
 
+shieldEffect, attackSpeedEffect :: Picture
 shieldEffect = scale 1.5 1.5 . png $ spriteDir ++ "Effects/ShieldEffect.png"
+attackSpeedEffect = scale 1.5 1.5 . png $ spriteDir ++ "Effects/AttackSpeedEffect.png"
 
 redSeed, greenSeed, blueSeed, spore :: Picture
 redSeed =  scale 0.6 0.6 . png $ spriteDir ++ "UI/RSeed.png"

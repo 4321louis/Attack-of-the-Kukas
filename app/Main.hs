@@ -50,7 +50,7 @@ makeWorld "World" [ ''Position, ''Velocity, ''Enemy, ''MapGrid, ''Paths,
                     ''PathFinder, ''Structure, ''Sprite, ''AnimatedSprite, ''Player,
                     ''Particle, ''Base, ''Time, ''Inputs, ''Camera, 
                     ''Hp, ''Seed, ''Plant, ''Inventory, ''DropHandler,
-                    ''Hive, ''UndeadBomber ]
+                    ''Hive, ''UndeadBomber, ''AttackSpeed ]
 
 type SystemW a = System World a
 

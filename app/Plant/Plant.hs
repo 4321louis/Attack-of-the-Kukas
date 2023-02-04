@@ -31,29 +31,26 @@ import Worlds
 import Plant.Seed
 import Linear (V2(..))
 import Structure.Structure
-import GHC.IO.Encoding.Types (EncodeBuffer)
-import Drawing.Sprites (targetSprite1)
+import Drawing.Sprites (targetSprite1, attackSpeedEffect)
 
 type AllPlantComps = (Position, Structure, Sprite, Hp, Plant)
 
-data Plant = RockPlant | Cactus | BigMushroom | Enchanter | SeedSeeker | CorpseFlower | VampireFlower | BirdOfParadise | Mycelium | Necromancer deriving (Show)
+data Plant = RockPlant | Cactus | BigMushroom | Enchanter | SeedSeeker | CorpseFlower | VampireFlower | BirdOfParadise | Mycelium | Necromancer deriving (Show, Eq)
 instance Component Plant where type Storage Plant = Map Plant
 
 -- Dmg, Fuse, speed
 data UndeadBomber = UndeadBomber Float Float Float
 instance Component UndeadBomber where type Storage UndeadBomber = Map UndeadBomber
+--Timer
+data AttackSpeed = AttackSpeed Float deriving (Show)
+instance Component AttackSpeed where type Storage AttackSpeed = Map AttackSpeed
 
 bigMushroomDmg, cactusDmg, enchanterShield :: Float
-bigMushroomDmg = 20
+bigMushroomDmg = 10
 cactusDmg = 20
 lazerDmg = 100
 enchanterShield = 5
-
--- doCactusAttack :: (HasMany w [Enemy, Position, Plant]) => System w ()
--- doCactusAttack =
---     cmap $ \(Plant, Position posP, etyP) ->
---         cfold (\b (Enemy e, Position posE)-> b || L.norm (posE - posP) < plantRange ) False
---             modify global $ \(Score x) -> Score (x + hitBonus)
+attackSpeedModifier = 3
 
 getPlant :: [Seed] -> Plant
 getPlant [GreenSeed, GreenSeed] = SeedSeeker
@@ -82,7 +79,7 @@ getPlantSprite Mycelium = mycelium
 getPlantSprite Necromancer = mycelium
 getPlantSprite _ = seedSeeker
 
-newPlant :: (HasMany w [Plant, Position, Hp, Sprite, Structure, EntityCounter]) => Plant -> V2 Float -> System w Entity
+newPlant :: (HasMany w [Plant, Position, Hp, Sprite, Structure, EntityCounter, AttackSpeed]) => Plant -> V2 Float -> System w Entity
 newPlant Cactus pos = newEntity (Cactus, Position pos, Hp 20 20 0, Sprite cactus)
 newPlant Enchanter pos = newEntity (Enchanter, Position pos, Hp 4 4 0, Sprite enchanter, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
 newPlant SeedSeeker pos = newEntity (SeedSeeker, Position pos, Hp 20 20 0, Sprite seedSeeker, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
@@ -90,30 +87,30 @@ newPlant RockPlant pos = newEntity (RockPlant, Position pos, Hp 80 80 0, Sprite 
 newPlant CorpseFlower pos = newEntity (CorpseFlower, Position pos, Hp 20 20 0, Sprite attackSpeedFlower, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
 newPlant VampireFlower pos = newEntity (VampireFlower, Position pos, Hp 20 20 0, Sprite vampireFlower, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
 newPlant BigMushroom pos = newEntity (BigMushroom, Position pos, Hp 20 20 0, Sprite aoeMushroom, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
-newPlant BirdOfParadise pos = newEntity (BirdOfParadise, Position pos, Hp 20 20 0, Sprite birdOfParadise, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
+newPlant BirdOfParadise pos = newEntity (BirdOfParadise, Position pos, Hp 20 20 0, Sprite birdOfParadise, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]), AttackSpeed 0)
 newPlant Mycelium pos = newEntity (Mycelium, Position pos, Hp 20 20 0, Sprite mycelium, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
 newPlant Necromancer pos = newEntity (Necromancer, Position pos, Hp 20 20 0, Sprite mycelium, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
 
-doPlants :: (HasMany w [Enemy, Position, Plant, Time, Hp, EntityCounter, Sprite, Seed, Particle, UndeadBomber, PathFinder, Hive, Velocity, AnimatedSprite])=> Float -> System w ()
+doPlants :: (HasMany w [Enemy, Position, Plant, Time, Hp, EntityCounter, Sprite, AttackSpeed, Seed, Particle, UndeadBomber, PathFinder, Hive, Velocity, AnimatedSprite])=> Float -> System w ()
 doPlants dT = do 
     doAttacks dT
     doOnDeaths
 
-doAttacks :: (HasMany w [Enemy, Position, Plant, Time, Hp, EntityCounter, Sprite, Seed, Particle, AnimatedSprite, UndeadBomber, PathFinder, Hive, Velocity])=> Float -> System w ()
+doAttacks :: (HasMany w [Enemy, Position, Plant, Time, Hp, EntityCounter, Sprite, AttackSpeed, Seed, Particle, AnimatedSprite, UndeadBomber, PathFinder, Hive, Velocity])=> Float -> System w ()
 doAttacks dT = do
-    cmapM_ $ \(plant::Plant, Position pos, ety) ->
+    cmapM_ $ \(plant::Plant, Position pos, ety) -> do
         case plant of
-            Cactus -> doCactusAttack dT pos
+            Cactus -> doCactusAttack dT pos ety
             Enchanter -> doEnchanting dT pos
             SeedSeeker -> doSeedSeeking dT pos
-            BigMushroom -> doBigMushroomAttack dT pos
-            BirdOfParadise -> doLazerAttack dT pos
+            BigMushroom -> doBigMushroomAttack dT pos ety
+            BirdOfParadise -> doLazerAttack dT pos ety
             RockPlant -> doRockPlant dT ety
-            --do GR - Attackspeed
+            CorpseFlower -> doAttackSpeedBuff dT pos
             --do GS - Vampiric 
-            --do RS - Damage over time
-            --do SS - Necromancy
-            _ -> do return ()
+            --do RS - Damage over time ety
+            _ -> return ()
+    stepAttackSpeedTimer dT
     doUndeadBombers dT
 
 doUndeadBombers dT = cmapM $ 
@@ -140,19 +137,43 @@ doOnDeaths = do
             _ -> do return ()
 
 doRockPlant :: (HasMany w [Time, Hp]) => Float -> Entity -> System w ()
-doRockPlant dT ety = triggerEvery dT 1 0.6 $ modify ety $ (`healHp` 1)
+doRockPlant dT ety = triggerEvery dT 1 0.6 $ modify ety (`healHp` 1)
 
+doAttackSpeedBuff :: (HasMany w [Plant, Position, Time, Hp, Sprite, Particle, EntityCounter, AttackSpeed]) => Float -> V2 Float -> System w ()
+doAttackSpeedBuff dT pos = triggerEvery dT 2 0.6 $ do
+    cmapM $  \(p::Plant, Position posP) -> if L.norm (pos - posP) < tileRange 1 && elem p [Cactus, BirdOfParadise, BigMushroom, Mycelium, VampireFlower] then do 
+        xoff <- liftIO $ randomRIO (-16,16)
+        yoff <- liftIO $ randomRIO (-16,16) 
+        newEntity (Sprite attackSpeedEffect, Position (posP+V2 xoff yoff), Particle 1) 
+        return $ Right $ AttackSpeed 4
+        else return $ Left ()
 
-doCactusAttack :: (HasMany w [Enemy, Position, Plant, Time, Hp]) => Float -> V2 Float -> System w ()
-doCactusAttack dT posP = triggerEvery dT 1 0.6 $ do
-    cmapM_ $ \(Enemy _ _, Position posE, etyE) -> when (L.norm (posE - posP) < tileRange 0) $
-        (modify etyE $ \(Enemy _ _, hp) -> dealDamage hp cactusDmg)
+stepAttackSpeedTimer :: (Has w IO AttackSpeed) => Float -> System w ()
+stepAttackSpeedTimer dT = cmap $ \(AttackSpeed t) ->
+    if t < 0
+        then Right $ Not @AttackSpeed
+        else Left  $ AttackSpeed (t-dT)
 
-doBigMushroomAttack :: (HasMany w [Enemy, Position, Plant, Time, Hp, AnimatedSprite, EntityCounter, Particle]) => Float -> V2 Float -> System w ()
-doBigMushroomAttack dT posP = triggerEvery dT 2 0.6 $ do
-    cmapM_ $ \(Enemy _ _, Position posE, etyE) -> when (L.norm (posE - posP) < tileRange 2) $ do
-        newEntity (Position (posP), aoeEffect, Particle 2)
-        modify etyE (\(Enemy _ _, hp) -> dealDamage hp bigMushroomDmg)
+doCactusAttack :: (HasMany w [Enemy, Position, Plant, Time, Hp, AttackSpeed]) => Float -> V2 Float -> Entity -> System w ()
+doCactusAttack dT posP ety = do
+    hasAttackBuff <- exists ety (Proxy @AttackSpeed)
+    let rate = 1/if hasAttackBuff then attackSpeedModifier else 1 
+    triggerEvery dT rate 0.6 $ do
+        cmapM_ $ \(Enemy _ _, Position posE, etyE) -> when (L.norm (posE - posP) < tileRange 0) $
+            modify etyE (\(Enemy _ _, hp) -> dealDamage hp cactusDmg)
+
+doBigMushroomAttack :: (HasMany w [Enemy, Position, Plant, Time, Hp, AnimatedSprite, EntityCounter, Particle,AttackSpeed]) => Float -> V2 Float -> Entity -> System w ()
+doBigMushroomAttack dT posP ety = do
+    hasAttackBuff <- exists ety (Proxy @AttackSpeed)
+    let rate = 2/if hasAttackBuff then attackSpeedModifier else 1 
+    triggerEvery dT rate 0.6 $ do
+        cmapM_ $ \(Enemy _ _, Position posE, etyE) -> when (L.norm (posE - posP) < tileRange 2) $ do
+            newEntity (Position posP, aoeEffect, Particle 2)
+            modify etyE (\(Enemy _ _, hp) -> dealDamage hp bigMushroomDmg)
+
+{- doBigMushroomOnDeath :: (HasMany w [Enemy, Position, Plant, Time, Hp, AnimatedSprite, EntityCounter, Particle]) => [Entity] -> V2 Float -> System w ()
+doBigMushroomOnDeath deadEnemies =
+    cmapM_ $ \(Plant, ) -}
 
 doEnchanting :: (HasMany w [Plant, Position, Time, Hp, Sprite, Particle, EntityCounter]) => Float -> V2 Float -> System w ()
 doEnchanting dT posEch = triggerEvery dT 8 0.6 $ do
@@ -172,18 +193,21 @@ doSeedSeeking dT pos = triggerEvery dT 0.5 0.6 $ do
 
 
 
-doLazerAttack :: (HasMany w [Enemy, Position, Time, Hp, Particle, Sprite, EntityCounter]) => Float -> V2 Float -> System w ()
-doLazerAttack dT posP = triggerEvery dT 2 0.6 $ do
-    (cdist, closest) <- cfold (\min@(minDist,_) (Enemy _ _, Position posE, etyE) ->
-            let nDist = L.norm (posP - posE)
-            in if nDist < minDist then (nDist,etyE) else min) (10000,0)
-    when (cdist < tileRange 2) $ do
-        Position posE <- get closest
-        let V2 lx ly = posE - posP
-            (ox,oy) = if lx< 0 then (0,0) else (0,0) --TODO:origin of lazer
-            lazerLine = (color orange $ Line [(ox,oy),(lx,ly)]) <> (color red $ Line [(ox,oy+2),(lx,ly)]) <> (color red $ Line [(ox,oy-2),(lx,ly)])
-        newEntity (Particle 0.25, Position posP, Sprite lazerLine)
-        modify closest $ \(Enemy _ _, hp) -> dealDamage hp lazerDmg
+doLazerAttack :: (HasMany w [Enemy, Position, Time, Hp, Particle, Sprite, EntityCounter, AttackSpeed]) => Float -> V2 Float -> Entity -> System w ()
+doLazerAttack dT posP ety = do
+    hasAttackBuff <- exists ety (Proxy @AttackSpeed)
+    let rate = 2/if hasAttackBuff then attackSpeedModifier else 1 
+    triggerEvery dT rate 0.6 $ do
+        (cdist, closest) <- cfold (\min@(minDist,_) (Enemy _ _, Position posE, etyE) ->
+                let nDist = L.norm (posP - posE)
+                in if nDist < minDist then (nDist,etyE) else min) (10000,0)
+        when (cdist < tileRange 2) $ do
+            Position posE <- get closest
+            let V2 lx ly = posE - posP
+                (ox,oy) = if lx< 0 then (0,0) else (0,0) --TODO:origin of lazer
+                lazerLine = (color orange $ Line [(ox,oy),(lx,ly)]) <> (color red $ Line [(ox,oy+2),(lx,ly)]) <> (color red $ Line [(ox,oy-2),(lx,ly)])
+            newEntity (Particle 0.25, Position posP, Sprite lazerLine)
+            modify closest $ \(Enemy _ _, hp) -> dealDamage hp lazerDmg
 
 necromancyOnDeath :: (HasMany w [Enemy, Position, Velocity, UndeadBomber, PathFinder, Hive, Time, Hp, Particle, Sprite, EntityCounter]) => V2 Float -> [Entity] -> System w ()
 necromancyOnDeath posP deads = (\func -> foldM func () deads) $ \b ety -> do
