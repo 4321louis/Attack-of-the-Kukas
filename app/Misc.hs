@@ -25,6 +25,10 @@ import Codec.Picture (DynamicImage(ImageRGBA8), savePngImage)
 import Graphics.Gloss.Export (exportPictureToFormat)
 import Graphics.Gloss.Game (png)
 import qualified Data.Vector as V
+import Control.Monad (replicateM)                                                                                             
+import Data.Function (on)
+import Data.List     (sortBy)
+import System.Random (randomRIO)      
 
 translatePos :: Position -> Picture -> Picture
 translatePos (Position (V2 x y)) = translate x y
@@ -54,6 +58,11 @@ atRandIndex l = do
     
     i <- randomRIO (0, n - 1)
     if n <= 0 then error "Can't pick a random element of an empty list" else return $ l V.! i
+
+shuffleList :: [a] -> IO [a]                                                                                                                                             
+shuffleList xs = do                                                                                                                                                      
+    ys <- replicateM (length xs) $ randomRIO (1 :: Int, 100000)                                                                                                          
+    pure $ map fst $ sortBy (compare `on` snd) (zip xs ys)
 
 concatRep :: Int -> [a] -> [a]
 concatRep n = concat . replicate n

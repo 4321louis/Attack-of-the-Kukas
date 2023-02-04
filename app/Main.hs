@@ -38,6 +38,7 @@ import Apecs.Extension
 import Structure.Structure
 import Grid.Implementation
 import Grid.Tile
+import Enemy.Hive
 import Enemy.Enemy
 import Enemy.Pathfinding
 import Plant.Plant
@@ -47,7 +48,8 @@ import Drawing.Sprites (spriteDir)
 makeWorld "World" [ ''Position, ''Velocity, ''Enemy, ''MapGrid, ''Paths, 
                     ''PathFinder, ''Structure, ''Sprite, ''AnimatedSprite, ''Player,
                     ''Particle, ''Base, ''Time, ''Inputs, ''Camera, 
-                    ''Hp, ''Seed, ''Plant, ''Inventory, ''DropHandler]
+                    ''Hp, ''Seed, ''Plant, ''Inventory, ''DropHandler,
+                    ''Hive ]
 
 type SystemW a = System World a
 
@@ -96,10 +98,7 @@ step dT = do
     doPlants dT
     destroyDeadStructures
     destroyDeadEnemies
-    triggerEvery dT 8 3 $  newEntity (Hp 100 100 0, Enemy 1 20, Position (V2 1400 1400), Sprite targetSprite2, Velocity (V2 0 0), PathFinder Nothing [])
-    triggerEvery dT 8 1 $  newEntity (Hp 100 100 0, Enemy 1 20, Position (V2 1400 (-1400)), Sprite targetSprite2, Velocity (V2 0 0), PathFinder Nothing [])
-    triggerEvery dT 8 5 $  newEntity (Hp 100 100 0, Enemy 1 20, Position (V2 (-1400) 1400), Sprite targetSprite2, Velocity (V2 0 0), PathFinder Nothing [])
-    triggerEvery dT 8 7 $  newEntity (Hp 100 100 0, Enemy 1 20, Position (V2 (-1400) (-1400)), Sprite targetSprite2, Velocity (V2 0 0), PathFinder Nothing [])
+    spawnEnemies dT
 
 draw :: Picture -> (Int,Int) -> SystemW Picture
 draw bg (screenWidth, screenHeight) = do
@@ -120,13 +119,14 @@ draw bg (screenWidth, screenHeight) = do
 
 main :: IO ()
 main = do
-    -- grid creatiion
+    -- grid creation
     content <- readFile "./assets/Config/swampGeneration.txt"
     let size = traceTimer "WFCollapse" 50
         tileOptions = readTilesMeta content
         graphicTileCoords = traceTimer "WFCollapse" createGrid size size
-    grid <- startTimer "WFCollapse" $ (`doWaveCollapse` graphicTileCoords) $ traceTimer "WFCollapse" $ collapseBaseGrid size $ traceTimer "WFCollapse" $ createPreTileGrid tileOptions graphicTileCoords
-    
+    (pregrid, bases) <- collapseStartingGrid size $ traceTimer "WFCollapse" $ createPreTileGrid tileOptions graphicTileCoords
+    grid <- startTimer "WFCollapse" $ (`doWaveCollapse` graphicTileCoords) $ traceTimer "WFCollapse" pregrid
+
     -- background
     screenSize@(sWid,sHei) <- getScreenSize
     background <- startTimer "GridImage" optimisePicturewithRes (sWid-100,sHei-100) (64*size,64*size) . translate 32 32 $ getGridSprite (traceTimer "GridImage" $ traceTimer "WFCollapse" grid) graphicTileCoords
@@ -135,10 +135,11 @@ main = do
     let getTile = tileOfCoord grid size
         pathFindCoords = map (tileCentre 2 . toRealCoord size) graphicTileCoords
     
-    tempAudioMain
+    initializeAudio
     w <- initWorld
     runWith w $ do
         startTimer "GraphCreation" $ initialize (traceTimer "GraphCreation" $ generateGraph (traceTimer "GraphCreation" getTile) pathFindCoords) grid size
+        initializeHives size bases
         play FullScreen black 60 (draw (traceTimer "GridImage"  $ translate (fromIntegral $ -32*size) (fromIntegral $ -32*size) background) screenSize) handleInputs step
     
     finishAudio

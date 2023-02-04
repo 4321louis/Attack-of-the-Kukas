@@ -23,10 +23,11 @@ import Data.Either
 import qualified Data.Map as M
 import Misc
 import Linear (V2(..))
+import System.Random (randomRIO, randomIO)
 
 
 toRealCoord :: Int -> (Int,Int) -> V2 Float
-toRealCoord size (x,y) = V2 (fromIntegral (64*x-32*size)) (fromIntegral ( 64*y-32*size)) 
+toRealCoord size (x,y) = V2 (fromIntegral (64*x-32*size)) (fromIntegral ( 64*y-32*size))
 
 fromRealCoord :: Int -> V2 Float -> (Int,Int)
 fromRealCoord size (V2 x y) = (floor  $ (x+32*fromIntegral size)/64 , floor $ (y+32*fromIntegral size)/64 )
@@ -40,16 +41,50 @@ tileCentre size (V2 x y) = if even size then V2 (32 + fromIntegral (floorMultipl
 getGridSprite :: Grid -> [(Int, Int)] -> Picture
 getGridSprite grid coords = foldr (<>) Blank [translate (64*fromIntegral x) (64*fromIntegral y) $ pic (M.findWithDefault erTile (x,y) grid)| (x,y) <-coords]
 
-collapseBaseGrid :: Int -> PreGrid -> PreGrid
-collapseBaseGrid size = let
-        doInit c t g = propegateCell c $ M.insert c (Right t) g
-        baseTile spr = Tile spr Land Land Land Land False False
-        landTile = Tile (png $ spriteDir ++  "Terrain/Land.png") Land Land Land Land True True
-        enemyTile = Tile (png $ spriteDir ++ "Terrain/Water.png") Land Land Land Land True False
-        center = div size 2
-        in doInit (center-1,center) (baseTile $ png $ spriteDir ++  "Terrain/Base1.png") . doInit (center,center) (baseTile $ png $ spriteDir ++  "Terrain/Base2.png") .
-            doInit (center-1,center-1) (baseTile $ png $ spriteDir ++  "Terrain/Base3.png") . doInit (center,center-1) (baseTile $ png $ spriteDir ++  "Terrain/Base4.png") . 
-            doInit (center+1,center) landTile . doInit (center+1,center-1) landTile . 
-            doInit (center,center+1) landTile . doInit (center-2,center-1) landTile . 
-            if size == 50 then doInit (46,46) enemyTile . doInit (3,46) enemyTile . 
-                doInit (46,3) enemyTile . doInit (3,3) enemyTile else id
+collapseStartingGrid :: Int -> PreGrid -> IO (PreGrid,[(Int,Int)])
+collapseStartingGrid size grid = do
+        let center = div size 2
+            bugRange = randomRIO (4,46)
+        b1 <- bugRange
+        b2 <- bugRange
+        b3 <- bugRange
+        b4 <- bugRange
+        b5 <- bugRange
+        side <- randomRIO (0,3)
+        let prebugBases = [(b1,47),(b2,3),(47,b3),(3,b4)]
+            bugBases = placeLastBase b5 side prebugBases:prebugBases
+        return (collapseLand center bugBases . collapseBugBase bugBases . collapseBase center $ grid, bugBases)
+
+collapseBase :: Int -> PreGrid -> PreGrid
+collapseBase center = let baseTile spr = Tile spr Land Land Land Land False False in
+    intialiseCell (center-1,center) (baseTile $ png $ spriteDir ++  "Terrain/Base1.png") .
+    intialiseCell (center,center) (baseTile $ png $ spriteDir ++  "Terrain/Base2.png") .
+    intialiseCell (center-1,center-1) (baseTile $ png $ spriteDir ++  "Terrain/Base3.png") .
+    intialiseCell (center,center-1) (baseTile $ png $ spriteDir ++  "Terrain/Base4.png")
+
+collapseLand :: Foldable t => Int -> t (Int, Int) -> PreGrid -> PreGrid
+collapseLand center bugbases grid  =
+    let landTile = Tile (png $ spriteDir ++ "Terrain/Land.png") Land Land Land Land True True
+        outerRingCoords = [(3,3),(3,47),(47,3),(47,47)] ++ concat [[(c, 47), (c, 3), (47, c),(3, c)] | c <- [4..46]]
+        allCoords = [(center+1,center),(center+1,center-1),(center-2,center-1),(center,center+1)] ++ filter (not . (`elem` bugbases)) outerRingCoords
+    in foldr (`intialiseCell` landTile) grid allCoords
+
+collapseBugBase :: Foldable t => t (Int, Int) -> PreGrid -> PreGrid
+collapseBugBase bugBases grid =
+    let bugBaseTile = Tile (png $ spriteDir ++ "Terrain/Water.png") Land Land Land Land True False
+    in foldr (`intialiseCell` bugBaseTile) grid bugBases
+
+placeLastBase :: Int -> Int -> [(Int,Int)] -> (Int,Int)
+placeLastBase pos side bugBases =
+    let coord = case side of
+            0 -> (47,pos)
+            1 -> (3,pos)
+            2 -> (pos,47)
+            3 -> (pos,3)
+            _ -> (47,47)
+    in if coord `elem` bugBases then (47,47) else coord
+
+
+
+intialiseCell :: (Int, Int) -> Tile -> PreGrid -> PreGrid
+intialiseCell c t g = propegateCell c $ M.insert c (Right t) g
