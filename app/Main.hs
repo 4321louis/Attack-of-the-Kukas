@@ -47,7 +47,7 @@ import Drawing.Sprites (spriteDir)
 makeWorld "World" [ ''Position, ''Velocity, ''Enemy, ''MapGrid, ''Paths, 
                     ''PathFinder, ''Structure, ''Sprite, ''AnimatedSprite, ''Player,
                     ''Particle, ''Base, ''Time, ''Inputs, ''Camera, 
-                    ''Hp, ''Seed, ''Plant, ''Craft, ''DropHandler]
+                    ''Hp, ''Seed, ''Plant, ''Inventory, ''DropHandler]
 
 type SystemW a = System World a
 
@@ -65,7 +65,7 @@ initialize pathGraph grid size = do
     modify global $ \(Camera pos _) -> Camera pos 1.6
     modify global $ \(Paths _ g) -> Paths pathGraph g
     modify global $ \(MapGrid _ _) -> MapGrid grid size
-    modify global $ \(Craft _) -> Craft [GreenSeed, GreenSeed]
+    modify global $ \(Inventory _ _) -> Inventory [0, 0, 0, 0] [GreenSeed, GreenSeed]
     _seed <- newEntity(Position (V2 32 96), Sprite greenSeed, GreenSeed)
     _seed <- newEntity(Position (V2 96 (-32)), Sprite redSeed, RedSeed)
     _seed <- newEntity(Position (V2 96 32), Sprite redSeed, RedSeed)

@@ -47,7 +47,7 @@ instance Component Inputs where type Storage Inputs = Global Inputs
 playerSpeed :: Float
 playerSpeed = 170
 
-handleInputs :: (HasMany w [Craft, Seed, Plant, Hp, Player, Position, Velocity, Inputs, Camera, EntityCounter, MapGrid, Sprite, Structure, Paths, PathFinder]) => Event -> System w ()
+handleInputs :: (HasMany w [Inventory, Seed, Plant, Hp, Player, Position, Velocity, Inputs, Camera, EntityCounter, MapGrid, Sprite, Structure, Paths, PathFinder]) => Event -> System w ()
 handleInputs e = do
     modify global $ \(Inputs s m _) -> Inputs s m (V2 0 0)
     updateGlobalInputs e
@@ -63,7 +63,7 @@ updateGlobalInputs (EventMotion (x, y)) = do
     modify global $ \(Inputs s prev _) -> Inputs s (V2 x y) (V2 x y - prev)
 updateGlobalInputs _ = return ()
 
-handleEvent :: (HasMany w [Craft, Seed, Plant, Hp, Player, Velocity, Inputs, EntityCounter, MapGrid, Position, Sprite, Camera, Structure, Paths, PathFinder]) => Event -> System w ()
+handleEvent :: (HasMany w [Inventory, Seed, Plant, Hp, Player, Velocity, Inputs, EntityCounter, MapGrid, Position, Sprite, Camera, Structure, Paths, PathFinder]) => Event -> System w ()
 handleEvent (EventKey (SpecialKey KeyLeft) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyRight) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyDown) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
@@ -71,10 +71,10 @@ handleEvent (EventKey (SpecialKey KeyUp) _ _ _) = cmap $ \(Player, Velocity _, I
 
 handleEvent (EventKey (SpecialKey KeyEsc) Down _ _) = liftIO exitSuccess
 
-handleEvent (EventKey (Char 'q') Down _ _) = modify global $ \(Craft (seed:seeds)) -> Craft [GreenSeed, seed]
-handleEvent (EventKey (Char 'w') Down _ _) = modify global $ \(Craft (seed:seeds)) -> Craft [RedSeed, seed]
-handleEvent (EventKey (Char 'e') Down _ _) = modify global $ \(Craft (seed:seeds)) -> Craft [BlueSeed, seed]
-handleEvent (EventKey (Char 'r') Down _ _) = modify global $ \(Craft (seed:seeds)) -> Craft [Spore, seed]
+handleEvent (EventKey (Char 'q') Down _ _) = modify global $ \(Inventory inv (seed:seeds)) -> Inventory inv [GreenSeed, seed]
+handleEvent (EventKey (Char 'w') Down _ _) = modify global $ \(Inventory inv (seed:seeds)) -> Inventory inv [RedSeed, seed]
+handleEvent (EventKey (Char 'e') Down _ _) = modify global $ \(Inventory inv (seed:seeds)) -> Inventory inv [BlueSeed, seed]
+handleEvent (EventKey (Char 'r') Down _ _) = modify global $ \(Inventory inv (seed:seeds)) -> Inventory inv [Spore, seed]
 
 
 handleEvent (EventKey (MouseButton LeftButton) Down modifiers _) = cmapM_ $ \(Player, Inputs _ cursorPos _, MapGrid grid size, cam ) -> 
@@ -85,9 +85,17 @@ handleEvent (EventKey (MouseButton RightButton) Down _ _) = cmapM $ \all@(s::See
     if L.norm (cursorPosToReal camera mPos - sPos) < 24
     then do
         playIOSoundEffect pickUpSeed
+        modify global $ \(Inventory inv seeds) -> Inventory (inventoryAdd inv s) seeds
         return $ Right (Not @(Seed, Position, Sprite))
     else return $ Left ()
 handleEvent _ = return ()
+
+inventoryAdd :: [Int] -> Seed -> [Int]
+inventoryAdd [g, r, b, s] GreenSeed = [g+1, r, b, s]
+inventoryAdd [g, r, b, s] RedSeed = [g, r+1, b, s]
+inventoryAdd [g, r, b, s] BlueSeed = [g, r, b+1, s]
+inventoryAdd [g, r, b, s] Spore = [g, r, b, s+1]
+inventoryAdd other _ = other -- i promise i will fix this poorly designed system in beta
 
 playerVelocityfromInputs :: S.Set Key -> V2 Float
 playerVelocityfromInputs inputs =
@@ -101,21 +109,40 @@ doMousePanning = cmap $ \(Player, Position p, Inputs keys _ d,Camera _ cscale) -
 
 
 -- Plants a plant (entity) on the cursor position
-plantPlants ::  (HasMany w [Craft, Plant, Position, Hp, Sprite, Structure, EntityCounter, Camera, Paths, PathFinder]) => Camera -> V2 Float -> Grid -> Int -> System w ()
+plantPlants ::  (HasMany w [Inventory, Plant, Position, Hp, Sprite, Structure, EntityCounter, Camera, Paths, PathFinder]) => Camera -> V2 Float -> Grid -> Int -> System w ()
 plantPlants cam cursorPos grid size = do
-    Craft craft <- get 0
-    let plant = getPlant craft
+    Inventory inv craft <- get 0
+    
     hasPlant <- hasEntity plantPos
-    when (placeable tile && not hasPlant) $ do
+    -- check inventory
+    let inv' = updateInv inv craft
+        validInv = all (>=0) inv'
+    when (placeable tile && not hasPlant && not validInv) $ do
+        -- todo: play some sort of sfx 
+        playIOSoundEffect plantPlant
+
+    -- attempt to plant
+    when (placeable tile && not hasPlant && validInv) $ do
         xoff <- liftIO $ randomRIO (-8,8)
         yoff <- liftIO $ randomRIO (-8,8)
+        let plant = getPlant craft
         _plant <- newPlant plant (plantPos + V2 xoff yoff)
+        modify global $ \(Inventory _ seeds) -> Inventory inv' seeds
         playIOSoundEffect plantPlant
         updateGoals
         clearPaths
     where   realCursorPos = cursorPosToReal cam cursorPos
             plantPos = tileCentre 2 realCursorPos
             tile = fromMaybe erTile3 $ tileOfCoord grid size realCursorPos
+
+updateInv :: [Int] -> [Seed] -> [Int]
+updateInv [g, r, s, b] [] = [g, r, s, b]
+updateInv [g, r, s, b] (c:cs) = case c of 
+    GreenSeed -> updateInv [g-1, r, b, s] cs
+    RedSeed -> updateInv [g, r-1, b, s] cs
+    BlueSeed -> updateInv [g, r, b-1, s] cs
+    Spore -> updateInv [g, r, b, s-1] cs
+updateInv lst _ = lst
 
 removePlant :: HasMany w [Position, Plant, Structure, Sprite, Hp, Paths, PathFinder] => Camera -> V2 Float -> SystemT w IO ()
 removePlant cam cursorPos = cmapM_ $ \(Position pos, _::Plant, ety) -> 
