@@ -10,9 +10,10 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wno-missing-export-lists #-}
+{-# LANGUAGE BlockArguments #-}
 
 module Plant.Plant where
-    
+
 import Drawing.Sprites
 import Apecs
 import Apecs.Extension
@@ -29,6 +30,7 @@ import Worlds
 import Plant.Seed
 import Linear (V2(..))
 import Structure.Structure
+import GHC.IO.Encoding.Types (EncodeBuffer)
 
 type AllPlantComps = (Position, Structure, Sprite, Hp, Plant)
 
@@ -73,7 +75,7 @@ newPlant BirdOfParadise pos = newEntity (BirdOfParadise, Position pos, Hp 20 20 
 newPlant Mycelium pos = newEntity (Mycelium, Position pos, Hp 20 20 0, Sprite mycelium, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
 newPlant Necromancer pos = newEntity (Necromancer, Position pos, Hp 20 20 0, Sprite mycelium, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
 
-doPlants :: (HasMany w [Enemy, Position, Plant, Time, Hp, EntityCounter, Sprite, Seed, Particle])=> Float -> System w ()
+doPlants :: (HasMany w [Enemy, Position, Plant, Time, Hp, EntityCounter, Sprite, Seed, Particle, AnimatedSprite])=> Float -> System w ()
 doPlants dT = cmapM_ $ \(plant::Plant, Position pos) ->
     case plant of
         Cactus -> doCactusAttack dT pos
@@ -96,11 +98,12 @@ doCactusAttack dT posP = triggerEvery dT 1 0.6 $ do
     cmapM_ $ \(Enemy _ _, Position posE, etyE) -> when (L.norm (posE - posP) < tileRange 0) $
         (modify etyE $ \(Enemy _ _, hp) -> dealDamage hp cactusDmg)
 
-doBigMushroomAttack :: (HasMany w [Enemy, Position, Plant, Time, Hp]) => Float -> V2 Float -> System w ()
-doBigMushroomAttack dT posP = do
-    cmapM_ $ \(Enemy _ _, Position posE, etyE) -> when (L.norm (posE - posP) < tileRange 2) $
-        triggerEvery dT 2 0.6 (modify etyE $ \(Enemy _ _, hp) -> dealDamage hp bigMushroomDmg)
-
+doBigMushroomAttack :: (HasMany w [Enemy, Position, Plant, Time, Hp, AnimatedSprite, EntityCounter, Particle]) => Float -> V2 Float -> System w ()
+doBigMushroomAttack dT posP = triggerEvery dT 2 0.6 $ do
+    cmapM_ $ \(Enemy _ _, Position posE, etyE) -> when (L.norm (posE - posP) < tileRange 2) $ do
+        newEntity (Position (posP), aoeEffect, Particle 2)
+        modify etyE (\(Enemy _ _, hp) -> dealDamage hp bigMushroomDmg)
+  
 doEnchanting :: (HasMany w [Plant, Position, Time, Hp, Sprite, Particle, EntityCounter]) => Float -> V2 Float -> System w ()
 doEnchanting dT posEch = triggerEvery dT 8 0.6 $ do
     cmapM_ $ \(_::Plant, Position posP, etyP) -> when (L.norm (posEch - posP) < tileRange 1) $ 
@@ -111,7 +114,7 @@ doEnchanting dT posEch = triggerEvery dT 8 0.6 $ do
             void $ newEntity (Sprite shieldEffect, Position (posP+V2 xoff yoff), Particle 2))
 
 doSeedSeeking :: (HasMany w [Seed, Sprite, Plant, Position, Time, EntityCounter]) => Float -> V2 Float -> System w ()
-doSeedSeeking dT pos = triggerEvery dT 30 0.6 $ do
+doSeedSeeking dT pos = triggerEvery dT 0.5 0.6 $ do
     seed <- liftIO $ randomRIO (0,3)
     xoff <- liftIO $ randomRIO (-32,32)
     yoff <- liftIO $ randomRIO (-32,-1)
@@ -151,7 +154,7 @@ doLazerAttack dT posP = triggerEvery dT 2 0.6 $ do
 destroyDeadStructures :: (HasMany w [Sprite, Plant, Position, Paths, PathFinder, Structure, Hp, Camera]) => System w ()
 destroyDeadStructures = do
     pathingChanged <- cfoldM (\b (Structure _, Hp hp _ _ , ety, Position pos) -> do
-        when (hp <= 0) $ do 
+        when (hp <= 0) $ do
             playIOSoundEffectAt pos explosion
             destroy ety (Proxy @AllPlantComps )
         return (b || hp <= 0)) False
