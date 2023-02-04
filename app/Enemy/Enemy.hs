@@ -56,11 +56,16 @@ destroyDeadEnemies =
         else return (DropHandler chance)
 
 
-doEnemy :: (HasMany w [PathFinder, Position, Velocity, Enemy, Paths, Structure, Time, Hp, Camera]) => Float -> System w ()
+doEnemy :: (HasMany w [PathFinder, Position, Velocity, AnimatedSprite, Enemy, Paths, Structure, Time, Hp, Camera]) => Float -> System w ()
 doEnemy dT = do
     moveOnPath
     attackOrNewPath dT
+    chooseSpirte
 
+chooseSpirte :: HasMany w [AnimatedSprite, Velocity] => System w ()
+chooseSpirte = cmap $ \(AnimatedSprite r ls,Velocity v@(V2 x y)) -> 
+    if v == V2 0 0 then droneKukasWalkRight
+    else if x>0 then droneKukasWalkRight else droneKukasWalkLeft 
 moveOnPath :: (HasMany w [PathFinder, Position, Velocity, Enemy]) => System w ()
 moveOnPath = cmap $ \(p@(PathFinder _ pathNodes), Position pos, Velocity _, Enemy _ speed) ->
     if null pathNodes
