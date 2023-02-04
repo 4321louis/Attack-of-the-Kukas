@@ -63,6 +63,19 @@ getPlant [Spore, Spore] = Necromancer
 getPlant [x, y] = getPlant [y, x]
 getPlant _ = SeedSeeker
 
+getSeed :: Plant -> [Seed]
+getSeed SeedSeeker = [GreenSeed, GreenSeed]
+getSeed Enchanter = [GreenSeed, BlueSeed]
+getSeed CorpseFlower = [GreenSeed, RedSeed]
+getSeed VampireFlower = [GreenSeed, Spore]
+getSeed RockPlant = [BlueSeed, BlueSeed]
+getSeed Cactus = [BlueSeed, RedSeed]
+getSeed BigMushroom = [BlueSeed, Spore]
+getSeed BirdOfParadise = [RedSeed, RedSeed]
+getSeed Mycelium = [RedSeed, Spore]
+getSeed Necromancer = [Spore, Spore]
+getSeed _ = [GreenSeed, GreenSeed]
+
 getPlantSprite :: Plant -> Picture
 getPlantSprite Cactus = cactus
 getPlantSprite Enchanter = enchanter

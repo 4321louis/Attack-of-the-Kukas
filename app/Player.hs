@@ -144,12 +144,24 @@ updateInv [g, r, b, s] (c:cs) = case c of
     Spore -> updateInv [g, r, b, s-1] cs
 updateInv lst _ = lst
 
-removePlant :: HasMany w [Position, Plant, Structure, Sprite, Hp, Paths, PathFinder] => Camera -> V2 Float -> SystemT w IO ()
-removePlant cam cursorPos = cmapM_ $ \(Position pos, _::Plant, ety) -> 
+removePlant :: HasMany w [Position, Plant, Structure, Sprite, Hp, Paths, PathFinder, EntityCounter, Seed] => Camera -> V2 Float -> SystemT w IO ()
+removePlant cam cursorPos = cmapM_ $ \(Position pos, p::Plant, ety) -> 
     when (L.norm (pos - tileCentre 2 (cursorPosToReal cam cursorPos )) < 10) $ do
+        randomIndex <- liftIO $ randomRIO (0,1)
+        bargainSeed <- liftIO $ randomRIO (0,3) -- 25% chance to return both seeds
+        
+        let seeds = if (bargainSeed == 0) then getSeed p else [getSeed p !! randomIndex]
+            _ = map (\seed -> spawnSeed seed pos) seeds
+
         destroy ety (Proxy @AllPlantComps )        
         updateGoals
         clearPaths
+
+spawnSeed :: (HasMany w [Position, Seed, Sprite, EntityCounter]) => Seed -> V2 Float -> System w Entity
+spawnSeed seed pos = do 
+    xoff <- liftIO $ randomRIO (-32,32)
+    yoff <- liftIO $ randomRIO (-32,32)
+    newEntity (seed, Position (pos + V2 xoff yoff), Sprite $ getSeedSprite seed)
 
 -- Checks if entity exists on real coord
 -- Could expand to return the entities on the tile coord (in the future?)
