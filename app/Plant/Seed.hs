@@ -16,7 +16,7 @@ import Apecs
 import Apecs.Gloss
 import Drawing.Sprites
 
-data Seed = GreenSeed | RedSeed | BlueSeed | Spore deriving (Show)
+data Seed = GreenSeed | RedSeed | BlueSeed | Spore deriving (Show, Eq)
 instance Component Seed where type Storage Seed = Map Seed
 
 -- Inventory (inventory, craft)

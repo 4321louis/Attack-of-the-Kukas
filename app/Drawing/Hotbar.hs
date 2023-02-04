@@ -21,6 +21,7 @@ import Plant.Seed
 import Plant.Plant
 import Drawing.Camera
 import Drawing.Sprites
+import Player
 
 import Debug.Trace (trace)
 
@@ -39,7 +40,7 @@ button :: Seed -> Int -> Picture
 button seed count = spritePic <> keyText <> countText
     where   (key, sprite) = buttonInfo seed
             spritePic = scale 1.4 1.4 $ sprite
-            keyText = translate (-33.0) 3.0 . scale 0.15 0.15 . color white . Text $ key
+            keyText = translate (-33.0) 3.0 . scale 0.08 0.08 . color white . Text $ key
             countText = translate 33.0 (-7.0) . scale 0.2 0.2 . color white . Text $ show count
 
 -- Draw all and translate buttons
@@ -55,21 +56,45 @@ drawHotbar inv = drawButtons buttons
 
 ----- Crafting
 
-drawCraft craft@[s1, s2] = seed'' <> seed' <> plant'
-    where   plant = getPlantSprite $ getPlant craft
-            seed = getSeedSprite s1
-            plant' = scale 1.2 1.2 $ plantCircle plant
-            seed' = translate fromPlantCircle (fromPlantCircle + offset) $ seedCircle seed
-            seed'' = translate (fromPlantCircle + offset) fromPlantCircle $ seedCircle seed
+drawCraft :: [Int] -> [Seed] -> Picture
+drawCraft inv craft@[s1, s2] = seed' <> seed <> plant'
+    where   -- Sprite handling
+            plantSprite = getPlantSprite $ getPlant craft
+            [seedSprite, seedSprite'] = map getSeedSprite craft
+            
+            -- Inv checking
+            -- when same seeds are selected
+            combinedInv = if s1 == s2 then all (>=0) $ updateInv inv craft else True 
+            seedInv = combinedInv && (all (>=0) $ updateInv inv [s1])
+            seedInv' = all (>=0) $ updateInv inv [s2]
+            
+            plantInv = seedInv && seedInv'
+
+            -- Drawing Crafting circles
+            plant' = scale 1.2 1.2 $ plantCircle plantSprite plantInv
+            seed = translate (fromPlantCircle + offset) fromPlantCircle $ seedCircle seedSprite seedInv
+            seed' = translate fromPlantCircle (fromPlantCircle + offset) $ seedCircle seedSprite' seedInv'
+            
             fromPlantCircle = -120
             offset = 65
 
+invalidColour :: Color
+invalidColour = makeColor 1 0 0 0.8
 
--- todo: make colour
-plantCircle s = circle <> sprite
-    where   circle = color white $ circleSolid 70
+plantInvalidColour :: Color
+plantInvalidColour = makeColor 0.25 0.08 0.08 0.6
+
+plantCircle :: Picture -> Bool -> Picture
+plantCircle s invCheck = circle <> sprite <> invWarning
+    where   circleSize = 70
+            circle = color white $ circleSolid circleSize
             sprite = translate 1 (-20.0) s
+            invWarning = if invCheck then Blank else color plantInvalidColour $ circleSolid circleSize
 
-seedCircle s = circle <> sprite
-    where   circle = color white $ circleSolid 35
+seedCircle :: Picture -> Bool -> Picture
+seedCircle s invCheck = circle <> invWarning <> sprite 
+    where   circleSize = 35
+            circle = color white $ circleSolid circleSize
             sprite = scale 1.2 1.2 $ s
+            invWarningCircle = color invalidColour $ circleSolid circleSize
+            invWarning = if invCheck then Blank else invWarningCircle
