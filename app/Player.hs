@@ -136,8 +136,8 @@ plantPlants cam cursorPos grid size = do
             tile = fromMaybe erTile3 $ tileOfCoord grid size realCursorPos
 
 updateInv :: [Int] -> [Seed] -> [Int]
-updateInv [g, r, s, b] [] = [g, r, s, b]
-updateInv [g, r, s, b] (c:cs) = case c of 
+updateInv [g, r, b, s] [] = [g, r, b, s]
+updateInv [g, r, b, s] (c:cs) = case c of 
     GreenSeed -> updateInv [g-1, r, b, s] cs
     RedSeed -> updateInv [g, r-1, b, s] cs
     BlueSeed -> updateInv [g, r, b-1, s] cs
