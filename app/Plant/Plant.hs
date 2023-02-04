@@ -41,9 +41,13 @@ instance Component Plant where type Storage Plant = Map Plant
 -- Dmg, Fuse, speed
 data UndeadBomber = UndeadBomber Float Float Float
 instance Component UndeadBomber where type Storage UndeadBomber = Map UndeadBomber
+-- Spore Residue from Big Mushroom on death
+data SporeResidue = SporeResidue Position deriving (Show)
+instance Component SporeResidue where type Storage SporeResidue = Map SporeResidue
 --Timer
 data AttackSpeed = AttackSpeed Float deriving (Show)
 instance Component AttackSpeed where type Storage AttackSpeed = Map AttackSpeed
+
 
 bigMushroomDmg, cactusDmg, enchanterShield :: Float
 bigMushroomDmg = 10
@@ -134,7 +138,7 @@ doOnDeaths = do
             -- BigMushroom -> domush deadEnemies
             --do GS - Vampiric 
             Necromancer -> necromancyOnDeath pos deadEnemies
-            _ -> do return ()
+            _ -> return ()
 
 doRockPlant :: (HasMany w [Time, Hp]) => Float -> Entity -> System w ()
 doRockPlant dT ety = triggerEvery dT 1 0.6 $ modify ety (`healHp` 1)
@@ -170,10 +174,14 @@ doBigMushroomAttack dT posP ety = do
         cmapM_ $ \(Enemy _ _, Position posE, etyE) -> when (L.norm (posE - posP) < tileRange 2) $ do
             newEntity (Position posP, aoeEffect, Particle 2)
             modify etyE (\(Enemy _ _, hp) -> dealDamage hp bigMushroomDmg)
+{- 
+doBigMushroomOnDeath :: (HasMany w [Enemy, Position, Plant, Time, Hp, AnimatedSprite, EntityCounter, Particle]) => [Entity] -> V2 Float -> System w ()
+doBigMushroomOnDeath posP = foldM (\b ety -> do
+    (Position pos, Enemy _ _) <- get ety
+    when (L.norm(posP - pos) < tileRange 2) $ do
+        void newEntity (SporeResidue pos) -}
 
-{- doBigMushroomOnDeath :: (HasMany w [Enemy, Position, Plant, Time, Hp, AnimatedSprite, EntityCounter, Particle]) => [Entity] -> V2 Float -> System w ()
-doBigMushroomOnDeath deadEnemies =
-    cmapM_ $ \(Plant, ) -}
+    
 
 doEnchanting :: (HasMany w [Plant, Position, Time, Hp, Sprite, Particle, EntityCounter]) => Float -> V2 Float -> System w ()
 doEnchanting dT posEch = triggerEvery dT 8 0.6 $ do
@@ -210,11 +218,11 @@ doLazerAttack dT posP ety = do
             modify closest $ \(Enemy _ _, hp) -> dealDamage hp lazerDmg
 
 necromancyOnDeath :: (HasMany w [Enemy, Position, Velocity, UndeadBomber, PathFinder, Hive, Time, Hp, Particle, Sprite, EntityCounter]) => V2 Float -> [Entity] -> System w ()
-necromancyOnDeath posP deads = (\func -> foldM func () deads) $ \b ety -> do
+necromancyOnDeath posP = foldM (\b ety -> do
     (Position pos, Hp _ maxHp _, Enemy _ speed) <- get ety
     when (L.norm (posP - pos) < tileRange 4) $ do
         hives <- (`cfold` []) $ \hs (h::Hive, Position pos) -> pos:hs
-        void $ newEntity (Position pos, Velocity (V2 0 0), UndeadBomber (maxHp/3) 4 speed, Sprite targetSprite1, PathFinder (Just hives) [])
+        void $ newEntity (Position pos, Velocity (V2 0 0), UndeadBomber (maxHp/3) 4 speed, Sprite targetSprite1, PathFinder (Just hives) [])) ()
 
 
 destroyDeadStructures :: (HasMany w [Sprite, Plant, Position, Paths, PathFinder, Structure, Hp, Camera]) => System w ()
