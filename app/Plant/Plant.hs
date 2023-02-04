@@ -18,7 +18,6 @@ import Apecs
 import Apecs.Extension
 import Apecs.Gloss (Camera(..))
 import Control.Monad
-import Data.Kind
 import Misc
 import System.Random
 import qualified Linear as L
@@ -45,6 +44,20 @@ enchanterShield = 5
 --     cmap $ \(Plant, Position posP, etyP) ->
 --         cfold (\b (Enemy e, Position posE)-> b || L.norm (posE - posP) < plantRange ) False
 --             modify global $ \(Score x) -> Score (x + hitBonus)
+
+getPlant :: [Seed] -> Plant
+getPlant [GreenSeed, GreenSeed] = SeedSeeker
+getPlant [GreenSeed, BlueSeed] = Enchanter
+getPlant [GreenSeed, RedSeed] = SeedSeeker
+getPlant [GreenSeed, Spore] = SeedSeeker
+getPlant [BlueSeed, BlueSeed] = RockPlant
+getPlant [BlueSeed, RedSeed] = Cactus
+getPlant [BlueSeed, Spore] = SeedSeeker
+getPlant [RedSeed, RedSeed] = SeedSeeker
+getPlant [RedSeed, Spore] = SeedSeeker
+getPlant [Spore, Spore] = SeedSeeker
+getPlant [x, y] = getPlant [y, x]
+getPlant _ = SeedSeeker
 
 newPlant :: (HasMany w [Plant, Position, Hp, Sprite, Structure, EntityCounter]) => Plant -> V2 Float -> System w Entity
 newPlant Cactus pos = newEntity (Cactus, Position pos, Hp 20 20 0, Sprite cactus)

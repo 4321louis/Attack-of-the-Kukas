@@ -12,7 +12,7 @@
 {-# OPTIONS_GHC -Wno-missing-export-lists #-}
 
 module Misc where
-    
+
 import Worlds (Position(..),Time(..))
 
 import Apecs
@@ -25,6 +25,10 @@ import Codec.Picture (DynamicImage(ImageRGBA8), savePngImage)
 import Graphics.Gloss.Export (exportPictureToFormat)
 import Graphics.Gloss.Game (png)
 import qualified Data.Vector as V
+import Control.Monad (replicateM)
+import Data.Function (on)
+import Data.List     (sortBy)
+import System.Random (randomRIO)
 
 translatePos :: Position -> Picture -> Picture
 translatePos (Position (V2 x y)) = translate x y
@@ -45,15 +49,25 @@ triggerEvery dT period phase sys = do
         trigger = floor (t' / period) /= floor ((t' + dT) / period)
     when trigger $ void sys
 
-floorMultiple :: RealFrac a => a -> Int -> Int  
-floorMultiple val mult =  mult*(div (floor val) (mult)) 
+triggerAt :: (Has w IO Time) => Float -> Float -> System w a -> System w ()
+triggerAt dT time sys = do
+    Time t <- get global
+    when (t <= time && t+dT > time) $ void sys
+
+floorMultiple :: RealFrac a => a -> Int -> Int
+floorMultiple val mult =  mult * div (floor val) mult
 
 atRandIndex :: V.Vector b -> IO b
 atRandIndex l = do
     let n = V.length l
-    
+
     i <- randomRIO (0, n - 1)
     if n <= 0 then error "Can't pick a random element of an empty list" else return $ l V.! i
+
+shuffleList :: [a] -> IO [a]
+shuffleList xs = do
+    ys <- replicateM (length xs) $ randomRIO (1 :: Int, 100000)
+    pure $ map fst $ sortBy (compare `on` snd) (zip xs ys)
 
 concatRep :: Int -> [a] -> [a]
 concatRep n = concat . replicate n
@@ -64,7 +78,7 @@ optimisePicturewithRes (screenX,screenY) (picX,picY) picture =
         export snapSize = exportPictureToFormat (\fp img->savePngImage fp (ImageRGBA8 img)) snapSize red
         intervals n d = zip (takeWhile (<n-d) (iterate (+d) 0)) (repeat d) ++ [(d*div n d,mod n d)]
         allSnapsDimensions = [(xOff,yOff,snapLen,snapHei) | (xOff,snapLen) <- intervals picX screenX, (yOff,snapHei) <- intervals picY screenY]
-        loadSnap (xOff,yOff,snapLen,snapHei) = 
+        loadSnap (xOff,yOff,snapLen,snapHei) =
             do
                 let fName = "./tmp/"++show xOff++" "++show yOff ++".png"
                     xTrans = fromIntegral (snapLen-screenX)/2 + fromIntegral xOff
@@ -72,7 +86,7 @@ optimisePicturewithRes (screenX,screenY) (picX,picY) picture =
                 export (snapLen,snapHei) fName (translate (-xTrans) (-yTrans) corneredPic)
                 return $ translate xTrans yTrans $ png fName
     in
-        do 
+        do
             pic <- foldMap loadSnap allSnapsDimensions
             return $ translate (fromIntegral screenX/2) (fromIntegral screenY/2) pic
 

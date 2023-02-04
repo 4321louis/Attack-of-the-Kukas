@@ -62,13 +62,6 @@ playIOSoundEffectAt location iosample = do
         rightVol = 1/(1+2**(0.01*norm (location - rightEar) - 12))
     liftIO $ soundPlay sample leftVol rightVol 0 1
 
--- waitPlayback :: IO ()
--- waitPlayback = do
---     n <- soundActiveAll
---     when  (n > 0) $ do
---         threadDelay oneSec
---         waitPlayback
-
 waitSound :: Sound -> IO ()
 waitSound s = do
     playing <- soundActive s
@@ -79,8 +72,8 @@ waitSound s = do
 oneSec :: Int
 oneSec = 1000000 -- micro seconds
 
-tempAudioMain :: IO ()
-tempAudioMain = do
+initializeAudio :: IO ()
+initializeAudio = do
     result <- initAudio 128 44100 1024 -- max channels, mixing frequency, mixing buffer size
     unless result $ fail "failed to initialize the audio system"
 

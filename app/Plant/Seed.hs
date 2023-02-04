@@ -16,3 +16,10 @@ import Apecs
 
 data Seed = GreenSeed | RedSeed | BlueSeed | Spore deriving (Show)
 instance Component Seed where type Storage Seed = Map Seed
+
+-- Inventory (inventory, craft)
+-- inventory order: [Green, Red, Blue, Spore]
+data Inventory = Inventory [Int] [Seed] deriving (Show)
+instance Semigroup Inventory where Inventory a1 a2 <> Inventory b1 b2 = Inventory (a1 ++ b1) (a2 ++ b2)
+instance Monoid Inventory where mempty = Inventory [] []
+instance Component Inventory where type Storage Inventory = Global Inventory

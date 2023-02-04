@@ -32,7 +32,7 @@ instance Component Enemy where type Storage Enemy = Map Enemy
 
 newtype DropHandler = DropHandler Float deriving (Show, Num)
 instance Semigroup DropHandler where (<>) = (+)
-instance Monoid DropHandler where mempty = 0
+instance Monoid DropHandler where mempty = 50
 instance Component DropHandler where type Storage DropHandler = Global DropHandler
 
 type AllEnemyComps = (Position, Enemy, Velocity, PathFinder, Sprite, Hp)
@@ -52,7 +52,7 @@ destroyDeadEnemies =
                 yoff <- liftIO $ randomRIO (-32,32)
                 _ <- newEntity ([GreenSeed,RedSeed,BlueSeed,Spore] !! seed, Position (V2 xoff yoff + pos), Sprite $ [greenSeed,redSeed,blueSeed,spore] !! seed )
                 return (DropHandler 0)
-            else return (DropHandler (chance+4))
+            else return (DropHandler (chance+3))
         else return (DropHandler chance)
 
 
