@@ -17,11 +17,7 @@ module Plant.Plant where
 import Drawing.Sprites
 import Apecs
 import Apecs.Extension
-<<<<<<< HEAD
 import Apecs.Gloss 
-=======
-import Apecs.Gloss
->>>>>>> main
 import Control.Monad
 import Misc
 import System.Random
