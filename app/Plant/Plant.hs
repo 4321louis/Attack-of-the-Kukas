@@ -76,22 +76,31 @@ newPlant Mycelium pos = newEntity (Mycelium, Position pos, Hp 20 20 0, Sprite my
 newPlant Necromancer pos = newEntity (Necromancer, Position pos, Hp 20 20 0, Sprite mycelium, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
 
 doPlants :: (HasMany w [Enemy, Position, Plant, Time, Hp, EntityCounter, Sprite, Seed, Particle, AnimatedSprite])=> Float -> System w ()
-doPlants dT = cmapM_ $ \(plant::Plant, Position pos) ->
+doPlants dT = do 
+    doAttacks dT
+    doOnDeaths
+
+doAttacks :: (HasMany w [Enemy, Position, Plant, Time, Hp, EntityCounter, Sprite, Seed, Particle, AnimatedSprite])=> Float -> System w ()
+doAttacks dT = cmapM_ $ \(plant::Plant, Position pos, ety) ->
     case plant of
         Cactus -> doCactusAttack dT pos
         Enchanter -> doEnchanting dT pos
         SeedSeeker -> doSeedSeeking dT pos
         BigMushroom -> doBigMushroomAttack dT pos
         BirdOfParadise -> doLazerAttack dT pos
-        --do GB - Healer
+        RockPlant -> doRockPlant dT ety
         --do GR - Attackspeed
         --do GS - Vampiric 
-        --do BB - ROCK PLANT
-        --do BR - Cactus
-        --do BS - Aoe mushroom, corpses fume as well
         --do RS - Damage over time
         --do SS - Necromancy
         _ -> do return ()
+
+doOnDeaths :: (HasMany w [Enemy, Position, Plant, Time, Hp, EntityCounter, Sprite, Seed, Particle]) => System w ()
+doOnDeaths = return ()
+
+doRockPlant :: (HasMany w [Time, Hp]) => Float -> Entity -> System w ()
+doRockPlant dT ety = triggerEvery dT 1 0.6 $ modify ety $ (`healHp` 1)
+
 
 doCactusAttack :: (HasMany w [Enemy, Position, Plant, Time, Hp]) => Float -> V2 Float -> System w ()
 doCactusAttack dT posP = triggerEvery dT 1 0.6 $ do
@@ -103,7 +112,7 @@ doBigMushroomAttack dT posP = triggerEvery dT 2 0.6 $ do
     cmapM_ $ \(Enemy _ _, Position posE, etyE) -> when (L.norm (posE - posP) < tileRange 2) $ do
         newEntity (Position (posP), aoeEffect, Particle 2)
         modify etyE (\(Enemy _ _, hp) -> dealDamage hp bigMushroomDmg)
-  
+
 doEnchanting :: (HasMany w [Plant, Position, Time, Hp, Sprite, Particle, EntityCounter]) => Float -> V2 Float -> System w ()
 doEnchanting dT posEch = triggerEvery dT 8 0.6 $ do
     cmapM_ $ \(_::Plant, Position posP, etyP) -> when (L.norm (posEch - posP) < tileRange 1) $ 
