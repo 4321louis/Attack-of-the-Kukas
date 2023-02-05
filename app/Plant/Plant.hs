@@ -288,7 +288,7 @@ doEnchanting dT posEch = triggerEvery dT 6 0.6 $ do
             void $ newEntity (Sprite shieldEffect, Position (posP+V2 xoff yoff), Particle 2))
 
 doSeedSeeking :: (HasMany w [Seed, Sprite, Plant, Position, Time, EntityCounter]) => Float -> V2 Float -> System w ()
-doSeedSeeking dT pos = triggerEvery dT 75 0.6 $ do
+doSeedSeeking dT pos = triggerEvery dT 120 0.6 $ do
     seed <- liftIO $ randomRIO (0,3)
     xoff <- liftIO $ randomRIO (-32,32)
     yoff <- liftIO $ randomRIO (-32,-1)

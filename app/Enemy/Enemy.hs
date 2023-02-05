@@ -49,7 +49,7 @@ destroyDeadEnemies =
             playIOSoundEffectAt pos kukasDeath
             roll <- randomRIO (0,100)
             Time time <- get global
-            let scale = if time < 900 then 0.5*(time/900) + 3.5*(1-time/900) else 0.5
+            let scale = if time < 480 then 0.03*(time/480) + 3*(1-time/480) else 0.03
             if roll < chance
             then do
                 seed <- liftIO $ randomRIO (0,3)
