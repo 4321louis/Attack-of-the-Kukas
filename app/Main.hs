@@ -74,6 +74,8 @@ initialize pathGraph grid size = do
     _seed <- newEntity(Position (V2 96 (-32)), Sprite redSeed, RedSeed)
     _seed <- newEntity(Position (V2 96 32), Sprite redSeed, RedSeed)
     _seed <- newEntity(Position (V2 (-96) (-32)), Sprite blueSeed, BlueSeed)
+    _seed <- newEntity(Position (V2 (-96) (-32)), Sprite blueSeed, Spore)
+    _seed <- newEntity(Position (V2 (-96) (-32)), Sprite blueSeed, Spore)
     _baseEty <- newEntity(Base, Position (V2 0 0), Hp 200 0 0, Structure [
         V2 96 32, V2 96 (-32),
         V2 (-96) 32, V2 (-96) (-32),

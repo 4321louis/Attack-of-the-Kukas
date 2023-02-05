@@ -155,7 +155,7 @@ spawnsHive Hive5 dT pos = do
 
 doMinute :: HasMany w [Time, Hp, Enemy, Position, Sprite, AnimatedSprite, Velocity, PathFinder, EntityCounter] => Int -> Float -> Float -> Float -> V2 Float -> EnemyType -> System w ()
 doMinute minute dT enemies waves pos etype = do
-    let scaling = 1+0.1*fromIntegral (div minute 300)
+    let scaling = 1+0.2*fromIntegral (div minute 150)
         sec = 60 * fromIntegral minute
     foldM_ (\_ e -> e) () [spawnWave time dT enemies 1.3 (getEnemyFromType etype scaling pos) | time <- [sec, sec + 60/waves .. sec + 59]]
 
