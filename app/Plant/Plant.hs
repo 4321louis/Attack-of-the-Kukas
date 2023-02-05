@@ -43,7 +43,7 @@ instance Component Plant where type Storage Plant = Map Plant
 data UndeadBomber = UndeadBomber Float Float Float
 instance Component UndeadBomber where type Storage UndeadBomber = Map UndeadBomber
 -- Spore Residue from Big Mushroom on death
-data SporeResidue = SporeResidue deriving (Show)
+data SporeResidue = SporeResidue Float deriving (Show)
 instance Component SporeResidue where type Storage SporeResidue = Map SporeResidue
 --Timer
 newtype AttackSpeed = AttackSpeed Float deriving (Show)
@@ -147,6 +147,7 @@ doAttacks dT = do
     doBulletCollision
     doUndeadBombers dT
     doSporeResidue
+    stepSporeTimer dT
     
 doOnDeaths :: (HasMany w [Enemy, Position, Velocity, UndeadBomber, PathFinder, Hive, Plant, Time, Hp, EntityCounter, Sprite, Seed, Particle, AnimatedSprite, SporeResidue]) => System w ()
 doOnDeaths = do
@@ -166,8 +167,6 @@ stepPoisonTimer dT = cmapM $ \(Poison t, Position pos, Enemy _ _, Hp hp _ _, ety
             return $ Right $ Not @Poison
         else do
             triggerEvery dT 0.5 0 $ do 
-                {- xoff <- liftIO $ randomRIO (-16,16)
-                yoff <- liftIO $ randomRIO (-16,16)  -}
                 newEntity (Position pos, dotEffect, Particle 0.4)
                 modify etyE (\(Enemy _ _, hp) -> dealDamage hp doTDmg)
             return $ Left $ Poison (t-dT)
@@ -185,11 +184,19 @@ doBulletCollision =
 
 doSporeResidue :: (HasMany w [Enemy, Position, Hp, EntityCounter, Sprite, Particle, AnimatedSprite, SporeResidue]) => System w ()
 doSporeResidue = 
-    cmapM $ \(Position pos, SporeResidue, etyS) ->
+    cmapM $ \(Position pos, SporeResidue _, etyS) ->
         cmapM $ \(Enemy _ _,Hp hp _ _, Position posE, etyE) -> 
             when (L.norm (posE - pos) < tileRange 0 && hp > 0) $ do
                 modify etyE (\(Enemy _ _, hp) -> dealDamage hp bigMushroomDmg)
                 destroy etyS (Proxy @(Position, SporeResidue, AnimatedSprite, Sprite))
+
+stepSporeTimer :: (HasMany w [Position, EntityCounter, Sprite, AnimatedSprite, SporeResidue]) => Float -> System w ()
+stepSporeTimer dT = cmapM $ \(SporeResidue t, Position pos) ->
+    if t < 0
+        then do
+            return $ Right $ (Not @(SporeResidue, Position, AnimatedSprite, Sprite))
+        else do
+            return $ Left $ SporeResidue (t-dT)
 
 
 doUndeadBombers :: (HasMany w [PathFinder, Position, Velocity, UndeadBomber, Sprite, Enemy, Hp, AnimatedSprite, Particle, EntityCounter]) => Float -> System w ()
@@ -244,7 +251,7 @@ doBigMushroomAttack dT posP ety = do
 doBigMushroomOnDeath :: (HasMany w [Enemy, Position, Plant, Time, Hp, AnimatedSprite, EntityCounter, Particle, SporeResidue]) => V2 Float -> [V2 Float] -> System w ()
 doBigMushroomOnDeath posP = foldM (\b pos -> do
     when (L.norm(posP - pos) < tileRange 2) $ do
-        void $ newEntity (Position pos, SporeResidue, aoeEffectMini)) ()
+        void $ newEntity (Position pos, SporeResidue 30, aoeEffectMini)) ()
 
 doEnchanting :: (HasMany w [Plant, Position, Time, Hp, Sprite, Particle, EntityCounter]) => Float -> V2 Float -> System w ()
 doEnchanting dT posEch = triggerEvery dT 8 0.6 $ do
