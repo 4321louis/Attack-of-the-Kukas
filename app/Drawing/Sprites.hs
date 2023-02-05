@@ -72,28 +72,85 @@ dronekukaswf2 = png $ spriteDir ++ "Entities/Kukas/DroneKukasJump2.png"
 dronekukaswf3 = png $ spriteDir ++ "Entities/Kukas/DroneKukasJump3.png"
 dronekukaswf4 = png $ spriteDir ++ "Entities/Kukas/DroneKukasJump4.png"
 dronekukaswf5 = png $ spriteDir ++ "Entities/Kukas/DroneKukasJump5.png"
+
+droneKukasWalkLeft, droneKukasWalkRight:: AnimatedSprite
+droneKukasWalkRight = AnimatedSprite 0.15 [dronekukaswf1,dronekukaswf2,dronekukaswf3,dronekukaswf4,dronekukaswf5]
+droneKukasWalkLeft = AnimatedSprite 0.15 $ map (scale (-1) 1) [dronekukaswf1,dronekukaswf2,dronekukaswf3,dronekukaswf4,dronekukaswf5]
+
+dronekukasaf1, dronekukasaf2, dronekukasaf3, dronekukasaf4, dronekukasaf5 :: Picture
 dronekukasaf1 = png $ spriteDir ++ "Entities/Kukas/DroneKukasAttack1.png"
 dronekukasaf2 = png $ spriteDir ++ "Entities/Kukas/DroneKukasAttack2.png"
 dronekukasaf3 = png $ spriteDir ++ "Entities/Kukas/DroneKukasAttack3.png"
 dronekukasaf4 = png $ spriteDir ++ "Entities/Kukas/DroneKukasAttack4.png"
 dronekukasaf5 = png $ spriteDir ++ "Entities/Kukas/DroneKukasAttack5.png"
 
-droneKukasWalkLeft, droneKukasWalkRight:: AnimatedSprite
-droneKukasWalkRight = AnimatedSprite 0.15 [dronekukaswf1,dronekukaswf2,dronekukaswf3,dronekukaswf4,dronekukaswf5]
-droneKukasWalkLeft = AnimatedSprite 0.15 $ map (scale (-1) 1) [dronekukaswf1,dronekukaswf2,dronekukaswf3,dronekukaswf4,dronekukaswf5]
 droneKukasAttackLeft, droneKukasAttackRight:: AnimatedSprite
 droneKukasAttackRight = AnimatedSprite 0.15 [dronekukasaf1,dronekukasaf2,dronekukasaf3,dronekukasaf4,dronekukasaf5]
 droneKukasAttackLeft = AnimatedSprite 0.15 $ map (scale (-1) 1) [dronekukasaf1,dronekukasaf2,dronekukasaf3,dronekukasaf4,dronekukasaf5]
 
-aoe1, aoe2, aoe3, aoe4, aoe5, aoe6, aoe7, aoe8 :: Picture
-aoe1 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG1.png"
-aoe2 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG2.png"
-aoe3 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG3.png"
-aoe4 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG4.png"
-aoe5 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG5.png"
-aoe6 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG6.png"
-aoe7 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG7.png"
-aoe8 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG7.png"
+armourkukaswf1, armourkukaswf2, armourkukaswf3, armourkukaswf4, armourkukaswf5 :: Picture
+armourkukaswf1 = png $ spriteDir ++ "Entities/Kukas/ArmourKukasJump1.png"
+armourkukaswf2 = png $ spriteDir ++ "Entities/Kukas/ArmourKukasJump2.png"
+armourkukaswf3 = png $ spriteDir ++ "Entities/Kukas/ArmourKukasJump3.png"
+armourkukaswf4 = png $ spriteDir ++ "Entities/Kukas/ArmourKukasJump4.png"
+armourkukaswf5 = png $ spriteDir ++ "Entities/Kukas/ArmourKukasJump5.png"
+
+armourKukasWalkLeft, armourKukasWalkRight:: AnimatedSprite
+armourKukasWalkRight = AnimatedSprite 0.15 [armourkukaswf1,armourkukaswf2,armourkukaswf3,armourkukaswf4,armourkukaswf5]
+armourKukasWalkLeft = AnimatedSprite 0.15 $ map (scale (-1) 1) [armourkukaswf1,armourkukaswf2,armourkukaswf3,armourkukaswf4,armourkukaswf5]
+
+armourkukasaf1, armourkukasaf2, armourkukasaf3, armourkukasaf4, armourkukasaf5 :: Picture
+armourkukasaf1 = png $ spriteDir ++ "Entities/Kukas/ArmourKukasAttack1.png"
+armourkukasaf2 = png $ spriteDir ++ "Entities/Kukas/ArmourKukasAttack2.png"
+armourkukasaf3 = png $ spriteDir ++ "Entities/Kukas/ArmourKukasAttack3.png"
+armourkukasaf4 = png $ spriteDir ++ "Entities/Kukas/ArmourKukasAttack4.png"
+armourkukasaf5 = png $ spriteDir ++ "Entities/Kukas/ArmourKukasAttack5.png"
+
+armourKukasAttackLeft, armourKukasAttackRight:: AnimatedSprite
+armourKukasAttackRight = AnimatedSprite 0.15 [armourkukasaf1,armourkukasaf2,armourkukasaf3,armourkukasaf4,armourkukasaf5]
+armourKukasAttackLeft = AnimatedSprite 0.15 $ map (scale (-1) 1) [armourkukasaf1,armourkukasaf2,armourkukasaf3,armourkukasaf4,armourkukasaf5]
+
+fastkukaswf1, fastkukaswf2, fastkukaswf3, fastkukaswf4, fastkukaswf5 :: Picture
+fastkukaswf1 = png $ spriteDir ++ "Entities/Kukas/FastKukasJump1.png"
+fastkukaswf2 = png $ spriteDir ++ "Entities/Kukas/FastKukasJump2.png"
+fastkukaswf3 = png $ spriteDir ++ "Entities/Kukas/FastKukasJump3.png"
+fastkukaswf4 = png $ spriteDir ++ "Entities/Kukas/FastKukasJump4.png"
+fastkukaswf5 = png $ spriteDir ++ "Entities/Kukas/FastKukasJump5.png"
+
+fastKukasWalkLeft, fastKukasWalkRight:: AnimatedSprite
+fastKukasWalkRight = AnimatedSprite 0.15 [fastkukaswf1,fastkukaswf2,fastkukaswf3,fastkukaswf4,fastkukaswf5]
+fastKukasWalkLeft = AnimatedSprite 0.15 $ map (scale (-1) 1) [fastkukaswf1,fastkukaswf2,fastkukaswf3,fastkukaswf4,fastkukaswf5]
+
+fastkukasaf1, fastkukasaf2, fastkukasaf3, fastkukasaf4, fastkukasaf5 :: Picture
+fastkukasaf1 = png $ spriteDir ++ "Entities/Kukas/FastKukasAttack1.png"
+fastkukasaf2 = png $ spriteDir ++ "Entities/Kukas/FastKukasAttack2.png"
+fastkukasaf3 = png $ spriteDir ++ "Entities/Kukas/FastKukasAttack3.png"
+fastkukasaf4 = png $ spriteDir ++ "Entities/Kukas/FastKukasAttack4.png"
+fastkukasaf5 = png $ spriteDir ++ "Entities/Kukas/FastKukasAttack5.png"
+
+fastKukasAttackLeft, fastKukasAttackRight:: AnimatedSprite
+fastKukasAttackRight = AnimatedSprite 0.15 [fastkukasaf1,fastkukasaf2,fastkukasaf3,fastkukasaf4,fastkukasaf5]
+fastKukasAttackLeft = AnimatedSprite 0.15 $ map (scale (-1) 1) [fastkukasaf1,fastkukasaf2,fastkukasaf3,fastkukasaf4,fastkukasaf5]
+
+necrokukaswf1, necrokukaswf2, necrokukaswf3, necrokukaswf4, necrokukaswf5 :: Picture
+necrokukaswf1 = png $ spriteDir ++ "Effects/NecroKukas/NecroKukasJump1.png"
+necrokukaswf2 = png $ spriteDir ++ "Effects/NecroKukas/NecroKukasJump2.png"
+necrokukaswf3 = png $ spriteDir ++ "Effects/NecroKukas/NecroKukasJump3.png"
+necrokukaswf4 = png $ spriteDir ++ "Effects/NecroKukas/NecroKukasJump4.png"
+necrokukaswf5 = png $ spriteDir ++ "Effects/NecroKukas/NecroKukasJump5.png"
+
+necroKukasWalkLeft, necroKukasWalkRight:: AnimatedSprite
+necroKukasWalkRight = AnimatedSprite 0.15 [necrokukaswf1,necrokukaswf2,necrokukaswf3,necrokukaswf4,necrokukaswf5]
+necroKukasWalkLeft = AnimatedSprite 0.15 $ map (scale (-1) 1) [necrokukaswf1,necrokukaswf2,necrokukaswf3,necrokukaswf4,necrokukaswf5]
+
+
+aoe1, aoe2, aoe3, aoe4, aoe5, aoe6 :: Picture
+aoe1 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect1.png"
+aoe2 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect2.png"
+aoe3 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect3.png"
+aoe4 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect4.png"
+aoe5 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect5.png"
+aoe6 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect6.png"
 
 aoeb1, aoeb2, aoeb3, aoeb4, aoeb5, aoeb6, aoeb7, aoeb8 :: Picture
 aoeb1 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG1.png"
@@ -103,7 +160,17 @@ aoeb4 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG4.png"
 aoeb5 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG5.png"
 aoeb6 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG6.png"
 aoeb7 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG7.png"
-aoeb8 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG8.png"
+aoeb8 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG7.png"
+
+aoen1, aoen2, aoen3, aoen4, aoen5, aoen6, aoen7, aoen8 :: Picture
+aoen1 = png $ spriteDir ++ "Effects/NecroAoE/AoEEffect1.png"
+aoen2 = png $ spriteDir ++ "Effects/NecroAoE/AoEEffect2.png"
+aoen3 = png $ spriteDir ++ "Effects/NecroAoE/AoEEffect3.png"
+aoen4 = png $ spriteDir ++ "Effects/NecroAoE/AoEEffect4.png"
+aoen5 = png $ spriteDir ++ "Effects/NecroAoE/AoEEffect5.png"
+aoen6 = png $ spriteDir ++ "Effects/NecroAoE/AoEEffect6.png"
+aoen7 = png $ spriteDir ++ "Effects/NecroAoE/AoEEffect7.png"
+aoen8 = png $ spriteDir ++ "Effects/NecroAoE/AoEEffect7.png"
 
 dot1, dot2, dot3, dot4 :: Picture
 dot1 = png $ spriteDir ++ "Effects/DoTEffect/DoTEffect1.png"
@@ -111,10 +178,15 @@ dot2 = png $ spriteDir ++ "Effects/DoTEffect/DoTEffect2.png"
 dot3 = png $ spriteDir ++ "Effects/DoTEffect/DoTEffect3.png"
 dot4 = png $ spriteDir ++ "Effects/DoTEffect/DoTEffect4.png"
 
-dotEffect ,aoeEffect, aoeEffectMini :: AnimatedSprite
+dotEffect ,aoeEffect, aoeEffectMini, aoeEffectNecro  :: AnimatedSprite
 aoeEffect = AnimatedSprite 0.25 $ map (scale 1 1) [aoeb1, aoeb2, aoeb3, aoeb4, aoeb5, aoeb6, aoeb7, aoeb8]
+aoeEffectNecro = AnimatedSprite 0.1 $ map (scale 8 8) [aoen1, aoen2, aoen3, aoen4, aoen5, aoen6, aoen7, aoen8]
 aoeEffectMini = AnimatedSprite 0.25 $ map (scale 4 4) [aoe1, aoe2, aoe3, aoe4, aoe5, aoe6]
-dotEffect = AnimatedSprite 0.1 $ map (scale 2 2) [dot1, dot2, dot3, dot4]
+dotEffect = AnimatedSprite 0.1 $ map (scale 4 4) [dot1, dot2, dot3, dot4]
+
+dotBullet, vampBullet:: Picture
+dotBullet = png $ spriteDir ++ "Effects/DoTBullet.png"
+vampBullet = png $ spriteDir ++ "Effects/VampBullet.png"
 
 playerSprite = rotate 90 . color white . scale 10 20 $ triangle
 targetSprite1 = rotate 90 $ testPicture1 <> (translate 0 (negate 20) . scale 10 10 . color white $ stickFigure)
@@ -123,20 +195,8 @@ targetSprite3 = testPicture3 <> (translate 0 (negate 20) . scale 10 10 . color w
 targetSprite4 = testPicture4 <> (translate 0 (negate 20) . scale 10 10 . color white $ stickFigure)
 bulletSprite = color yellow . scale 4 4 $ diamond
 
-animTargetSprite1, animTargetSprite2 :: AnimatedSprite
-animTargetSprite1 = AnimatedSprite 0.6 [targetSprite4,targetSprite3,targetSprite2,targetSprite1]
-animTargetSprite2 = AnimatedSprite 0.6 [targetSprite1,targetSprite2,targetSprite3,targetSprite4]
-
 animatedSprites :: (HasMany w [Time, AnimatedSprite, Sprite]) => Float -> System w ()
 animatedSprites dT = cmap $ \(AnimatedSprite rate frames, Time t) -> Sprite (frames !! mod (floor ((t + dT) / rate)) (length frames))
-
-
--- spawnParticles ::  (HasMany w [Position, Velocity, Particle, EntityCounter]) => Int -> Position -> (Float, Float) -> (Float, Float) -> System w ()
--- spawnParticles n pos dvx dvy = replicateM_ n $ do
---     vx <- liftIO $ randomRIO dvx
---     vy <- liftIO $ randomRIO dvy
---     t <- liftIO $ randomRIO (0.02, 0.3)
---     newEntity (Particle t, pos, Velocity (V2 vx vy))
 
 stepParticles :: (HasMany w [Position, Particle, Sprite]) => Float -> System w ()
 stepParticles dT = cmap $ \(Particle t) ->
