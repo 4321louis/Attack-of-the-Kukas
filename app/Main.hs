@@ -121,7 +121,7 @@ checkGameEnd = do
         liftIO $ soundStopAll -- this will break if win occurs before time < 18
         void $ playIOSoundEffect gameOverJingle
     else do
-        enemyCount <- cfold (\count (Enemy _ _) -> count + 1) 0
+        enemyCount <- cfold (\count (Enemy _ _ _) -> count + 1) 0
         when (time >= 1800 && enemyCount <= 0) $ do
             modify global $ \(_::State) -> Win
             liftIO $ soundStopAll -- this will break if win occurs before time < 18
