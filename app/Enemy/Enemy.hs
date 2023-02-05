@@ -55,7 +55,7 @@ destroyDeadEnemies =
                 yoff <- liftIO $ randomRIO (-32,32)
                 _ <- newEntity ([GreenSeed,RedSeed,BlueSeed,Spore] !! seed, Position (V2 xoff yoff + pos), Sprite $ [greenSeed,redSeed,blueSeed,spore] !! seed )
                 return (DropHandler 0)
-            else return (DropHandler (chance+2.5))
+            else return (DropHandler (chance+3.1))
         else return (DropHandler chance)
 
 
