@@ -166,9 +166,10 @@ doOnDeaths :: (HasMany w [Enemy, Position, Velocity, UndeadBomber, PathFinder, H
 doOnDeaths = do
     cmapM_ $ \(Enemy {}, Position posE, etyE, Hp hp _ _) -> do
         when (hp <= 0) $ do
-            (_, closest) <- cfold (\min@(minDist,_) (_p::Plant, Position posP, etyP) ->
+            (_, closest) <- cfold (\min@(minDist,_) (p::Plant, Position posP, etyP) ->
+
                     let nDist = L.norm (posP - posE)
-                    in if nDist < minDist then (nDist,etyP) else min) (10000,0) 
+                    in if isOnDeath p && nDist < minDist then (nDist,etyP) else min) (10000,0) 
             (plant, Position pos) <- get closest
             case plant of
                 VampireFlower -> vampireOnDeath pos etyE
@@ -176,6 +177,10 @@ doOnDeaths = do
                 Necromancer -> necromancyOnDeath pos etyE
                 _ -> return ()
 
+isOnDeath VampireFlower = True
+isOnDeath BigMushroom = True
+isOnDeath Necromancer = True
+isOnDeath _ = False
 
 stepPoisonTimer :: (HasMany w [Position, Poison, Enemy, Hp, AnimatedSprite, Particle, EntityCounter, Time]) => Float -> System w ()
 stepPoisonTimer dT = cmapM $ \(Poison t, Position pos, Enemy {}, Hp hp _ _, etyE) ->
@@ -282,7 +287,7 @@ doEnchanting dT posEch = triggerEvery dT 6 0.6 $ do
             void $ newEntity (Sprite shieldEffect, Position (posP+V2 xoff yoff), Particle 2))
 
 doSeedSeeking :: (HasMany w [Seed, Sprite, Plant, Position, Time, EntityCounter]) => Float -> V2 Float -> System w ()
-doSeedSeeking dT pos = triggerEvery dT 90 0.6 $ do
+doSeedSeeking dT pos = triggerEvery dT 75 0.6 $ do
     seed <- liftIO $ randomRIO (0,3)
     xoff <- liftIO $ randomRIO (-32,32)
     yoff <- liftIO $ randomRIO (-32,-1)
