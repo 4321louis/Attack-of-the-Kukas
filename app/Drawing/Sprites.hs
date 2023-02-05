@@ -85,17 +85,17 @@ droneKukasAttackRight = AnimatedSprite 0.15 [dronekukasaf1,dronekukasaf2,droneku
 droneKukasAttackLeft = AnimatedSprite 0.15 $ map (scale (-1) 1) [dronekukasaf1,dronekukasaf2,dronekukasaf3,dronekukasaf4,dronekukasaf5]
 
 aoe1, aoe2, aoe3, aoe4, aoe5, aoe6, aoe7, aoe8 :: Picture
-aoe1 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect1.png"
-aoe2 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect2.png"
-aoe3 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect3.png"
-aoe4 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect4.png"
-aoe5 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect5.png"
-aoe6 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect6.png"
-aoe7 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect7.png"
-aoe8 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect7.png"
+aoe1 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG1.png"
+aoe2 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG2.png"
+aoe3 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG3.png"
+aoe4 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG4.png"
+aoe5 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG5.png"
+aoe6 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG6.png"
+aoe7 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG7.png"
+aoe8 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG7.png"
 
 aoeEffect, aoeEffectMini :: AnimatedSprite
-aoeEffect = AnimatedSprite 0.25 $ map (scale 22 22) [aoe1, aoe2, aoe3, aoe4, aoe5, aoe6, aoe7, aoe8]
+aoeEffect = AnimatedSprite 0.25 $ map (scale 1 1) [aoe1, aoe2, aoe3, aoe4, aoe5, aoe6, aoe7, aoe8]
 aoeEffectMini = AnimatedSprite 0.25 $ map (scale 4 4) [aoe1, aoe2, aoe3, aoe4, aoe5, aoe6]
  
 playerSprite = rotate 90 . color white . scale 10 20 $ triangle
