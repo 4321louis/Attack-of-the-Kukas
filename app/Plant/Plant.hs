@@ -166,16 +166,17 @@ doOnDeaths :: (HasMany w [Enemy, Position, Velocity, UndeadBomber, PathFinder, H
 doOnDeaths = do
     cmapM_ $ \(Enemy {}, Position posE, etyE, Hp hp _ _) -> do
         when (hp <= 0) $ do
-            (_, closest) <- cfold (\min@(minDist,_) (p::Plant, Position posP, etyP) ->
+            (dist, closest) <- cfold (\min@(minDist,_) (p::Plant, Position posP, etyP) ->
 
                     let nDist = L.norm (posP - posE)
-                    in if isOnDeath p && nDist < minDist then (nDist,etyP) else min) (10000,0) 
-            (plant, Position pos) <- get closest
-            case plant of
-                VampireFlower -> vampireOnDeath pos etyE
-                BigMushroom -> doBigMushroomOnDeath pos posE
-                Necromancer -> necromancyOnDeath pos etyE
-                _ -> return ()
+                    in if isOnDeath p && nDist < minDist then (nDist,etyP) else min) (10000,0)
+            when (dist<700) $ do
+                (plant, Position pos) <- get closest
+                case plant of
+                    VampireFlower -> vampireOnDeath pos etyE
+                    BigMushroom -> doBigMushroomOnDeath pos posE
+                    Necromancer -> necromancyOnDeath pos etyE
+                    _ -> return ()
 
 isOnDeath VampireFlower = True
 isOnDeath BigMushroom = True
