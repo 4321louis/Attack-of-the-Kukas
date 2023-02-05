@@ -26,7 +26,7 @@ import Worlds
 newtype Sprite = Sprite Picture deriving (Show)
 instance Component Sprite where type Storage Sprite = Map Sprite
 
-data AnimatedSprite = AnimatedSprite Float [Picture] deriving (Show)
+data AnimatedSprite = AnimatedSprite Float [Picture] deriving (Show,Eq)
 instance Component AnimatedSprite where type Storage AnimatedSprite = Map AnimatedSprite
 
 newtype Particle = Particle Float deriving (Show)
@@ -55,7 +55,9 @@ vampireFlower = png $ spriteDir ++ "Entities/GSVampire.png"
 birdOfParadise = translate 0 (-7) . png $ spriteDir ++ "Entities/RRLazer.png"
 mycelium = translate 0 1.5 . png $ spriteDir ++ "Entities/RSDoT.png"
 
+shieldEffect, attackSpeedEffect :: Picture
 shieldEffect = scale 1.5 1.5 . png $ spriteDir ++ "Effects/ShieldEffect.png"
+attackSpeedEffect = scale 1.5 1.5 . png $ spriteDir ++ "Effects/AttackSpeedEffect.png"
 
 redSeed, greenSeed, blueSeed, spore :: Picture
 redSeed =  scale 0.6 0.6 . png $ spriteDir ++ "UI/RSeed.png"
@@ -63,16 +65,24 @@ greenSeed = scale 0.6 0.6 . png $ spriteDir ++ "UI/GSeed.png"
 blueSeed =  scale 0.6 0.6 . png $ spriteDir ++ "UI/BSeed.png"
 spore =  scale 0.6 0.6 . png $ spriteDir ++ "UI/FungalSpore.png"
 
-dronekukasf1, dronekukasf2, dronekukasf3, dronekukasf4, dronekukasf5 :: Picture
-dronekukasf1 = png $ spriteDir ++ "Entities/Kukas/DroneKukasJump1.png"
-dronekukasf2 = png $ spriteDir ++ "Entities/Kukas/DroneKukasJump2.png"
-dronekukasf3 = png $ spriteDir ++ "Entities/Kukas/DroneKukasJump3.png"
-dronekukasf4 = png $ spriteDir ++ "Entities/Kukas/DroneKukasJump4.png"
-dronekukasf5 = png $ spriteDir ++ "Entities/Kukas/DroneKukasJump5.png"
+dronekukaswf1, dronekukaswf2, dronekukaswf3, dronekukaswf4, dronekukaswf5 :: Picture
+dronekukaswf1 = png $ spriteDir ++ "Entities/Kukas/DroneKukasJump1.png"
+dronekukaswf2 = png $ spriteDir ++ "Entities/Kukas/DroneKukasJump2.png"
+dronekukaswf3 = png $ spriteDir ++ "Entities/Kukas/DroneKukasJump3.png"
+dronekukaswf4 = png $ spriteDir ++ "Entities/Kukas/DroneKukasJump4.png"
+dronekukaswf5 = png $ spriteDir ++ "Entities/Kukas/DroneKukasJump5.png"
+dronekukasaf1 = png $ spriteDir ++ "Entities/Kukas/DroneKukasAttack1.png"
+dronekukasaf2 = png $ spriteDir ++ "Entities/Kukas/DroneKukasAttack2.png"
+dronekukasaf3 = png $ spriteDir ++ "Entities/Kukas/DroneKukasAttack3.png"
+dronekukasaf4 = png $ spriteDir ++ "Entities/Kukas/DroneKukasAttack4.png"
+dronekukasaf5 = png $ spriteDir ++ "Entities/Kukas/DroneKukasAttack5.png"
 
 droneKukasWalkLeft, droneKukasWalkRight:: AnimatedSprite
-droneKukasWalkRight = AnimatedSprite 0.15 [dronekukasf1,dronekukasf2,dronekukasf3,dronekukasf4,dronekukasf5]
-droneKukasWalkLeft = AnimatedSprite 0.15 $ map (scale (-1) 1) [dronekukasf1,dronekukasf2,dronekukasf3,dronekukasf4,dronekukasf5]
+droneKukasWalkRight = AnimatedSprite 0.15 [dronekukaswf1,dronekukaswf2,dronekukaswf3,dronekukaswf4,dronekukaswf5]
+droneKukasWalkLeft = AnimatedSprite 0.15 $ map (scale (-1) 1) [dronekukaswf1,dronekukaswf2,dronekukaswf3,dronekukaswf4,dronekukaswf5]
+droneKukasAttackLeft, droneKukasAttackRight:: AnimatedSprite
+droneKukasAttackRight = AnimatedSprite 0.15 [dronekukasaf1,dronekukasaf2,dronekukasaf3,dronekukasaf4,dronekukasaf5]
+droneKukasAttackLeft = AnimatedSprite 0.15 $ map (scale (-1) 1) [dronekukasaf1,dronekukasaf2,dronekukasaf3,dronekukasaf4,dronekukasaf5]
 
 aoe1, aoe2, aoe3, aoe4, aoe5, aoe6, aoe7, aoe8 :: Picture
 aoe1 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect1.png"
@@ -84,8 +94,9 @@ aoe6 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect6.png"
 aoe7 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect7.png"
 aoe8 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect7.png"
 
-aoeEffect :: AnimatedSprite
+aoeEffect, aoeEffectMini :: AnimatedSprite
 aoeEffect = AnimatedSprite 0.25 $ map (scale 22 22) [aoe1, aoe2, aoe3, aoe4, aoe5, aoe6, aoe7, aoe8]
+aoeEffectMini = AnimatedSprite 0.25 $ map (scale 4 4) [aoe1, aoe2, aoe3, aoe4, aoe5, aoe6]
  
 playerSprite = rotate 90 . color white . scale 10 20 $ triangle
 targetSprite1 = rotate 90 $ testPicture1 <> (translate 0 (negate 20) . scale 10 10 . color white $ stickFigure)

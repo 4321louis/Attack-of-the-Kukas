@@ -47,7 +47,7 @@ instance Component Inputs where type Storage Inputs = Global Inputs
 playerSpeed :: Float
 playerSpeed = 170
 
-handleInputs :: (HasMany w [Inventory, Seed, Plant, Hp, Player, Position, Velocity, Inputs, Camera, EntityCounter, MapGrid, Sprite, Structure, Paths, PathFinder]) => Event -> System w ()
+handleInputs :: (HasMany w [Inventory, Seed, Plant, Hp, AttackSpeed, Player, Position, Velocity, Inputs, Camera, EntityCounter, MapGrid, Sprite, Structure, Paths, PathFinder]) => Event -> System w ()
 handleInputs e = do
     modify global $ \(Inputs s m _) -> Inputs s m (V2 0 0)
     updateGlobalInputs e
@@ -63,7 +63,7 @@ updateGlobalInputs (EventMotion (x, y)) = do
     modify global $ \(Inputs s prev _) -> Inputs s (V2 x y) (V2 x y - prev)
 updateGlobalInputs _ = return ()
 
-handleEvent :: (HasMany w [Inventory, Seed, Plant, Hp, Player, Velocity, Inputs, EntityCounter, MapGrid, Position, Sprite, Camera, Structure, Paths, PathFinder]) => Event -> System w ()
+handleEvent :: (HasMany w [Inventory, Seed, Plant, Hp, AttackSpeed, Player, Velocity, Inputs, EntityCounter, MapGrid, Position, Sprite, Camera, Structure, Paths, PathFinder]) => Event -> System w ()
 handleEvent (EventKey (SpecialKey KeyLeft) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyRight) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyDown) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
@@ -109,7 +109,7 @@ doMousePanning = cmap $ \(Player, Position p, Inputs keys _ d,Camera _ cscale) -
 
 
 -- Plants a plant (entity) on the cursor position
-plantPlants ::  (HasMany w [Inventory, Plant, Position, Hp, Sprite, Structure, EntityCounter, Camera, Paths, PathFinder]) => Camera -> V2 Float -> Grid -> Int -> System w ()
+plantPlants ::  (HasMany w [Inventory, Plant, Position, Hp, AttackSpeed, Sprite, Structure, EntityCounter, Camera, Paths, PathFinder]) => Camera -> V2 Float -> Grid -> Int -> System w ()
 plantPlants cam cursorPos grid size = do
     Inventory inv craft <- get 0
     
@@ -144,7 +144,7 @@ updateInv [g, r, b, s] (c:cs) = case c of
     Spore -> updateInv [g, r, b, s-1] cs
 updateInv lst _ = lst
 
-removePlant :: (HasMany w [Position, Plant, Structure, Sprite, Hp, Paths, PathFinder, EntityCounter, Seed]) => Camera -> V2 Float -> System w ()
+removePlant :: (HasMany w [Position, Plant, Structure, Sprite, Hp, Paths, PathFinder, AttackSpeed, EntityCounter, Seed]) => Camera -> V2 Float -> System w ()
 removePlant cam cursorPos = cmapM_ $ \(Position pos, p::Plant, ety) -> 
     when (L.norm (pos - tileCentre 2 (cursorPosToReal cam cursorPos )) < 10) $ do
         randomIndex <- liftIO $ randomRIO (0,1) :: SystemT w IO Int

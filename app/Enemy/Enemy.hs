@@ -63,8 +63,8 @@ doEnemy dT = do
     chooseSpirte
 
 chooseSpirte :: HasMany w [AnimatedSprite, Velocity] => System w ()
-chooseSpirte = cmap $ \(AnimatedSprite r ls,Velocity v@(V2 x y)) -> 
-    if v == V2 0 0 then droneKukasWalkRight
+chooseSpirte = cmap $ \(as@(AnimatedSprite r ls),Velocity v@(V2 x y)) -> 
+    if v == V2 0 0 then if elem as [droneKukasAttackRight,droneKukasWalkRight] then droneKukasAttackRight else droneKukasAttackLeft 
     else if x>0 then droneKukasWalkRight else droneKukasWalkLeft 
 moveOnPath :: (HasMany w [PathFinder, Position, Velocity, Enemy]) => System w ()
 moveOnPath = cmap $ \(p@(PathFinder _ pathNodes), Position pos, Velocity _, Enemy _ speed) ->
@@ -81,7 +81,7 @@ attackOrNewPath dT = cmapM $ \(p@(PathFinder _oldGoals pathNodes), Position epos
         (cdist, closest) <- cfold (\min@(minDist,_) (Structure _, Position spos, ety) ->
             let nDist = L.norm (spos - epos)
             in if nDist < minDist then (nDist,ety) else min) (10000,0)
-        if cdist < 112 then triggerEvery dT 1 0 (do
+        if cdist < 112 then triggerEvery dT 0.75 0 (do
             modify closest (\(Structure _, hp) -> dealDamage hp dmg)
             playIOSoundEffectAt epos kukasAttack) >> return p
         else return (PathFinder trueGoals [])

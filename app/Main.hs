@@ -50,7 +50,8 @@ makeWorld "World" [ ''Position, ''Velocity, ''Enemy, ''MapGrid, ''Paths,
                     ''PathFinder, ''Structure, ''Sprite, ''AnimatedSprite, ''Player,
                     ''Particle, ''Base, ''Time, ''Inputs, ''Camera, 
                     ''Hp, ''Seed, ''Plant, ''Inventory, ''DropHandler,
-                    ''Hive ]
+                    ''Hive, ''UndeadBomber, ''AttackSpeed, ''SporeResidue, ''Homer,
+                    ''Poison, ''Bullet ]
 
 type SystemW a = System World a
 
@@ -73,6 +74,8 @@ initialize pathGraph grid size = do
     _seed <- newEntity(Position (V2 96 (-32)), Sprite redSeed, RedSeed)
     _seed <- newEntity(Position (V2 96 32), Sprite redSeed, RedSeed)
     _seed <- newEntity(Position (V2 (-96) (-32)), Sprite blueSeed, BlueSeed)
+    _seed <- newEntity(Position (V2 (-96) (-32)), Sprite blueSeed, Spore)
+    _seed <- newEntity(Position (V2 (-96) (-32)), Sprite blueSeed, Spore)
     _baseEty <- newEntity(Base, Position (V2 0 0), Hp 200 0 0, Structure [
         V2 96 32, V2 96 (-32),
         V2 (-96) 32, V2 (-96) (-32),
@@ -91,6 +94,7 @@ initialiseGrid grid coords  = do
 step :: Float -> SystemW ()
 step dT = do
     incrTime dT
+    stepHomers
     stepPosition dT
     stepParticles dT
     animatedSprites dT
@@ -119,11 +123,15 @@ draw bg (screenWidth, screenHeight) = do
     
     Inventory inv craft <- get global
     let 
-        hpPic = pictureOnHud cam (V2 (fromIntegral $ 30 - div screenWidth 2) (fromIntegral $ 50 - div screenHeight 2)) . scale 0.3 0.3 . color white .  Text $ "Base HP: " ++ show (ceiling hp)
-        timeSpr = pictureOnHud cam (V2 (fromIntegral $ 30 - div screenWidth 2) (fromIntegral $ 100 - div screenHeight 2)) . scale 0.3 0.3 . color white .  Text $ "Time: " ++ show (floor $ time/60)  ++ ":"++ show (mod (floor time) 60 )
+        hpPic = pictureOnHud cam (V2 (fromIntegral $ -350 + div screenWidth 2) (fromIntegral $ -90 + div screenHeight 2)) . scale 0.3 0.3 . color white .  Text $ "Base HP: " ++ show (ceiling hp)
+        
+        secText = show (mod (floor time) 60 )
+        timeText = show (floor $ time/60)  ++ ":" ++ if length secText == 1 then "0" ++ secText else secText
+        timeSpr = pictureOnHud cam (V2 (fromIntegral $ -350 + div screenWidth 2) (fromIntegral $ -140 + div screenHeight 2)) . scale 0.3 0.3 . color white .  Text $ "Time: " ++ timeText
+        
         hotbar = pictureOnHud cam (V2 (fromIntegral $ 80 - div screenWidth 2) (fromIntegral $ -350 + div screenHeight 2)) $ drawHotbar inv
         crafting = pictureOnHud cam (V2 (fromIntegral $ 180 - div screenWidth 2) (fromIntegral $ 180 - div screenHeight 2)) $ drawCraft inv craft
-    return $  bg <> sprites <> particles <> hotbar <> crafting -- <> hpPic <> timeSpr
+    return $  bg <> sprites <> particles <> hotbar <> crafting <> hpPic <> timeSpr
 
 main :: IO ()
 main = do
