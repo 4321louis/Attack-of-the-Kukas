@@ -44,7 +44,7 @@ instance Show Plant where
     show VampireFlower = "Vampire Flower"
     show BigMushroom = "Puff Mush"
     show Cactus = "Cactus"
-    show BirdOfParadise = "Bird Of Paradise"
+    show BirdOfParadise = "Bird of Paradise"
     show Mycelium = "Mycelium"
     show Necromancer = "Necromancer"
     show _ = ""
