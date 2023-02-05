@@ -32,7 +32,7 @@ import Worlds
 import Plant.Seed
 import Linear (V2(..))
 import Structure.Structure
-import Drawing.Sprites (targetSprite1, attackSpeedEffect, aoeEffectMini)
+import Drawing.Sprites (targetSprite1, attackSpeedEffect, aoeEffectMini, necromancer)
 
 type AllPlantComps = (Position, Structure, Sprite, Hp, Plant)
 
@@ -108,7 +108,7 @@ getPlantSprite VampireFlower = vampireFlower
 getPlantSprite BigMushroom = aoeMushroom
 getPlantSprite BirdOfParadise = birdOfParadise
 getPlantSprite Mycelium = mycelium
-getPlantSprite Necromancer = mycelium
+getPlantSprite Necromancer = necromancer
 getPlantSprite _ = seedSeeker
 
 newPlant :: (HasMany w [Plant, Position, Hp, Sprite, Structure, EntityCounter, AttackSpeed]) => Plant -> V2 Float -> System w Entity
@@ -121,7 +121,7 @@ newPlant VampireFlower pos = newEntity (VampireFlower, Position pos, Hp 20 20 0,
 newPlant BigMushroom pos = newEntity (BigMushroom, Position pos, Hp 20 20 0, Sprite aoeMushroom, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
 newPlant BirdOfParadise pos = newEntity (BirdOfParadise, Position pos, Hp 20 20 0, Sprite birdOfParadise, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]), AttackSpeed 0)
 newPlant Mycelium pos = newEntity (Mycelium, Position pos, Hp 20 20 0, Sprite mycelium, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
-newPlant Necromancer pos = newEntity (Necromancer, Position pos, Hp 20 20 0, Sprite mycelium, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
+newPlant Necromancer pos = newEntity (Necromancer, Position pos, Hp 20 20 0, Sprite necromancer, Structure ((pos+) <$> [V2 64 0, V2 (-64) 0, V2 0 64,V2 0 (-64)]))
 
 doPlants :: (HasMany w [Enemy, Position, Plant, Time, Hp, EntityCounter, Sprite, AttackSpeed, Seed, Particle, UndeadBomber, SporeResidue, PathFinder, Hive, Velocity, AnimatedSprite, Poison, Bullet, Homer])=> Float -> System w ()
 doPlants dT = do 
