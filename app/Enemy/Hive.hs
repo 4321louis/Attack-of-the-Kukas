@@ -41,8 +41,8 @@ spawnEnemies dT =
 
 spawnsHive :: (HasMany w [Time, Hp, Enemy, Position, Sprite, AnimatedSprite, Velocity, PathFinder, EntityCounter]) => Hive -> Float -> V2 Float -> System w ()
 spawnsHive Hive1 dT pos = do
-    spawnWave 20 dT 3 1.3 $ getEnemyFromType Tank 1 pos
-    spawnWave 40 dT 3 1.3 $ getEnemyFromType Fast 1 pos
+    spawnWave 20 dT 3 1.3 $ getEnemyFromType Normal 1 pos
+    spawnWave 40 dT 3 1.3 $ getEnemyFromType Normal 1 pos
     doMinute 2 dT 3 3 pos Normal
     doMinute 4 dT 3 3 pos Normal
     doMinute 5 dT 5 3 pos Normal

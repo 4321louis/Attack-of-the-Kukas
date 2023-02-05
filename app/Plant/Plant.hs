@@ -63,8 +63,8 @@ instance Component Bullet where type Storage Bullet = Map Bullet
 
 
 bigMushroomDmg, cactusDmg, doTDmg, enchanterShield, lazerDmg, poisonDuration, attackSpeedModifier :: Float
-bigMushroomDmg = 15
-cactusDmg = 20
+bigMushroomDmg = 12
+cactusDmg = 15
 lazerDmg = 100
 poisonDuration = 5
 doTDmg = 10
@@ -244,7 +244,7 @@ doCactusAttack dT posP ety = do
 doBigMushroomAttack :: (HasMany w [Enemy, Position, Plant, Time, Hp, AnimatedSprite, EntityCounter, Particle,AttackSpeed]) => Float -> V2 Float -> Entity -> System w ()
 doBigMushroomAttack dT posP ety = do
     hasAttackBuff <- exists ety (Proxy @AttackSpeed)
-    let rate = 2/if hasAttackBuff then attackSpeedModifier else 1
+    let rate = 2.5/if hasAttackBuff then attackSpeedModifier else 1
     triggerEvery dT rate 0.6 $ do
         cmapM_ $ \(Enemy {}, Position posE, etyE) -> when (L.norm (posE - posP) < tileRange 2) $ do
             newEntity (Position posP, aoeEffect, Particle 2)
@@ -265,7 +265,7 @@ doEnchanting dT posEch = triggerEvery dT 8 0.6 $ do
             void $ newEntity (Sprite shieldEffect, Position (posP+V2 xoff yoff), Particle 2))
 
 doSeedSeeking :: (HasMany w [Seed, Sprite, Plant, Position, Time, EntityCounter]) => Float -> V2 Float -> System w ()
-doSeedSeeking dT pos = triggerEvery dT 30 0.6 $ do
+doSeedSeeking dT pos = triggerEvery dT 90 0.6 $ do
     seed <- liftIO $ randomRIO (0,3)
     xoff <- liftIO $ randomRIO (-32,32)
     yoff <- liftIO $ randomRIO (-32,-1)
@@ -317,13 +317,15 @@ doVampireAttack dT posP ety = do
 necromancyOnDeath :: (HasMany w [Enemy, Position, Velocity, UndeadBomber, PathFinder, Hive, Time, Hp, Particle, Sprite, EntityCounter]) => V2 Float -> [Entity] -> System w ()
 necromancyOnDeath posP = foldM (\_ ety -> do
     (Position posE, Hp _ maxHp _, Enemy _ speed _) <- get ety
-    when (L.norm (posP - posE) < tileRange 4) $ do
-        hives <- (`cfold` []) $ \hs (_h::Hive, Position pos) -> pos:hs
-        let V2 lx ly = posE - posP
-            (ox,oy) = (0,0)
-            lazerLine = color (greyN 0.3) (Line [(ox,oy),(lx,ly)]) <> color black (Line [(ox,oy),(lx+2,ly)]) <> color black (Line [(ox,oy),(lx-2,ly)])
-        newEntity (Particle 0.25, Position posP, Sprite lazerLine)
-        void $ newEntity (Position posE, Velocity (V2 0 0), UndeadBomber (maxHp/3) 4 speed, PathFinder (Just hives) [])) ()
+    when (L.norm (posP - posE) < 3.5*64) $ do
+        roll <- liftIO $ randomRIO (1::Int,5)
+        when (roll <= 2) $ do
+            hives <- (`cfold` []) $ \hs (_h::Hive, Position pos) -> pos:hs
+            let V2 lx ly = posE - posP
+                (ox,oy) = (0,0)
+                lazerLine = color (greyN 0.3) (Line [(ox,oy),(lx,ly)]) <> color black (Line [(ox,oy),(lx+2,ly)]) <> color black (Line [(ox,oy),(lx-2,ly)])
+            newEntity (Particle 0.25, Position posP, Sprite lazerLine)
+            void $ newEntity (Position posE, Velocity (V2 0 0), UndeadBomber (maxHp/3) 4 speed, PathFinder (Just hives) [])) ()
 
 
 vampireOnDeath :: (Foldable t, HasMany w [Position, Hp, Particle, Sprite, EntityCounter, Plant]) => V2 Float -> t Entity -> System w ()
