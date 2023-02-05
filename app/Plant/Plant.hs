@@ -348,7 +348,7 @@ necromancyOnDeath posP ety = do
                 (ox,oy) = (0,0)
                 lazerLine = color (greyN 0.3) (Line [(ox,oy),(lx,ly)]) <> color black (Line [(ox,oy),(lx+2,ly)]) <> color black (Line [(ox,oy),(lx-2,ly)])
             newEntity (Particle 0.25, Position posP, Sprite lazerLine)
-            void $ newEntity (Position posE, Velocity (V2 0 0), UndeadBomber (maxHp/3) 4 speed, PathFinder (Just hives) [])
+            void $ newEntity (Position posE, Velocity (V2 0 0), UndeadBomber (25+maxHp/10) 4 speed, PathFinder (Just hives) [])
 
 
 vampireOnDeath :: (HasMany w [Position, Hp, Particle, Sprite, EntityCounter, Plant]) => V2 Float -> Entity -> System w ()
