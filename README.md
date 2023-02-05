@@ -8,7 +8,7 @@ Play time: 30 mins
 
 ## Playing
 ### Windows
-Run `kukas-attack.exe`.
+Download the latest release and run `kukas-attack.exe`.
 
 ## Compiling
 Install stack from [here](https://docs.haskellstack.org/en/stable/install_and_upgrade/)
