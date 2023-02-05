@@ -3,14 +3,14 @@
     
     "tasks": [{
         "label": "build and run",
-        "command": "stack exec kukas-attack-exe",
+        "command": "stack exec kukas-attack",
         "type": "shell",
         "dependsOn": [
             "build"
         ]
     },{
         "label": "fast fast build and run",
-        "command": "stack exec kukas-attack-exe",
+        "command": "stack exec kukas-attack",
         "type": "shell",
         "dependsOn": [
             "build"
@@ -25,7 +25,7 @@
         "type": "shell"
     },{
         "label": "run",
-        "command": "stack exec kukas-attack-exe",
+        "command": "stack exec kukas-attack",
         "type": "shell"
     },{
         "label": "profile",
