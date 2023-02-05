@@ -167,16 +167,16 @@ draw bg (screenWidth, screenHeight) = do
 main :: IO ()
 main = do
     -- grid creation
-    content <- readFile "./assets/Config/swampGeneration.txt"
-    let size = traceTimer "WFCollapse" 50
+    content <- trace "Generating World..." $ readFile "./assets/Config/swampGeneration.txt"
+    let size = 50
         tileOptions = readTilesMeta content
-        graphicTileCoords = traceTimer "WFCollapse" createGrid size size
-    (pregrid, bases) <- collapseStartingGrid size $ traceTimer "WFCollapse" $ createPreTileGrid tileOptions graphicTileCoords
-    grid <- startTimer "WFCollapse" $ (`doWaveCollapse` graphicTileCoords) $ traceTimer "WFCollapse" pregrid
+        graphicTileCoords = createGrid size size
+    (pregrid, bases) <- collapseStartingGrid size $ createPreTileGrid tileOptions graphicTileCoords
+    grid <- (`doWaveCollapse` graphicTileCoords) $ pregrid
 
     -- background
     screenSize@(sWid,sHei) <- getScreenSize
-    background <- startTimer "GridImage" optimisePicturewithRes (sWid-100,sHei-100) (64*size,64*size) . translate 32 32 $ getGridSprite (traceTimer "GridImage" $ traceTimer "WFCollapse" grid) graphicTileCoords
+    background <- optimisePicturewithRes (sWid-100,sHei-100) (64*size,64*size) . translate 32 32 $ getGridSprite (grid) graphicTileCoords
     
     --pathfinding setup
     let getTile = tileOfCoord grid size
@@ -185,8 +185,8 @@ main = do
     initializeAudio
     w <- initWorld
     runWith w $ do
-        startTimer "GraphCreation" $ initialize (traceTimer "GraphCreation" $ generateGraph (traceTimer "GraphCreation" getTile) pathFindCoords) grid size
+        initialize ( generateGraph (getTile) pathFindCoords) grid size
         initializeHives size bases
-        play FullScreen black 60 (draw (traceTimer "GridImage"  $ translate (fromIntegral $ -32*size) (fromIntegral $ -32*size) background) screenSize) handleInputs step
+        play FullScreen black 60 (draw (translate (fromIntegral $ -32*size) (fromIntegral $ -32*size) background) screenSize) handleInputs step
     
     finishAudio

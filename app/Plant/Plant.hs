@@ -151,13 +151,17 @@ doAttacks dT = do
 
 doOnDeaths :: (HasMany w [Enemy, Position, Velocity, UndeadBomber, PathFinder, Hive, Plant, Time, Hp, EntityCounter, Sprite, Seed, Particle, AnimatedSprite, SporeResidue]) => System w ()
 doOnDeaths = do
-    (deadPositions, deadEnemies) <- cfold (\(poss, etys) (Enemy {}, Hp hp _ _,ety::Entity, Position pos)-> if hp <=0 then (pos:poss,ety:etys) else (poss,etys)) ([],[])
-    cmapM_ $ \(plant, Position pos, ety::Entity) ->
-        case plant of
-            VampireFlower -> vampireOnDeath pos deadEnemies
-            BigMushroom -> doBigMushroomOnDeath pos deadPositions
-            Necromancer -> necromancyOnDeath pos deadEnemies
-            _ -> return ()
+    cmapM_ $ \(Enemy {}, Position posE, etyE, Hp hp _ _) -> do
+        when (hp <= 0) $ do
+            (_, closest) <- cfold (\min@(minDist,_) (_p::Plant, Position posP, etyP) ->
+                    let nDist = L.norm (posP - posE)
+                    in if nDist < minDist then (nDist,etyP) else min) (10000,0) 
+            (plant, Position pos) <- get closest
+            case plant of
+                VampireFlower -> vampireOnDeath pos etyE
+                BigMushroom -> doBigMushroomOnDeath pos posE
+                Necromancer -> necromancyOnDeath pos etyE
+                _ -> return ()
 
 
 stepPoisonTimer :: (HasMany w [Position, Poison, Enemy, Hp, AnimatedSprite, Particle, EntityCounter, Time]) => Float -> System w ()
@@ -250,10 +254,10 @@ doBigMushroomAttack dT posP ety = do
             newEntity (Position posP, aoeEffect, Particle 2)
             modify etyE (\(Enemy {}, hp) -> dealDamage hp bigMushroomDmg)
 
-doBigMushroomOnDeath :: (HasMany w [Enemy, Position, Plant, Time, Hp, AnimatedSprite, EntityCounter, Particle, SporeResidue]) => V2 Float -> [V2 Float] -> System w ()
-doBigMushroomOnDeath posP = foldM (\b pos -> do
+doBigMushroomOnDeath :: (HasMany w [Enemy, Position, Plant, Time, Hp, AnimatedSprite, EntityCounter, Particle, SporeResidue]) => V2 Float -> V2 Float -> System w ()
+doBigMushroomOnDeath posP pos =
     when (L.norm(posP - pos) < tileRange 2) $ do
-        void $ newEntity (Position pos, SporeResidue 30, aoeEffectMini)) ()
+        void $ newEntity (Position pos, SporeResidue 30, aoeEffectMini)
 
 doEnchanting :: (HasMany w [Plant, Position, Time, Hp, Sprite, Particle, EntityCounter]) => Float -> V2 Float -> System w ()
 doEnchanting dT posEch = triggerEvery dT 8 0.6 $ do
@@ -314,8 +318,8 @@ doVampireAttack dT posP ety = do
                 void $ newEntity (Sprite vampBullet, DamageBullet 40, Position posP, Velocity (V2 0 0), Homer target 100 0.1)
 
 
-necromancyOnDeath :: (HasMany w [Enemy, Position, Velocity, UndeadBomber, PathFinder, Hive, Time, Hp, Particle, Sprite, EntityCounter]) => V2 Float -> [Entity] -> System w ()
-necromancyOnDeath posP = foldM (\_ ety -> do
+necromancyOnDeath :: (HasMany w [Enemy, Position, Velocity, UndeadBomber, PathFinder, Hive, Time, Hp, Particle, Sprite, EntityCounter]) => V2 Float -> Entity -> System w ()
+necromancyOnDeath posP ety = do
     (Position posE, Hp _ maxHp _, Enemy _ speed _) <- get ety
     when (L.norm (posP - posE) < 3.5*64) $ do
         roll <- liftIO $ randomRIO (1::Int,5)
@@ -325,11 +329,11 @@ necromancyOnDeath posP = foldM (\_ ety -> do
                 (ox,oy) = (0,0)
                 lazerLine = color (greyN 0.3) (Line [(ox,oy),(lx,ly)]) <> color black (Line [(ox,oy),(lx+2,ly)]) <> color black (Line [(ox,oy),(lx-2,ly)])
             newEntity (Particle 0.25, Position posP, Sprite lazerLine)
-            void $ newEntity (Position posE, Velocity (V2 0 0), UndeadBomber (maxHp/3) 4 speed, PathFinder (Just hives) [])) ()
+            void $ newEntity (Position posE, Velocity (V2 0 0), UndeadBomber (maxHp/3) 4 speed, PathFinder (Just hives) [])
 
 
-vampireOnDeath :: (Foldable t, HasMany w [Position, Hp, Particle, Sprite, EntityCounter, Plant]) => V2 Float -> t Entity -> System w ()
-vampireOnDeath posP =  foldM (\b ety -> do
+vampireOnDeath :: (HasMany w [Position, Hp, Particle, Sprite, EntityCounter, Plant]) => V2 Float -> Entity -> System w ()
+vampireOnDeath posP ety = do
     (Position posE, Hp _ maxHp _) <- get ety
     when (L.norm (posP - posE) < tileRange 4) $ do
         (tHp, target) <- cfold (\min@(minHp,_) (_::Plant, Position posT, Hp hp max _, ety) ->
@@ -342,7 +346,6 @@ vampireOnDeath posP =  foldM (\b ety -> do
                 lazerLine = color white (Line [(ox,oy),(lx,ly)]) <> color green (Line [(ox,oy),(lx+2,ly)]) <> color green (Line [(ox,oy),(lx-2,ly)])
             newEntity (Particle 0.25, Position posE, Sprite lazerLine)
             modify target (`healHp` (maxHp/50))
-    ) ()
 
 stepHomers :: (HasMany w [Velocity, Position, Homer, Sprite, Bullet]) => System w ()
 stepHomers = cmapM $ \(Homer target speed turnRatio, Velocity v, Position pos) -> do
