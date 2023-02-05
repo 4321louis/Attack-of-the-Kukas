@@ -32,7 +32,7 @@ import Worlds
 import Plant.Seed
 import Linear (V2(..))
 import Structure.Structure
-import Drawing.Sprites (targetSprite1, attackSpeedEffect, aoeEffectMini, necromancer)
+import Drawing.Sprites (targetSprite1, attackSpeedEffect, aoeEffectMini, necromancer, dotEffect, dotBullet, aoeEffectNecro)
 
 type AllPlantComps = (Position, Structure, Sprite, Hp, Plant)
 
@@ -68,7 +68,7 @@ cactusDmg = 20
 lazerDmg = 100
 poisonDuration = 5
 doTDmg = 10
-enchanterShield = 5
+enchanterShield = 10
 attackSpeedModifier = 3
 
 getPlant :: [Seed] -> Plant
@@ -165,7 +165,9 @@ stepPoisonTimer dT = cmapM $ \(Poison t, Position pos, Enemy _ _, Hp hp _ _, ety
             return $ Right $ Not @Poison
         else do
             triggerEvery dT 0.5 0 $ do 
-                newEntity (Position pos, aoeEffectMini, Particle 0.4)
+                {- xoff <- liftIO $ randomRIO (-16,16)
+                yoff <- liftIO $ randomRIO (-16,16)  -}
+                newEntity (Position pos, dotEffect, Particle 0.4)
                 modify etyE (\(Enemy _ _, hp) -> dealDamage hp doTDmg)
             return $ Left $ Poison (t-dT)
 
@@ -195,7 +197,7 @@ doUndeadBombers dT = cmapM $
         if fuse <= 0 
         then do  
             cmap $ \(Enemy _ _, Position posE, hp) -> if L.norm (posE - pos) < tileRange 1 then dealDamage hp dmg else hp
-            newEntity (Position pos, aoeEffect, Particle 2)
+            newEntity (Position pos, aoeEffectNecro, Particle 1)
             return $ Right (Not @(Sprite,PathFinder,Position,Velocity,UndeadBomber))
         else do
             newFuse <- (`cfold` fuse) $ \f (Enemy _ _,Position posE) -> if L.norm (posE - pos) < tileRange 1 then f - dT else f
@@ -270,7 +272,7 @@ doDoTAttack dT posP ety = do
                 Poison poisonDuration <- if poisoned then get etyE else return (Poison 0)
                 return $ if nDist < tileRange 5 && ( poisonDuration < minPois || (poisonDuration == minPois && nDist < minDist)) then (nDist,etyE,poisonDuration) else min) (10000,0,1000)
         when (cdist < tileRange 5) $ do
-                void $ newEntity (Sprite targetSprite1, PoisonBullet, Position posP, Velocity (V2 0 0), Homer target 100 0.08)
+                void $ newEntity (Sprite dotBullet, PoisonBullet, Position posP, Velocity (V2 0 0), Homer target 100 0.08)
 
 
 doLazerAttack :: (HasMany w [Enemy, Position, Time, Hp, Particle, Sprite, EntityCounter, AttackSpeed]) => Float -> V2 Float -> Entity -> System w ()

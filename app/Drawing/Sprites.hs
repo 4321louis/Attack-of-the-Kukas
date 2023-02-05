@@ -85,15 +85,13 @@ droneKukasAttackLeft, droneKukasAttackRight:: AnimatedSprite
 droneKukasAttackRight = AnimatedSprite 0.15 [dronekukasaf1,dronekukasaf2,dronekukasaf3,dronekukasaf4,dronekukasaf5]
 droneKukasAttackLeft = AnimatedSprite 0.15 $ map (scale (-1) 1) [dronekukasaf1,dronekukasaf2,dronekukasaf3,dronekukasaf4,dronekukasaf5]
 
-aoe1, aoe2, aoe3, aoe4, aoe5, aoe6, aoe7, aoe8 :: Picture
-aoe1 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG1.png"
-aoe2 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG2.png"
-aoe3 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG3.png"
-aoe4 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG4.png"
-aoe5 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG5.png"
-aoe6 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG6.png"
-aoe7 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG7.png"
-aoe8 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG7.png"
+aoe1, aoe2, aoe3, aoe4, aoe5, aoe6 :: Picture
+aoe1 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect1.png"
+aoe2 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect2.png"
+aoe3 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect3.png"
+aoe4 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect4.png"
+aoe5 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect5.png"
+aoe6 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect6.png"
 
 aoeb1, aoeb2, aoeb3, aoeb4, aoeb5, aoeb6, aoeb7, aoeb8 :: Picture
 aoeb1 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG1.png"
@@ -103,7 +101,17 @@ aoeb4 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG4.png"
 aoeb5 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG5.png"
 aoeb6 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG6.png"
 aoeb7 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG7.png"
-aoeb8 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG8.png"
+aoeb8 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG7.png"
+
+aoen1, aoen2, aoen3, aoen4, aoen5, aoen6, aoen7, aoen8 :: Picture
+aoen1 = png $ spriteDir ++ "Effects/NecroAoE/AoEEffect1.png"
+aoen2 = png $ spriteDir ++ "Effects/NecroAoE/AoEEffect2.png"
+aoen3 = png $ spriteDir ++ "Effects/NecroAoE/AoEEffect3.png"
+aoen4 = png $ spriteDir ++ "Effects/NecroAoE/AoEEffect4.png"
+aoen5 = png $ spriteDir ++ "Effects/NecroAoE/AoEEffect5.png"
+aoen6 = png $ spriteDir ++ "Effects/NecroAoE/AoEEffect6.png"
+aoen7 = png $ spriteDir ++ "Effects/NecroAoE/AoEEffect7.png"
+aoen8 = png $ spriteDir ++ "Effects/NecroAoE/AoEEffect7.png"
 
 dot1, dot2, dot3, dot4 :: Picture
 dot1 = png $ spriteDir ++ "Effects/DoTEffect/DoTEffect1.png"
@@ -111,10 +119,15 @@ dot2 = png $ spriteDir ++ "Effects/DoTEffect/DoTEffect2.png"
 dot3 = png $ spriteDir ++ "Effects/DoTEffect/DoTEffect3.png"
 dot4 = png $ spriteDir ++ "Effects/DoTEffect/DoTEffect4.png"
 
-dotEffect ,aoeEffect, aoeEffectMini :: AnimatedSprite
+dotEffect ,aoeEffect, aoeEffectMini, aoeEffectNecro  :: AnimatedSprite
 aoeEffect = AnimatedSprite 0.25 $ map (scale 1 1) [aoeb1, aoeb2, aoeb3, aoeb4, aoeb5, aoeb6, aoeb7, aoeb8]
+aoeEffectNecro = AnimatedSprite 0.1 $ map (scale 8 8) [aoen1, aoen2, aoen3, aoen4, aoen5, aoen6, aoen7, aoen8]
 aoeEffectMini = AnimatedSprite 0.25 $ map (scale 4 4) [aoe1, aoe2, aoe3, aoe4, aoe5, aoe6]
-dotEffect = AnimatedSprite 0.1 $ map (scale 2 2) [dot1, dot2, dot3, dot4]
+dotEffect = AnimatedSprite 0.1 $ map (scale 4 4) [dot1, dot2, dot3, dot4]
+
+dotBullet, vampBullet:: Picture
+dotBullet = png $ spriteDir ++ "Effects/DoTBullet.png"
+vampBullet = png $ spriteDir ++ "Effects/VampBullet.png"
 
 playerSprite = rotate 90 . color white . scale 10 20 $ triangle
 targetSprite1 = rotate 90 $ testPicture1 <> (translate 0 (negate 20) . scale 10 10 . color white $ stickFigure)
