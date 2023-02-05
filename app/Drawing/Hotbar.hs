@@ -75,7 +75,7 @@ drawCraft inv craft@[s1, s2] = seed' <> seed <> plant' <> plantName
             seed = translate (fromPlantCircle + offset) fromPlantCircle $ seedCircle seedSprite seedInv
             seed' = translate fromPlantCircle (fromPlantCircle + offset) $ seedCircle seedSprite' seedInv'
             
-            plantName = translate 20 (-130) $ scale 0.15 0.15 $ color white $ Text (show $ getPlant craft) 
+            plantName = translate 0 (-130) $ scale 0.15 0.15 $ color white $ Text (show $ getPlant craft) 
             fromPlantCircle = -120
             offset = 65
 
