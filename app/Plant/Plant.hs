@@ -62,7 +62,7 @@ data Bullet = PoisonBullet | DamageBullet Float deriving (Show)
 instance Component Bullet where type Storage Bullet = Map Bullet
 
 
-bigMushroomDmg, cactusDmg, doTDmg, enchanterShield :: Float
+bigMushroomDmg, cactusDmg, doTDmg, enchanterShield, lazerDmg, poisonDuration, attackSpeedModifier :: Float
 bigMushroomDmg = 15
 cactusDmg = 20
 lazerDmg = 100
@@ -139,6 +139,7 @@ doAttacks dT = do
             BirdOfParadise -> doLazerAttack dT pos ety
             RockPlant -> doRockPlant dT ety
             CorpseFlower -> doAttackSpeedBuff dT pos
+            VampireFlower -> doVampireAttack dT pos ety
             Mycelium -> doDoTAttack dT pos ety
             _ -> return ()
     stepAttackSpeedTimer dT
@@ -272,13 +273,13 @@ doDoTAttack dT posP ety = do
                 Poison poisonDuration <- if poisoned then get etyE else return (Poison 0)
                 return $ if nDist < tileRange 5 && ( poisonDuration < minPois || (poisonDuration == minPois && nDist < minDist)) then (nDist,etyE,poisonDuration) else min) (10000,0,1000)
         when (cdist < tileRange 5) $ do
-                void $ newEntity (Sprite dotBullet, PoisonBullet, Position posP, Velocity (V2 0 0), Homer target 100 0.08)
+                void $ newEntity (Sprite dotBullet, PoisonBullet, Position posP, Velocity (V2 0 0), Homer target 100 0.1)
 
 
 doLazerAttack :: (HasMany w [Enemy, Position, Time, Hp, Particle, Sprite, EntityCounter, AttackSpeed]) => Float -> V2 Float -> Entity -> System w ()
 doLazerAttack dT posP ety = do
     hasAttackBuff <- exists ety (Proxy @AttackSpeed)
-    let rate = 2/if hasAttackBuff then attackSpeedModifier else 1 
+    let rate = 2.5/if hasAttackBuff then attackSpeedModifier else 1 
     triggerEvery dT rate 0.6 $ do
         (cdist, closest) <- cfold (\min@(minDist,_) (Enemy _ _, Position posE, etyE) ->
                 let nDist = L.norm (posP - posE)
@@ -291,6 +292,19 @@ doLazerAttack dT posP ety = do
             newEntity (Particle 0.25, Position posP, Sprite lazerLine)
             modify closest $ \(Enemy _ _, hp) -> dealDamage hp lazerDmg
 
+
+doVampireAttack :: (HasMany w [Enemy, Position, Time, Hp, Bullet, Sprite, Velocity, Homer, EntityCounter, AttackSpeed]) => Float -> V2 Float -> Entity -> SystemT w IO ()
+doVampireAttack dT posP ety = do
+    hasAttackBuff <- exists ety (Proxy @AttackSpeed)
+    let rate = 3/if hasAttackBuff then attackSpeedModifier else 1 
+    triggerEvery dT rate 0.6 $ do
+        (cdist, target) <- cfold (\min@(minDist,_) (Enemy _ _, Position posE, etyE) ->
+                let nDist = L.norm (posP - posE)
+                in if nDist < minDist then (nDist,etyE) else min) (10000,0)
+        when (cdist < tileRange 2) $ do
+                void $ newEntity (Sprite targetSprite1, DamageBullet 20, Position posP, Velocity (V2 0 0), Homer target 100 0.1)
+
+
 necromancyOnDeath :: (HasMany w [Enemy, Position, Velocity, UndeadBomber, PathFinder, Hive, Time, Hp, Particle, Sprite, EntityCounter]) => V2 Float -> [Entity] -> System w ()
 necromancyOnDeath posP = foldM (\b ety -> do
     (Position pos, Hp _ maxHp _, Enemy _ speed) <- get ety
@@ -299,6 +313,7 @@ necromancyOnDeath posP = foldM (\b ety -> do
         void $ newEntity (Position pos, Velocity (V2 0 0), UndeadBomber (maxHp/3) 4 speed, Sprite targetSprite1, PathFinder (Just hives) [])) ()
 
 
+vampireOnDeath :: (Foldable t, HasMany w [Position, Hp, Particle, Sprite, EntityCounter, Plant]) => V2 Float -> t Entity -> System w ()
 vampireOnDeath posP =  foldM (\b ety -> do 
     (Position posE, Hp _ maxHp _) <- get ety
     when (L.norm (posP - posE) < tileRange 4) $ do
