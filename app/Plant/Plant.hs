@@ -327,7 +327,7 @@ doVampireAttack dT posP ety = do
         (cdist, target) <- cfold (\min@(minDist,_) (Enemy {}, Position posE, etyE) ->
                 let nDist = L.norm (posP - posE)
                 in if nDist < minDist then (nDist,etyE) else min) (10000,0)
-        when (cdist < tileRange 2) $ do
+        when (cdist < tileRange 4) $ do
                 void $ newEntity (Sprite vampBullet, DamageBullet 40, Position posP, Velocity (V2 0 0), Homer target 100 0.1)
 
 
