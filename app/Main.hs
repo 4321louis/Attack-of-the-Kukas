@@ -51,7 +51,7 @@ makeWorld "World" [ ''Position, ''Velocity, ''Enemy, ''MapGrid, ''Paths,
                     ''Particle, ''Base, ''Time, ''Inputs, ''Camera, 
                     ''Hp, ''Seed, ''Plant, ''Inventory, ''DropHandler,
                     ''Hive, ''UndeadBomber, ''AttackSpeed, ''SporeResidue, ''Homer,
-                    ''Poison, ''Bullet ]
+                    ''Poison, ''Bullet, ''State ]
 
 type SystemW a = System World a
 
@@ -70,6 +70,7 @@ initialize pathGraph grid size = do
     modify global $ \(Paths _ g) -> Paths pathGraph g
     modify global $ \(MapGrid _ _) -> MapGrid grid size
     modify global $ \(Inventory _ _) -> Inventory [0, 0, 0, 0] [RedSeed, RedSeed]
+    modify global $ \(_::State) -> Game
     _seed <- newEntity(Position (V2 32 96), Sprite greenSeed, GreenSeed)
     _seed <- newEntity(Position (V2 96 (-32)), Sprite redSeed, RedSeed)
     _seed <- newEntity(Position (V2 96 32), Sprite redSeed, RedSeed)
@@ -91,24 +92,36 @@ initialiseGrid grid coords  = do
 
 step :: Float -> SystemW ()
 step dT = do
-    incrTime dT
-    stepHomers
-    stepPosition dT
-    stepParticles dT
-    animatedSprites dT
-    camOnPlayer
-    doEnemy dT
-    doPathFinding
-    doPlants dT
-    destroyDeadStructures
-    destroyDeadEnemies
-    spawnEnemies dT
     checkGameEnd
+    s :: State <- get global
+    when (s == Game) $ do
+        incrTime dT
+        stepHomers
+        stepPosition dT
+        stepParticles dT
+        animatedSprites dT
+        camOnPlayer
+        doEnemy dT
+        doPathFinding
+        doPlants dT
+        destroyDeadStructures
+        destroyDeadEnemies
+        spawnEnemies dT
 
-
-checkGameEnd :: (HasMany w [EntityCounter, Time, Hp]) => System w ()
+checkGameEnd :: (HasMany w [EntityCounter, Time, Hp, Base, Enemy, State]) => System w ()
 checkGameEnd = do
-    return ()
+    hp <- cfold (\a (Base, Hp hp _ _) -> hp) 0
+    Time time <- get global
+
+    if (time > 10) -- todo: change this to hp < 0
+    then do 
+        modify global $ \(_::State) -> Lose
+    else do
+        enemyCount <- cfold (\count (Enemy _ _) -> count + 1) 0
+        when (time >= 1800 && enemyCount <= 0) $ 
+            modify global $ \(_::State) -> Win
+            
+    
 
 draw :: Picture -> (Int,Int) -> SystemW Picture
 draw bg (screenWidth, screenHeight) = do
@@ -125,6 +138,7 @@ draw bg (screenWidth, screenHeight) = do
     Time time <- get global
     hp <- cfold (\a (Base, Hp hp _ _) -> hp) 0 
     
+    s ::State <- get global 
     Inventory inv craft <- get global
     let 
         hpPic = pictureOnHud cam (V2 (fromIntegral $ -350 + div screenWidth 2) (fromIntegral $ -90 + div screenHeight 2)) . scale 0.3 0.3 . color white .  Text $ "Base HP: " ++ show (ceiling hp)
@@ -135,7 +149,13 @@ draw bg (screenWidth, screenHeight) = do
         
         hotbar = pictureOnHud cam (V2 (fromIntegral $ 80 - div screenWidth 2) (fromIntegral $ -350 + div screenHeight 2)) $ drawHotbar inv
         crafting = pictureOnHud cam (V2 (fromIntegral $ 180 - div screenWidth 2) (fromIntegral $ 180 - div screenHeight 2)) $ drawCraft inv craft
-    return $  bg <> sprites <> particles <> hotbar <> crafting <> hpPic <> timeSpr
+        drawing = pictureOnHud cam (V2 0 0) $ if (s == Game)
+            then Blank
+            else if (s == Win)
+                then victoryBg
+            else gameOverBg
+
+    return $  bg <> sprites <> particles <> hotbar <> crafting <> hpPic <> timeSpr <> drawing
 
 main :: IO ()
 main = do

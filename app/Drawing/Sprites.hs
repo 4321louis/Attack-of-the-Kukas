@@ -143,3 +143,7 @@ stepParticles dT = cmap $ \(Particle t) ->
     if t < 0
         then Right $ Not @(Particle, Position, Sprite)
         else Left  $ Particle (t-dT)
+
+victoryBg, gameOverBg :: Picture
+victoryBg = png $ spriteDir ++ "Background/victory.png"
+gameOverBg = png $ spriteDir ++ "Background/victory.png"
