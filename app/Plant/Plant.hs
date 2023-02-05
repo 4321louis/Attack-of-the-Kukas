@@ -69,7 +69,7 @@ lazerDmg = 100
 poisonDuration = 5
 doTDmg = 10
 enchanterShield = 10
-attackSpeedModifier = 3
+attackSpeedModifier = 1.4
 
 getPlant :: [Seed] -> Plant
 getPlant [GreenSeed, GreenSeed] = SeedSeeker
@@ -294,7 +294,7 @@ doLazerAttack dT posP ety = do
         when (cdist < tileRange 2) $ do
             Position posE <- get closest
             let V2 lx ly = posE - posP
-                (ox,oy) = if lx< 0 then (0,0) else (0,0) --TODO:origin of lazer
+                (ox,oy) = if lx < 0 then (-22,28) else (11,19) --TODO:origin of lazer
                 lazerLine = (color orange $ Line [(ox,oy),(lx,ly)]) <> (color red $ Line [(ox,oy+2),(lx,ly)]) <> (color red $ Line [(ox,oy-2),(lx,ly)])
             newEntity (Particle 0.25, Position posP, Sprite lazerLine)
             modify closest $ \(Enemy _ _, hp) -> dealDamage hp lazerDmg
