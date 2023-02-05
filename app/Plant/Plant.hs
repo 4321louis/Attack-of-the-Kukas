@@ -80,7 +80,7 @@ cactusDmg = 15
 lazerDmg = 100
 poisonDuration = 5
 doTDmg = 10
-enchanterShield = 10
+enchanterShield = 15
 attackSpeedModifier = 1.4
 
 
@@ -273,7 +273,7 @@ doBigMushroomOnDeath posP pos =
         void $ newEntity (Position pos, SporeResidue 30, aoeEffectMini)
 
 doEnchanting :: (HasMany w [Plant, Position, Time, Hp, Sprite, Particle, EntityCounter]) => Float -> V2 Float -> System w ()
-doEnchanting dT posEch = triggerEvery dT 8 0.6 $ do
+doEnchanting dT posEch = triggerEvery dT 6 0.6 $ do
     cmapM_ $ \(_::Plant, Position posP, etyP) -> when (L.norm (posEch - posP) < tileRange 1) $
         (do
             modify etyP $ \(_::Plant, hp) -> shieldHp hp enchanterShield
