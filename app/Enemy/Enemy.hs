@@ -26,8 +26,11 @@ import Control.Monad
 import System.Random (randomRIO)
 import Plant.Seed
 import Audio
---dmg, speed
-data Enemy = Enemy Float Float deriving (Show)
+
+
+data EnemyType = Normal | Tank | Fast deriving (Show)
+--dmg, speed, type
+data Enemy = Enemy Float Float EnemyType deriving (Show)
 instance Component Enemy where type Storage Enemy = Map Enemy
 
 newtype DropHandler = DropHandler Float deriving (Show, Num)
@@ -39,7 +42,7 @@ type AllEnemyComps = (Position, Enemy, Velocity, PathFinder, Sprite, Hp)
 
 destroyDeadEnemies :: (HasMany w [PathFinder, Position, Velocity, Enemy, Sprite, Hp, DropHandler, Seed, EntityCounter, DropHandler, Camera]) => System w ()
 destroyDeadEnemies =
-    cmapM $ \(Enemy _ _, Hp hp _ _ , ety, Position pos, DropHandler chance) ->
+    cmapM $ \(Enemy {}, Hp hp _ _ , ety, Position pos, DropHandler chance) ->
         if hp <= 0
         then do
             destroy ety (Proxy @AllEnemyComps )
@@ -62,19 +65,35 @@ doEnemy dT = do
     attackOrNewPath dT
     chooseSpirte
 
-chooseSpirte :: HasMany w [AnimatedSprite, Velocity] => System w ()
-chooseSpirte = cmap $ \(as@(AnimatedSprite r ls),Velocity v@(V2 x y)) -> 
-    if v == V2 0 0 then if elem as [droneKukasAttackRight,droneKukasWalkRight] then droneKukasAttackRight else droneKukasAttackLeft 
-    else if x>0 then droneKukasWalkRight else droneKukasWalkLeft 
+data EnemySpriteState = WalkLeft | WalkRight | AttackLeft | AttackRight
+getEnemySpriteForType Normal AttackLeft = droneKukasAttackLeft
+getEnemySpriteForType Normal AttackRight = droneKukasAttackRight
+getEnemySpriteForType Normal WalkRight = droneKukasWalkRight
+getEnemySpriteForType Normal WalkLeft = droneKukasWalkLeft
+getEnemySpriteForType Fast AttackLeft = fastKukasAttackLeft
+getEnemySpriteForType Fast AttackRight = fastKukasAttackRight
+getEnemySpriteForType Fast WalkRight = fastKukasWalkRight
+getEnemySpriteForType Fast WalkLeft = fastKukasWalkLeft
+getEnemySpriteForType Tank AttackLeft = armourKukasAttackLeft
+getEnemySpriteForType Tank AttackRight = armourKukasAttackRight
+getEnemySpriteForType Tank WalkRight = armourKukasWalkRight
+getEnemySpriteForType Tank WalkLeft = armourKukasWalkLeft
+
+chooseSpirte :: HasMany w [AnimatedSprite, Velocity, Enemy] => System w ()
+chooseSpirte = cmap $ \(as@(AnimatedSprite r ls),Velocity v@(V2 x y),Enemy _ _ etype) ->
+    let getSprite = getEnemySpriteForType etype in
+        if v == V2 0 0 then if elem as [getSprite WalkLeft, getSprite WalkRight] then getSprite AttackRight else getSprite AttackLeft 
+        else if x>0 then getSprite WalkRight else getSprite WalkLeft 
+
 moveOnPath :: (HasMany w [PathFinder, Position, Velocity, Enemy]) => System w ()
-moveOnPath = cmap $ \(p@(PathFinder _ pathNodes), Position pos, Velocity _, Enemy _ speed) ->
+moveOnPath = cmap $ \(p@(PathFinder _ pathNodes), Position pos, Velocity _, Enemy _ speed _) ->
     if null pathNodes
     then (PathFinder Nothing [],Velocity (V2 0 0))
     else (p,Velocity ((L.^* speed) . L.normalize $ head pathNodes - pos))
 
 
 attackOrNewPath :: (HasMany w [PathFinder, Position, Velocity, Enemy, Paths, Structure, Time, Hp, Camera]) => Float -> System w ()
-attackOrNewPath dT = cmapM $ \(p@(PathFinder _oldGoals pathNodes), Position epos, Velocity _, Enemy dmg _, Paths _ goals) ->
+attackOrNewPath dT = cmapM $ \(p@(PathFinder _oldGoals pathNodes), Position epos, Velocity _, Enemy dmg _ _, Paths _ goals) ->
     let trueGoals = if null goals then Nothing else Just goals in
     if null pathNodes
     then do
