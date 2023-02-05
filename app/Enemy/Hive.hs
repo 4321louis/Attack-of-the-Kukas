@@ -50,6 +50,18 @@ spawnsHive Hive1 dT pos = do
     doMinute 10 dT 3 3 pos Fast
     doMinute 13 dT 8 3 pos Normal
     doMinute 15 dT 5 3 pos Fast
+    doMinute 16 dT 5 3 pos Normal
+    doMinute 17 dT 3 3 pos Normal
+    doMinute 18 dT 3 3 pos Fast
+    doMinute 19 dT 5 3 pos Normal
+    doMinute 21 dT 5 3 pos Tank
+    doMinute 22 dT 8 3 pos Normal
+    doMinute 23 dT 3 3 pos Tank
+    doMinute 24 dT 5 3 pos Tank
+    doMinute 25 dT 8 3 pos Normal
+    doMinute 27 dT 8 3 pos Fast
+    doMinute 28 dT 8 3 pos Tank
+    doMinute 29 dT 8 3 pos Tank
 
 spawnsHive Hive2 dT pos = do
     doMinute 1 dT 3 3 pos Normal
@@ -59,6 +71,18 @@ spawnsHive Hive2 dT pos = do
     doMinute 11 dT 8 3 pos Normal
     doMinute 13 dT 3 3 pos Tank
     doMinute 15 dT 3 3 pos Tank
+    doMinute 16 dT 5 3 pos Normal
+    doMinute 17 dT 3 3 pos Normal
+    doMinute 18 dT 3 3 pos Tank
+    doMinute 20 dT 8 3 pos Fast
+    doMinute 21 dT 8 3 pos Normal
+    doMinute 22 dT 8 3 pos Normal
+    doMinute 23 dT 8 3 pos Normal
+    doMinute 24 dT 5 3 pos Normal
+    doMinute 26 dT 8 3 pos Fast
+    doMinute 27 dT 8 3 pos Fast
+    doMinute 28 dT 8 3 pos Tank
+    doMinute 29 dT 8 3 pos Tank
 
 spawnsHive Hive3 dT pos = do
     doMinute 2 dT 5 3 pos Normal
@@ -67,6 +91,19 @@ spawnsHive Hive3 dT pos = do
     doMinute 9 dT 5 3 pos Normal
     doMinute 11 dT 5 3 pos Fast
     doMinute 14 dT 8 3 pos Normal
+    doMinute 16 dT 3 3 pos Normal
+    doMinute 17 dT 5 3 pos Normal
+    doMinute 18 dT 5 3 pos Normal
+    doMinute 19 dT 5 3 pos Normal
+    doMinute 20 dT 5 3 pos Tank
+    doMinute 21 dT 8 3 pos Normal
+    doMinute 22 dT 5 3 pos Normal
+    doMinute 23 dT 5 3 pos Normal
+    doMinute 25 dT 8 3 pos Fast
+    doMinute 26 dT 8 3 pos Fast
+    doMinute 27 dT 8 3 pos Tank
+    doMinute 28 dT 8 3 pos Tank
+    doMinute 29 dT 8 3 pos Tank
 
 spawnsHive Hive4 dT pos = do
     doMinute 3 dT 5 3 pos Normal
@@ -75,6 +112,19 @@ spawnsHive Hive4 dT pos = do
     doMinute 9 dT 3 3 pos Fast
     doMinute 12 dT 5 3 pos Normal
     doMinute 14 dT 5 3 pos Tank
+    doMinute 16 dT 3 3 pos Normal
+    doMinute 17 dT 5 3 pos Fast
+    doMinute 18 dT 5 3 pos Normal
+    doMinute 19 dT 5 3 pos Fast
+    doMinute 20 dT 8 3 pos Normal
+    doMinute 22 dT 5 3 pos Fast
+    doMinute 23 dT 5 3 pos Fast
+    doMinute 24 dT 8 3 pos Fast
+    doMinute 25 dT 8 3 pos Tank
+    doMinute 26 dT 8 3 pos Fast
+    doMinute 27 dT 8 3 pos Tank
+    doMinute 28 dT 5 3 pos Normal
+    doMinute 29 dT 8 3 pos Fast
 
 spawnsHive Hive5 dT pos = do
     doMinute 4 dT 3 3 pos Normal
@@ -83,6 +133,19 @@ spawnsHive Hive5 dT pos = do
     doMinute 10 dT 8 3 pos Normal
     doMinute 12 dT 3 3 pos Tank
     doMinute 15 dT 8 3 pos Normal
+    doMinute 16 dT 3 3 pos Normal
+    doMinute 17 dT 3 3 pos Normal
+    doMinute 18 dT 5 3 pos Normal
+    doMinute 19 dT 5 3 pos Tank
+    doMinute 21 dT 5 3 pos Tank
+    doMinute 22 dT 5 3 pos Fast
+    doMinute 23 dT 5 3 pos Fast
+    doMinute 24 dT 8 3 pos Fast
+    doMinute 25 dT 8 3 pos Normal
+    doMinute 26 dT 8 3 pos Fast
+    doMinute 27 dT 8 3 pos Normal
+    doMinute 28 dT 5 3 pos Fast
+    doMinute 29 dT 8 3 pos Fast
 
 doMinute :: HasMany w [Time, Hp, Enemy, Position, Sprite, AnimatedSprite, Velocity, PathFinder, EntityCounter] => Int -> Float -> Float -> Float -> V2 Float -> EnemyType -> System w ()
 doMinute minute dT enemies waves pos etype = do
@@ -98,5 +161,5 @@ spawnWave time dT amount rate system = do
 
 getEnemyFromType :: HasMany w  [Hp, Enemy, Position, Sprite, AnimatedSprite, Velocity, PathFinder, EntityCounter] => EnemyType -> Float -> V2 Float -> System w Entity
 getEnemyFromType Normal scaling pos = newEntity (Hp (100*scaling) (100*scaling) 0, Enemy 1 35 Normal, Position pos, droneKukasWalkRight, Velocity (V2 0 0), PathFinder Nothing [])
-getEnemyFromType Fast scaling pos = newEntity (Hp (50*scaling) (50*scaling) 0, Enemy 1 45 Fast, Position pos, armourKukasWalkRight, Velocity (V2 0 0), PathFinder Nothing [])
+getEnemyFromType Fast scaling pos = newEntity (Hp (80*scaling) (50*scaling) 0, Enemy 1 45 Fast, Position pos, armourKukasWalkRight, Velocity (V2 0 0), PathFinder Nothing [])
 getEnemyFromType Tank scaling pos = newEntity (Hp (200*scaling) (200*scaling) 0, Enemy 1 25 Tank, Position pos, fastKukasWalkRight, Velocity (V2 0 0), PathFinder Nothing [])
