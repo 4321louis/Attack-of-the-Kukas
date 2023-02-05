@@ -92,7 +92,6 @@ initialiseGrid grid coords  = do
 
 step :: Float -> SystemW ()
 step dT = do
-    checkGameEnd
     s :: State <- get global
     when (s == Game) $ do
         incrTime dT
@@ -107,6 +106,7 @@ step dT = do
         destroyDeadStructures
         destroyDeadEnemies
         spawnEnemies dT
+        checkGameEnd
 
 checkGameEnd :: (HasMany w [EntityCounter, Time, Hp, Base, Enemy, State]) => System w ()
 checkGameEnd = do
@@ -116,9 +116,11 @@ checkGameEnd = do
     if (hp <= 0)
     then do 
         modify global $ \(_::State) -> Lose
+        liftIO $ soundStopAll -- this will break if win occurs before time < 18
+        void $ playIOSoundEffect gameOverJingle
     else do
         enemyCount <- cfold (\count (Enemy _ _) -> count + 1) 0
-        when (time >= 1800 && enemyCount <= 0) $ 
+        when (time >= 1800 && enemyCount <= 0) $ do
             modify global $ \(_::State) -> Win
             
     
