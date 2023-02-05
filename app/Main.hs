@@ -103,6 +103,12 @@ step dT = do
     destroyDeadStructures
     destroyDeadEnemies
     spawnEnemies dT
+    checkGameEnd
+
+
+checkGameEnd :: (HasMany w [EntityCounter, Time, Hp]) => System w ()
+checkGameEnd = do
+    return ()
 
 draw :: Picture -> (Int,Int) -> SystemW Picture
 draw bg (screenWidth, screenHeight) = do
