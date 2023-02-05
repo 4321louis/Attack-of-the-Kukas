@@ -1,6 +1,7 @@
 # Attack of the Kukas
 
 It is the year 2090... The kukas (scientific name: Kukas lociadis) have risen from the ground to wreak havoc on the ecosystem...
+
 Genetically modified crops from 4 types of scientific seeds join hands (or roots?!) together to defend the ecosystem.
 
 Play time: 30 mins
@@ -41,14 +42,17 @@ Move camera with middle mouse, or arrow keys
 
 
 # Credits
-4321louis - Code
-你爸爸很性感 - Art
-Eledged - Code
-Tifereth - Code
-Hethan - Music
+* 4321louis - Code
+* 你爸爸很性感 - Art
+* Eledged - Code
+* Tifereth - Code
+* Hethan - Music
 
 Special thanks to Kage.S for his A* expertise
 
 We would love to hear your feedback!
+
+
 Positive feedback goes to: StephenO#6056 (Discord)
+
 Negative feedback goes to: 4321louis#7045 (Discord)
