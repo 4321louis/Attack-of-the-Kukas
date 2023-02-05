@@ -335,8 +335,8 @@ necromancyOnDeath :: (HasMany w [Enemy, Position, Velocity, UndeadBomber, PathFi
 necromancyOnDeath posP ety = do
     (Position posE, Hp _ maxHp _, Enemy _ speed _) <- get ety
     when (L.norm (posP - posE) < 3.5*64) $ do
-        roll <- liftIO $ randomRIO (1::Int,5)
-        when (roll <= 2) $ do
+        roll <- liftIO $ randomRIO (1::Int,100)
+        when (roll <= 70) $ do
             hives <- (`cfold` []) $ \hs (_h::Hive, Position pos) -> pos:hs
             let V2 lx ly = posE - posP
                 (ox,oy) = (0,0)
