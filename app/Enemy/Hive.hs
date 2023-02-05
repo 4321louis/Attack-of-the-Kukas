@@ -149,7 +149,7 @@ spawnsHive Hive5 dT pos = do
 
 doMinute :: HasMany w [Time, Hp, Enemy, Position, Sprite, AnimatedSprite, Velocity, PathFinder, EntityCounter] => Int -> Float -> Float -> Float -> V2 Float -> EnemyType -> System w ()
 doMinute minute dT enemies waves pos etype = do
-    let scaling = 1.2^fromIntegral (div minute 200)
+    let scaling = 1.2^fromIntegral (div minute 150)
         sec = 60 * fromIntegral minute
     foldM_ (\_ e -> e) () [spawnWave time dT enemies 1.3 (getEnemyFromType etype scaling pos) | time <- [sec, sec + 60/waves .. sec + 59]]
 
@@ -160,6 +160,6 @@ spawnWave time dT amount rate system = do
     foldM_ (\_ etime ->triggerAt dT etime system) () [time,time+rate .. time+(amount-1)*rate]
 
 getEnemyFromType :: HasMany w  [Hp, Enemy, Position, Sprite, AnimatedSprite, Velocity, PathFinder, EntityCounter] => EnemyType -> Float -> V2 Float -> System w Entity
-getEnemyFromType Normal scaling pos = newEntity (Hp (100*scaling) (100*scaling) 0, Enemy 1 35 Normal, Position pos, droneKukasWalkRight, Velocity (V2 0 0), PathFinder Nothing [])
-getEnemyFromType Fast scaling pos = newEntity (Hp (80*scaling) (50*scaling) 0, Enemy 1 45 Fast, Position pos, armourKukasWalkRight, Velocity (V2 0 0), PathFinder Nothing [])
-getEnemyFromType Tank scaling pos = newEntity (Hp (200*scaling) (200*scaling) 0, Enemy 1 25 Tank, Position pos, fastKukasWalkRight, Velocity (V2 0 0), PathFinder Nothing [])
+getEnemyFromType Normal scaling pos = newEntity (Hp (100*scaling) (100*scaling) 0, Enemy (1*scaling) 35 Normal, Position pos, droneKukasWalkRight, Velocity (V2 0 0), PathFinder Nothing [])
+getEnemyFromType Fast scaling pos = newEntity (Hp (80*scaling) (50*scaling) 0, Enemy (1*scaling) 45 Fast, Position pos, armourKukasWalkRight, Velocity (V2 0 0), PathFinder Nothing [])
+getEnemyFromType Tank scaling pos = newEntity (Hp (200*scaling) (200*scaling) 0, Enemy (1*scaling) 25 Tank, Position pos, fastKukasWalkRight, Velocity (V2 0 0), PathFinder Nothing [])

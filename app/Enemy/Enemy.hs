@@ -40,7 +40,7 @@ instance Component DropHandler where type Storage DropHandler = Global DropHandl
 
 type AllEnemyComps = (Position, Enemy, Velocity, PathFinder, Sprite, Hp)
 
-destroyDeadEnemies :: (HasMany w [PathFinder, Position, Velocity, Enemy, Sprite, Hp, DropHandler, Seed, EntityCounter, DropHandler, Camera]) => System w ()
+destroyDeadEnemies :: (HasMany w [PathFinder, Position, Velocity, Enemy, Sprite, Hp, DropHandler, Seed, EntityCounter, DropHandler, Camera, Time]) => System w ()
 destroyDeadEnemies =
     cmapM $ \(Enemy {}, Hp hp _ _ , ety, Position pos, DropHandler chance) ->
         if hp <= 0
@@ -48,6 +48,8 @@ destroyDeadEnemies =
             destroy ety (Proxy @AllEnemyComps )
             playIOSoundEffectAt pos kukasDeath
             roll <- randomRIO (0,100)
+            Time time <- get global
+            let scale = if time < 900 then 0.5*(time/900) + 3.5*(1-time/900) else 0.5
             if roll < chance
             then do
                 seed <- liftIO $ randomRIO (0,3)
@@ -55,7 +57,7 @@ destroyDeadEnemies =
                 yoff <- liftIO $ randomRIO (-32,32)
                 _ <- newEntity ([GreenSeed,RedSeed,BlueSeed,Spore] !! seed, Position (V2 xoff yoff + pos), Sprite $ [greenSeed,redSeed,blueSeed,spore] !! seed )
                 return (DropHandler 0)
-            else return (DropHandler (chance+3.1))
+            else return (DropHandler (chance+scale))
         else return (DropHandler chance)
 
 
@@ -66,6 +68,7 @@ doEnemy dT = do
     chooseSpirte
 
 data EnemySpriteState = WalkLeft | WalkRight | AttackLeft | AttackRight
+getEnemySpriteForType :: EnemyType -> EnemySpriteState -> AnimatedSprite
 getEnemySpriteForType Normal AttackLeft = droneKukasAttackLeft
 getEnemySpriteForType Normal AttackRight = droneKukasAttackRight
 getEnemySpriteForType Normal WalkRight = droneKukasWalkRight
