@@ -74,6 +74,17 @@ waitSound s = do
 oneSec :: Int
 oneSec = 1000000 -- micro seconds
 
+endingAudio :: System w ()
+endingAudio = do 
+    liftIO $ forkIO $ do 
+        gameLoop <- menuLoop
+        gameLoopIntro <- menuLoopIntro
+        intro <- soundPlay gameLoopIntro 1 1 0 1
+        waitSound intro
+        _musicTrack <- soundLoop gameLoop 1 1 0 1
+        return ()
+    return ()
+
 initializeAudio :: IO ()
 initializeAudio = do
     result <- initAudio 128 44100 1024 -- max channels, mixing frequency, mixing buffer size

@@ -47,11 +47,13 @@ instance Component Inputs where type Storage Inputs = Global Inputs
 playerSpeed :: Float
 playerSpeed = 170
 
-handleInputs :: (HasMany w [Inventory, Seed, Plant, Hp, AttackSpeed, Player, Position, Velocity, Inputs, Camera, EntityCounter, MapGrid, Sprite, Structure, Paths, PathFinder]) => Event -> System w ()
+handleInputs :: (HasMany w [State, Inventory, Seed, Plant, Hp, AttackSpeed, Player, Position, Velocity, Inputs, Camera, EntityCounter, MapGrid, Sprite, Structure, Paths, PathFinder]) => Event -> System w ()
 handleInputs e = do
     modify global $ \(Inputs s m _) -> Inputs s m (V2 0 0)
     updateGlobalInputs e
-    handleEvent e
+    s::State <- get global
+    when (s == Game) $ handleEvent e
+    handleEventAll e
     doMousePanning
 
 updateGlobalInputs :: (Has w IO Inputs) => Event -> System w ()
@@ -63,13 +65,17 @@ updateGlobalInputs (EventMotion (x, y)) = do
     modify global $ \(Inputs s prev _) -> Inputs s (V2 x y) (V2 x y - prev)
 updateGlobalInputs _ = return ()
 
-handleEvent :: (HasMany w [Inventory, Seed, Plant, Hp, AttackSpeed, Player, Velocity, Inputs, EntityCounter, MapGrid, Position, Sprite, Camera, Structure, Paths, PathFinder]) => Event -> System w ()
+-- These events occur any time - state can be anything
+handleEventAll :: (HasMany w [Inputs, Camera]) => Event -> System w ()
+handleEventAll (EventKey (SpecialKey KeyEsc) Down _ _) = liftIO exitSuccess
+handleEventAll _ = return ()
+
+-- These events only occur when State == Game
+handleEvent :: (HasMany w [State, Inventory, Seed, Plant, Hp, AttackSpeed, Player, Velocity, Inputs, EntityCounter, MapGrid, Position, Sprite, Camera, Structure, Paths, PathFinder]) => Event -> System w ()
 handleEvent (EventKey (SpecialKey KeyLeft) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyRight) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyDown) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
 handleEvent (EventKey (SpecialKey KeyUp) _ _ _) = cmap $ \(Player, Velocity _, Inputs s _ _) -> Velocity (playerVelocityfromInputs s)
-
-handleEvent (EventKey (SpecialKey KeyEsc) Down _ _) = liftIO exitSuccess
 
 handleEvent (EventKey (Char 'q') Down _ _) = modify global $ \(Inventory inv (seed:seeds)) -> Inventory inv [GreenSeed, seed]
 handleEvent (EventKey (Char 'w') Down _ _) = modify global $ \(Inventory inv (seed:seeds)) -> Inventory inv [RedSeed, seed]

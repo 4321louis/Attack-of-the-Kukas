@@ -21,6 +21,11 @@ import Apecs.Extension (HasMany)
 newtype Position = Position (V2 Float) deriving (Show)
 instance Component Position where type Storage Position = Map Position
 
+data State = Win | Lose | Game deriving (Show, Eq)
+instance Semigroup State where a <> b = a
+instance Monoid State where mempty = Game
+instance Component State where type Storage State = Global State
+
 newtype Velocity = Velocity (V2 Float) deriving (Show)
 instance Component Velocity where type Storage Velocity = Map Velocity
 
