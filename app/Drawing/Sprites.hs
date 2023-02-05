@@ -146,4 +146,4 @@ stepParticles dT = cmap $ \(Particle t) ->
 
 victoryBg, gameOverBg :: Picture
 victoryBg = png $ spriteDir ++ "Background/victory.png"
-gameOverBg = png $ spriteDir ++ "Background/victory.png"
+gameOverBg = png $ spriteDir ++ "Background/gameover.png"

@@ -113,7 +113,7 @@ checkGameEnd = do
     hp <- cfold (\a (Base, Hp hp _ _) -> hp) 0
     Time time <- get global
 
-    if (time > 10) -- todo: change this to hp < 0
+    if (hp <= 0)
     then do 
         modify global $ \(_::State) -> Lose
     else do
