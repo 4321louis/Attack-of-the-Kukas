@@ -79,7 +79,7 @@ bigMushroomDmg = 12
 cactusDmg = 15
 lazerDmg = 100
 poisonDuration = 5
-doTDmg = 10
+doTDmg = 15
 enchanterShield = 15
 attackSpeedModifier = 1.4
 
