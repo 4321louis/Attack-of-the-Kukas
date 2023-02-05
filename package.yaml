@@ -1,4 +1,4 @@
-name:                jamgamename
+name:                kukas-attack
 version:             0.1.0.0
 github:              "githubuser/jamgamename"
 license:             BSD3
@@ -54,7 +54,7 @@ library:
   source-dirs: src
 
 executables:
-  jamgamename-exe:
+  kukas-attack:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -62,10 +62,10 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - jamgamename
+    - kukas-attack
 
 tests:
-  jamgamename-test:
+  kukas-attack-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
@@ -73,4 +73,4 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - jamgamename
+    - kukas-attack
