@@ -44,7 +44,7 @@ testPicture2 = scale 0.1 0.1 . png $ spriteDir ++ "Test/test_picture2.png"
 testPicture3 = scale 0.4 0.4 . png $ spriteDir ++ "Test/test_picture3.png"
 testPicture4 = scale 0.5 0.5 . png $ spriteDir ++ "Test/test_picture4.png"
 
-cactus, enchanter, rockPlant , seedSeeker, aoeMushroom , attackSpeedFlower, vampireFlower, birdOfParadise, mycelium:: Picture
+cactus, enchanter, rockPlant , seedSeeker, aoeMushroom , attackSpeedFlower, vampireFlower, birdOfParadise, mycelium, necromancer:: Picture
 cactus = translate 0 9.5 . png $ spriteDir ++ "Entities/BRCactus.png"
 enchanter = translate 0 6 . png $ spriteDir ++ "Entities/GBShield.png"
 rockPlant = png $ spriteDir ++ "Entities/BBRock.png"
@@ -54,6 +54,7 @@ attackSpeedFlower = translate 0 (-4) . png $ spriteDir ++ "Entities/GRAttackSpee
 vampireFlower = png $ spriteDir ++ "Entities/GSVampire.png"
 birdOfParadise = translate 0 (-7) . png $ spriteDir ++ "Entities/RRLazer.png"
 mycelium = translate 0 1.5 . png $ spriteDir ++ "Entities/RSDoT.png"
+necromancer = translate 0 3 . png $ spriteDir ++ "Entities/SSNecro.png"
 
 shieldEffect, attackSpeedEffect :: Picture
 shieldEffect = scale 1.5 1.5 . png $ spriteDir ++ "Effects/ShieldEffect.png"
@@ -94,10 +95,27 @@ aoe6 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect6.png"
 aoe7 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect7.png"
 aoe8 = png $ spriteDir ++ "Effects/AoEEffect/AoEEffect7.png"
 
-aoeEffect, aoeEffectMini :: AnimatedSprite
-aoeEffect = AnimatedSprite 0.25 $ map (scale 22 22) [aoe1, aoe2, aoe3, aoe4, aoe5, aoe6, aoe7, aoe8]
+aoeb1, aoeb2, aoeb3, aoeb4, aoeb5, aoeb6, aoeb7, aoeb8 :: Picture
+aoeb1 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG1.png"
+aoeb2 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG2.png"
+aoeb3 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG3.png"
+aoeb4 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG4.png"
+aoeb5 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG5.png"
+aoeb6 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG6.png"
+aoeb7 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG7.png"
+aoeb8 = png $ spriteDir ++ "Effects/AoEEffectBIG/AoEEffectBIG8.png"
+
+dot1, dot2, dot3, dot4 :: Picture
+dot1 = png $ spriteDir ++ "Effects/DoTEffect/DoTEffect1.png"
+dot2 = png $ spriteDir ++ "Effects/DoTEffect/DoTEffect2.png"
+dot3 = png $ spriteDir ++ "Effects/DoTEffect/DoTEffect3.png"
+dot4 = png $ spriteDir ++ "Effects/DoTEffect/DoTEffect4.png"
+
+dotEffect ,aoeEffect, aoeEffectMini :: AnimatedSprite
+aoeEffect = AnimatedSprite 0.25 $ map (scale 1 1) [aoeb1, aoeb2, aoeb3, aoeb4, aoeb5, aoeb6, aoeb7, aoeb8]
 aoeEffectMini = AnimatedSprite 0.25 $ map (scale 4 4) [aoe1, aoe2, aoe3, aoe4, aoe5, aoe6]
- 
+dotEffect = AnimatedSprite 0.1 $ map (scale 2 2) [dot1, dot2, dot3, dot4]
+
 playerSprite = rotate 90 . color white . scale 10 20 $ triangle
 targetSprite1 = rotate 90 $ testPicture1 <> (translate 0 (negate 20) . scale 10 10 . color white $ stickFigure)
 targetSprite2 = testPicture2 <> (translate 0 (negate 20) . scale 10 10 . color white $ stickFigure)
