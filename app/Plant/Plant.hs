@@ -32,7 +32,7 @@ import Worlds
 import Plant.Seed
 import Linear (V2(..))
 import Structure.Structure
-import Drawing.Sprites (targetSprite1, attackSpeedEffect, aoeEffectMini, necromancer, dotEffect, dotBullet, aoeEffectNecro)
+import Drawing.Sprites (targetSprite1, attackSpeedEffect, aoeEffectMini, necromancer, dotEffect, dotBullet, aoeEffectNecro, vampBullet)
 
 type AllPlantComps = (Position, Structure, Sprite, Hp, Plant)
 
@@ -309,7 +309,7 @@ doVampireAttack dT posP ety = do
                 let nDist = L.norm (posP - posE)
                 in if nDist < minDist then (nDist,etyE) else min) (10000,0)
         when (cdist < tileRange 2) $ do
-                void $ newEntity (Sprite targetSprite1, DamageBullet 20, Position posP, Velocity (V2 0 0), Homer target 100 0.1)
+                void $ newEntity (Sprite vampBullet, DamageBullet 20, Position posP, Velocity (V2 0 0), Homer target 100 0.1)
 
 
 necromancyOnDeath :: (HasMany w [Enemy, Position, Velocity, UndeadBomber, PathFinder, Hive, Time, Hp, Particle, Sprite, EntityCounter]) => V2 Float -> [Entity] -> System w ()
