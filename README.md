@@ -12,6 +12,7 @@ Run `kukas-attack.exe`.
 
 ## Compiling
 Install stack from [here](https://docs.haskellstack.org/en/stable/install_and_upgrade/)
+
 Do `stack run` or simply run the vscode tasks either natively or with the task runner extension which gives nice buttons!
 
 # Controls
@@ -52,7 +53,5 @@ Special thanks to Kage.S for his A* expertise
 
 We would love to hear your feedback!
 
-
-Positive feedback goes to: StephenO#6056 (Discord)
-
-Negative feedback goes to: 4321louis#7045 (Discord)
+* Positive feedback goes to: StephenO#6056 (Discord)
+* Negative feedback goes to: 4321louis#7045 (Discord)
