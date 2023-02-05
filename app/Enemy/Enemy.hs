@@ -82,7 +82,7 @@ getEnemySpriteForType Tank WalkLeft = armourKukasWalkLeft
 chooseSpirte :: HasMany w [AnimatedSprite, Velocity, Enemy] => System w ()
 chooseSpirte = cmap $ \(as@(AnimatedSprite r ls),Velocity v@(V2 x y),Enemy _ _ etype) ->
     let getSprite = getEnemySpriteForType etype in
-        if v == V2 0 0 then if elem as [getSprite WalkLeft, getSprite WalkRight] then getSprite AttackRight else getSprite AttackLeft 
+        if v == V2 0 0 then if elem as [getSprite AttackRight, getSprite WalkRight] then getSprite AttackRight else getSprite AttackLeft 
         else if x>0 then getSprite WalkRight else getSprite WalkLeft 
 
 moveOnPath :: (HasMany w [PathFinder, Position, Velocity, Enemy]) => System w ()
