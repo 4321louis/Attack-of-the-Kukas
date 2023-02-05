@@ -25,11 +25,12 @@ import Worlds
 
 musicDir :: String
 musicDir = "./assets/Audio/Music/"
-menuLoop, menuLoopIntro, gameLoop, gameLoopIntro :: IO Sample
+menuLoop, menuLoopIntro, gameLoop, gameLoopIntro, gameOverJingle :: IO Sample
 menuLoopIntro = sampleFromFile (musicDir ++ "Sunny_day_intro.ogg") 0.35
 menuLoop = sampleFromFile (musicDir ++ "Sunny_day_loop.ogg") 0.35
 gameLoopIntro = sampleFromFile (musicDir ++ "Uncharted_Encounter_intro.ogg") 0.45
 gameLoop = sampleFromFile (musicDir ++ "Uncharted_Encounter_loop.ogg") 0.35
+gameOverJingle = sampleFromFile (musicDir ++ "game_over.ogg") 0.43
 
 effectsDir :: String
 effectsDir = "./assets/Audio/Effects/"
