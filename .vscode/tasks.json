@@ -3,14 +3,14 @@
     
     "tasks": [{
         "label": "build and run",
-        "command": "stack exec jamgamename-exe",
+        "command": "stack exec kukas-attack-exe",
         "type": "shell",
         "dependsOn": [
             "build"
         ]
     },{
         "label": "fast fast build and run",
-        "command": "stack exec jamgamename-exe",
+        "command": "stack exec kukas-attack-exe",
         "type": "shell",
         "dependsOn": [
             "build"
@@ -25,11 +25,11 @@
         "type": "shell"
     },{
         "label": "run",
-        "command": "stack exec jamgamename-exe",
+        "command": "stack exec kukas-attack-exe",
         "type": "shell"
     },{
         "label": "profile",
-        "command": "stack --profile run jamgamename-exe --rts-options -p",
+        "command": "stack --profile run kukas-attack-exe --rts-options -p",
         "type": "shell"
     }]
 }

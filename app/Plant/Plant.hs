@@ -32,7 +32,6 @@ import Worlds
 import Plant.Seed
 import Linear (V2(..))
 import Structure.Structure
-import Drawing.Sprites (targetSprite1, attackSpeedEffect, aoeEffectMini, necromancer, dotEffect, dotBullet, aoeEffectNecro, vampBullet, necroKukasWalkRight, necrokukaswf1)
 
 type AllPlantComps = (Position, Structure, Sprite, Hp, Plant)
 
