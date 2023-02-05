@@ -32,7 +32,7 @@ import Worlds
 import Plant.Seed
 import Linear (V2(..))
 import Structure.Structure
-import Drawing.Sprites (targetSprite1, attackSpeedEffect, aoeEffectMini, necromancer, dotEffect, dotBullet, aoeEffectNecro, vampBullet)
+import Drawing.Sprites (targetSprite1, attackSpeedEffect, aoeEffectMini, necromancer, dotEffect, dotBullet, aoeEffectNecro, vampBullet, necroKukasWalkRight, necrokukaswf1)
 
 type AllPlantComps = (Position, Structure, Sprite, Hp, Plant)
 
@@ -206,12 +206,14 @@ doUndeadBombers dT = cmapM $
         then do
             cmap $ \(Enemy _ _, Position posE, hp) -> if L.norm (posE - pos) < tileRange 1 then dealDamage hp dmg else hp
             newEntity (Position pos, aoeEffectNecro, Particle 1)
-            return $ Right (Not @(Sprite,PathFinder,Position,Velocity,UndeadBomber))
+            return $ Right (Not @(Sprite,PathFinder,Position,Velocity,UndeadBomber,AnimatedSprite))
         else do
             newFuse <- (`cfold` fuse) $ \f (Enemy _ _,Position posE) -> if L.norm (posE - pos) < tileRange 1 then f - dT else f
             if null pathNodes
-            then return $ Left (PathFinder Nothing [],Velocity (V2 0 0),UndeadBomber dmg newFuse speed)
-            else return $ Left (p,Velocity ((L.^* speed) . L.normalize $ head pathNodes - pos),UndeadBomber dmg newFuse  speed)
+            then return $ Left (PathFinder Nothing [],Velocity (V2 0 0),UndeadBomber dmg newFuse speed, AnimatedSprite 10 [necrokukaswf1])
+            else do
+                let newVelocity@(V2 vx _) = (L.^* speed) . L.normalize $ head pathNodes - pos
+                return $ Left (p,Velocity newVelocity,UndeadBomber dmg newFuse  speed, if vx <0 then necroKukasWalkLeft else necroKukasWalkRight )
 
 doRockPlant :: (HasMany w [Time, Hp]) => Float -> Entity -> System w ()
 doRockPlant dT ety = triggerEvery dT 1 0.6 $ modify ety (`healHp` 1)
@@ -294,7 +296,7 @@ doLazerAttack dT posP ety = do
         when (cdist < tileRange 2) $ do
             Position posE <- get closest
             let V2 lx ly = posE - posP
-                (ox,oy) = if lx < 0 then (-22,28) else (11,19) 
+                (ox,oy) = if lx < 0 then (-22,28) else (11,19)
                 lazerLine = (color orange $ Line [(ox,oy),(lx,ly)]) <> (color red $ Line [(ox,oy+2),(lx,ly)]) <> (color red $ Line [(ox,oy-2),(lx,ly)])
             newEntity (Particle 0.25, Position posP, Sprite lazerLine)
             modify closest $ \(Enemy _ _, hp) -> dealDamage hp lazerDmg
@@ -321,7 +323,7 @@ necromancyOnDeath posP = foldM (\_ ety -> do
             (ox,oy) = (0,0)
             lazerLine = color (greyN 0.3) (Line [(ox,oy),(lx,ly)]) <> color black (Line [(ox,oy),(lx+2,ly)]) <> color black (Line [(ox,oy),(lx-2,ly)])
         newEntity (Particle 0.25, Position posP, Sprite lazerLine)
-        void $ newEntity (Position posE, Velocity (V2 0 0), UndeadBomber (maxHp/3) 4 speed, Sprite targetSprite1, PathFinder (Just hives) [])) ()
+        void $ newEntity (Position posE, Velocity (V2 0 0), UndeadBomber (maxHp/3) 4 speed, PathFinder (Just hives) [])) ()
 
 
 vampireOnDeath :: (Foldable t, HasMany w [Position, Hp, Particle, Sprite, EntityCounter, Plant]) => V2 Float -> t Entity -> System w ()
