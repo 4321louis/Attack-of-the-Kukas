@@ -35,7 +35,20 @@ import Structure.Structure
 
 type AllPlantComps = (Position, Structure, Sprite, Hp, Plant)
 
-data Plant = RockPlant | Cactus | BigMushroom | Enchanter | SeedSeeker | CorpseFlower | VampireFlower | BirdOfParadise | Mycelium | Necromancer deriving (Show, Eq)
+data Plant = RockPlant | Cactus | BigMushroom | Enchanter | SeedSeeker | CorpseFlower | VampireFlower | BirdOfParadise | Mycelium | Necromancer deriving (Eq)
+instance Show Plant where 
+    show SeedSeeker = "Seed Seeker"
+    show Enchanter = "Enchanter"
+    show CorpseFlower = "Giant Anthurium"
+    show RockPlant = "Not a Rock"
+    show VampireFlower = "Vampire Flower"
+    show BigMushroom = "Puff Mush"
+    show Cactus = "Cactus"
+    show BirdOfParadise = "Bird Of Paradise"
+    show Mycelium = "Mycelium"
+    show Necromancer = "Necromancer"
+    show _ = ""
+
 instance Component Plant where type Storage Plant = Map Plant
 
 -- Dmg, Fuse, speed
@@ -69,6 +82,7 @@ poisonDuration = 5
 doTDmg = 10
 enchanterShield = 10
 attackSpeedModifier = 1.4
+
 
 getPlant :: [Seed] -> Plant
 getPlant [GreenSeed, GreenSeed] = SeedSeeker
