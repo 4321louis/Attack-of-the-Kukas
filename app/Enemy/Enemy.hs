@@ -61,7 +61,7 @@ destroyDeadEnemies =
         else return (DropHandler chance)
 
 
-doEnemy :: (HasMany w [PathFinder, Position, Velocity, AnimatedSprite, Enemy, Paths, Structure, Time, Hp, Camera]) => Float -> System w ()
+doEnemy :: (HasMany w [PathFinder, Position, Velocity, AnimatedSprite, Enemy, Paths, Structure, Time, Hp, Camera, EntityCounter, Particle, Sprite]) => Float -> System w ()
 doEnemy dT = do
     moveOnPath
     attackOrNewPath dT
@@ -95,16 +95,16 @@ moveOnPath = cmap $ \(p@(PathFinder _ pathNodes), Position pos, Velocity _, Enem
     else (p,Velocity ((L.^* speed) . L.normalize $ head pathNodes - pos))
 
 
-attackOrNewPath :: (HasMany w [PathFinder, Position, Velocity, Enemy, Paths, Structure, Time, Hp, Camera]) => Float -> System w ()
+attackOrNewPath :: (HasMany w [PathFinder, Position, Velocity, Enemy, Paths, Structure, Time, Hp, Camera, EntityCounter, Particle, Sprite]) => Float -> System w ()
 attackOrNewPath dT = cmapM $ \(p@(PathFinder _oldGoals pathNodes), Position epos, Velocity _, Enemy dmg _ _, Paths _ goals) ->
     let trueGoals = if null goals then Nothing else Just goals in
     if null pathNodes
     then do
         (cdist, closest) <- cfold (\min@(minDist,_) (Structure _, Position spos, ety) ->
             let nDist = L.norm (spos - epos)
-            in if nDist < minDist then (nDist,ety) else min) (10000,0)
+            in if nDist < minDist then (nDist,ety) else min) (10000,0::Entity)
         if cdist < 112 then triggerEvery dT 0.75 0 (do
-            modify closest (\(Structure _, hp) -> dealDamage hp dmg)
+            modifyM closest (\(Structure {}, pos, hp) -> dealDamage pos hp dmg)
             playIOSoundEffectAt epos kukasAttack) >> return p
         else return (PathFinder trueGoals [])
     else return (PathFinder trueGoals pathNodes)

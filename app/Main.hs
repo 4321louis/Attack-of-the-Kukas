@@ -138,9 +138,6 @@ draw bg (screenWidth, screenHeight) = do
         return $ (if isSeed || isParticle then y-200 else y,translateV2 pos p):sprites) []
     let sprites = foldMap snd $ sortWith (negate . fst) unsortedSprites
 
-    particles <- foldDraw $
-        \(Particle _, Velocity (V2 vx vy), Position pos) ->
-            translateV2 pos . color orange $ Line [(0, 0), (vx / 10, vy / 10)]
     cam <- get global
     Time time <- get global
     hp <- cfold (\a (Base, Hp hp _ _) -> hp) 0 
@@ -156,13 +153,13 @@ draw bg (screenWidth, screenHeight) = do
         
         hotbar = pictureOnHud cam (V2 (fromIntegral $ 80 - div screenWidth 2) (fromIntegral $ -350 + div screenHeight 2)) $ drawHotbar inv
         crafting = pictureOnHud cam (V2 (fromIntegral $ 180 - div screenWidth 2) (fromIntegral $ 180 - div screenHeight 2)) $ drawCraft inv craft
-        drawing = pictureOnHud cam (V2 0 0) $ if (s == Game)
+        drawing = pictureOnHud cam (V2 0 0) $ if s == Game
             then Blank
-            else if (s == Win)
+            else if s == Win
                 then victoryBg
             else gameOverBg
 
-    return $  bg <> sprites <> particles <> hotbar <> crafting <> hpPic <> timeSpr <> drawing
+    return $  bg <> sprites <> hotbar <> crafting <> hpPic <> timeSpr <> drawing
 
 main :: IO ()
 main = do
